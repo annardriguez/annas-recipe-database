@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f4efe7">
+  <title>Meal Planner | Anna's Kitchen Index</title>
+  <link rel="stylesheet" href="style.css?v=dark-readable">
+</head>
+
+<body>
+  <header class="site-header">
+    <a class="logo" href="index.html">
+      <span class="logo-title">Anna's Kitchen Index <span class="logo-spark">✣</span></span>
+      <span class="logo-subtitle">Recipes that fuel your life</span>
+    </a>
+
+    <nav class="navigation" aria-label="Primary navigation">
+      <a href="index.html#discover">Home</a>
+      <a href="index.html#recipes">All Recipes</a>
+      <a href="index.html#recipes">Favorites</a>
+      <a class="active" href="planner.html">Meal Planner</a>
+      <a href="about.html">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button class="icon-button" type="button" aria-label="Toggle dark mode">☾</button>
+      <a class="nav-favourites" href="index.html#recipes">♡ <span id="planner-favourite-count">0</span></a>
+    </div>
+  </header>
+
+  <main class="planner-page">
+    <section class="planner-hero">
+      <div>
+        <p class="eyebrow">Meal Planner</p>
+        <h1>Plan the week without making it a whole personality test.</h1>
+      </div>
+      <p>
+        Pick a slot, add a recipe, shuffle dinner ideas, and come back later.
+        Your calendar saves automatically on this browser.
+      </p>
+    </section>
+
+    <section class="planner-shell" aria-label="Weekly meal planner">
+      <div class="planner-board">
+        <div class="planner-toolbar">
+          <div>
+            <h2 class="planner-week-title" id="planner-week-title">This week</h2>
+            <p id="planner-week-subtitle">Choose a meal slot to start planning.</p>
+          </div>
+          <div class="planner-actions">
+            <div class="week-actions">
+              <button class="planner-tool-button" id="previous-week" type="button">←</button>
+              <button class="planner-tool-button" id="today-week" type="button">Today</button>
+              <button class="planner-tool-button" id="next-week" type="button">→</button>
+            </div>
+            <button class="planner-tool-button primary" id="organize-week" type="button">Organize week</button>
+            <button class="planner-tool-button" id="clear-week" type="button">Clear week</button>
+          </div>
+        </div>
+
+        <div class="calendar-grid" id="calendar-grid"></div>
+      </div>
+
+      <aside class="recipe-picker" aria-label="Recipe picker">
+        <div class="picker-header">
+          <h2 id="picker-title">Pick a meal slot</h2>
+          <p id="picker-helper">Then choose a recipe to place in the calendar.</p>
+          <label class="picker-search">
+            <span class="visually-hidden">Search recipes for planner</span>
+            <input id="planner-search" type="search" placeholder="Search recipes..." autocomplete="off">
+          </label>
+        </div>
+
+        <div class="picker-list" id="planner-recipe-list"></div>
+      </aside>
+    </section>
+  </main>
+
+  <dialog id="recipe-dialog">
+    <button class="dialog-close" id="dialog-close" aria-label="Close recipe">×</button>
+    <div id="dialog-content"></div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="theme.js"></script>
+  <script src="recipes.js"></script>
+  <script src="planner.js?v=no-repeat-days"></script>
+</body>
+</html>

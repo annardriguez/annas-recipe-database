@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f4efe7">
+  <title>Anna's Kitchen</title>
+  <link rel="stylesheet" href="style.css?v=dark-readable">
+</head>
+
+<body>
+  <header class="site-header">
+    <a class="logo" href="index.html">
+      <span class="logo-title">Anna's Kitchen <span class="logo-spark">✣</span></span>
+      <span class="logo-subtitle">Recipes that fuel your life</span>
+    </a>
+
+    <nav class="navigation" aria-label="Primary navigation">
+      <a class="active" href="#discover">Home</a>
+      <a href="#recipes">All Recipes</a>
+      <button class="nav-link-button" id="show-favourites-nav">Favorites</button>
+      <a href="planner.html">Meal Planner</a>
+      <a href="about.html">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button class="icon-button" type="button" aria-label="Toggle dark mode">☾</button>
+      <button class="nav-favourites" id="show-favourites">
+        ♡ <span id="favourite-count">0</span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="discover">
+      <div class="hero-copy">
+        <h1>Welcome back! <span>♡</span></h1>
+        <p class="hero-text">Good food, good mood.</p>
+      </div>
+
+      <div class="library-stats" aria-label="Recipe library statistics">
+        <div>
+          <span class="stat-icon">▣</span>
+          <strong id="total-recipes">0</strong>
+          <span>Recipes</span>
+        </div>
+        <div>
+          <span class="stat-icon leaf">☘</span>
+          <strong id="vegetarian-recipes">0</strong>
+          <span>Vegetarian</span>
+        </div>
+        <div>
+          <span class="stat-icon clock">◷</span>
+          <strong id="quick-recipes">0</strong>
+          <span>Under 15 min</span>
+        </div>
+        <div>
+          <span class="stat-icon dumbbell">↔</span>
+          <strong id="protein-recipes">0</strong>
+          <span>High Protein</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="control-panel section">
+      <div class="search-row">
+        <label class="search-box">
+          <span class="search-icon">⌕</span>
+          <span class="visually-hidden">Search recipes</span>
+          <input
+            id="recipe-search"
+            type="search"
+            placeholder="Search by ingredient, recipe, or keyword..."
+            autocomplete="off"
+          >
+          <kbd>⌘ K</kbd>
+        </label>
+
+        <label class="sort-box">
+          <span>Sort by:</span>
+          <select id="sort-select" aria-label="Sort recipes">
+            <option value="default">Newest</option>
+            <option value="time">Fastest first</option>
+            <option value="protein">Most protein</option>
+            <option value="calories">Lowest calories</option>
+            <option value="az">A-Z</option>
+          </select>
+        </label>
+
+        <button class="primary-button" id="random-recipe" type="button">
+          ◈ Surprise me!
+        </button>
+      </div>
+
+      <div class="filter-toolbar">
+        <div class="filter-scroll" id="quick-filters"></div>
+        <button id="clear-filters" class="clear-button">Reset</button>
+      </div>
+    </section>
+
+    <section class="section recipe-section" id="recipes">
+      <div class="section-heading">
+        <p id="active-summary">Showing the whole kitchen.</p>
+        <p id="recipe-count"></p>
+      </div>
+
+      <div class="recipe-grid" id="recipe-grid"></div>
+
+      <div class="empty-state" id="empty-message" hidden>
+        <span>🥲</span>
+        <h3>The fridge has defeated us.</h3>
+        <p>Try removing a filter or searching another ingredient.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <p>Made for hungry, tired and aggressively indecisive moments.</p>
+  </footer>
+
+  <dialog id="recipe-dialog">
+    <button class="dialog-close" id="dialog-close" aria-label="Close recipe">×</button>
+    <div id="dialog-content"></div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="theme.js"></script>
+  <script src="recipes.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
