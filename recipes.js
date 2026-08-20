@@ -1536,7 +1536,7 @@ const recipes = [
       "200 g Brussels sprouts, halved",
       "3 g olive oil",
       "1 tbsp hoisin sauce",
-      "1 tsp honey,,
+      "1 tsp honey",
       "1 tsp soy sauce",
       "Garlic powder, ginger, salt and pepper"
     ],
@@ -2286,3 +2286,4 @@ const recipes = [
     "Flip carefully and cook the other side until golden."
   ]
 }
+];

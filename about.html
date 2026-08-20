@@ -25,6 +25,7 @@
 
     <div class="header-actions">
       <button class="icon-button" type="button" aria-label="Toggle dark mode">☾</button>
+      <button class="account-button" id="open-account" type="button">Log in</button>
       <a class="nav-favourites" href="index.html#recipes">♡ <span data-favourite-count>0</span></a>
     </div>
   </header>
@@ -54,6 +55,16 @@
     <p>Made for hungry, tired and aggressively indecisive moments.</p>
   </footer>
 
+  <dialog id="account-dialog">
+    <button class="dialog-close" id="account-dialog-close" aria-label="Close My Kitchen">×</button>
+    <div id="account-content"></div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
   <script src="theme.js"></script>
+  <script src="account.js"></script>
 </body>
 </html>

@@ -27,6 +27,7 @@ FILES
 - recipes.js: recipe database
 - script.js: search, filters, favourites and interactions
 - planner.js: meal planner interactions
+- account.js: shared login dialog for planner/about pages
 - theme.js: dark/light theme toggle
 - supabase-config.js: Supabase project URL and publishable key for login sync
 - supabase-schema.sql: database setup script for synced favourites
