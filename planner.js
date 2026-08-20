@@ -1,6 +1,7 @@
 const calendarGrid = document.querySelector("#calendar-grid");
 const weekTitle = document.querySelector("#planner-week-title");
 const weekSubtitle = document.querySelector("#planner-week-subtitle");
+const saveStatus = document.querySelector("#planner-save-status");
 const previousWeekButton = document.querySelector("#previous-week");
 const nextWeekButton = document.querySelector("#next-week");
 const todayWeekButton = document.querySelector("#today-week");
@@ -11,6 +12,10 @@ const recipeList = document.querySelector("#planner-recipe-list");
 const pickerTitle = document.querySelector("#picker-title");
 const pickerHelper = document.querySelector("#picker-helper");
 const favouriteCount = document.querySelector("#planner-favourite-count");
+const plannedMealCount = document.querySelector("#planned-meal-count");
+const weeklySummary = document.querySelector("#weekly-summary");
+const shoppingList = document.querySelector("#shopping-list");
+const copyShoppingListButton = document.querySelector("#copy-shopping-list");
 const dialog = document.querySelector("#recipe-dialog");
 const dialogContent = document.querySelector("#dialog-content");
 const dialogClose = document.querySelector("#dialog-close");
@@ -30,6 +35,7 @@ let selectedSlot = null;
 let toastTimer;
 
 const mealPlan = JSON.parse(localStorage.getItem("annaMealPlan") || "{}");
+const savedPlanAt = localStorage.getItem("annaMealPlanSavedAt");
 const savedRecipeIds = new Set(
   JSON.parse(localStorage.getItem("annaRecipeFavourites") || "[]")
 );
@@ -83,8 +89,42 @@ function getRecipeById(id) {
   return recipes.find(recipe => recipe.id === id);
 }
 
-function savePlan() {
+function formatSavedTime(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(date);
+}
+
+function hasSavedMeals() {
+  return Object.keys(mealPlan).length > 0;
+}
+
+function updateSaveStatus(savedAt = localStorage.getItem("annaMealPlanSavedAt")) {
+  if (!saveStatus) return;
+
+  if (!hasSavedMeals()) {
+    saveStatus.textContent =
+      "This planner saves on this device when you add meals.";
+    return;
+  }
+
+  const savedTime = formatSavedTime(savedAt);
+  saveStatus.textContent = savedTime
+    ? `Saved on this device · last updated ${savedTime}`
+    : "Saved on this device.";
+}
+
+function savePlan(savedAt = new Date().toISOString()) {
   localStorage.setItem("annaMealPlan", JSON.stringify(mealPlan));
+  localStorage.setItem("annaMealPlanSavedAt", savedAt);
+  updateSaveStatus(savedAt);
 }
 
 function showToast(message) {
@@ -146,6 +186,7 @@ function renderPlanner() {
 
   calendarGrid.replaceChildren(...weekDates.map(renderDay));
   renderRecipePicker();
+  renderWeeklySummary();
 }
 
 function renderDay(date) {
@@ -379,6 +420,18 @@ function openRecipe(recipe) {
             <strong>${recipe.protein ?? "-"}</strong>
             <span>g protein</span>
           </div>
+          <div>
+            <strong>${recipe.carbs ?? "-"}</strong>
+            <span>g carbs</span>
+          </div>
+          <div>
+            <strong>${recipe.fat ?? "-"}</strong>
+            <span>g fat</span>
+          </div>
+          <div>
+            <strong>${recipe.fiber ?? "-"}</strong>
+            <span>g fiber</span>
+          </div>
         </div>
 
         <h3>Ingredients</h3>
@@ -401,6 +454,87 @@ function openRecipe(recipe) {
   document.body.classList.add("dialog-open");
 }
 
+function getPlannedRecipesForWeek() {
+  return getWeekDates().flatMap(date => {
+    const dateKey = toDateKey(date);
+
+    return mealSlots
+      .map(slot => getRecipeById(mealPlan[makeSlotKey(dateKey, slot)]))
+      .filter(Boolean);
+  });
+}
+
+function sumMacro(plannedRecipes, key) {
+  return plannedRecipes.reduce((total, recipe) => {
+    const value = recipe[key];
+    return typeof value === "number" ? total + value : total;
+  }, 0);
+}
+
+function uniqueIngredients(plannedRecipes) {
+  const seen = new Set();
+
+  return plannedRecipes.flatMap(recipe => recipe.ingredients).filter(item => {
+    const normalized = item
+      .toLowerCase()
+      .replace(/^[\d\s./–-]+(g|ml|tsp|tbsp|small|large|medium)?\s+/i, "")
+      .trim();
+
+    if (seen.has(normalized)) return false;
+    seen.add(normalized);
+    return true;
+  });
+}
+
+function renderWeeklySummary() {
+  const plannedRecipes = getPlannedRecipesForWeek();
+  const plannedCount = plannedRecipes.length;
+  const calories = sumMacro(plannedRecipes, "calories");
+  const protein = sumMacro(plannedRecipes, "protein");
+  const carbs = sumMacro(plannedRecipes, "carbs");
+  const fat = sumMacro(plannedRecipes, "fat");
+
+  plannedMealCount.textContent = `${plannedCount} meal${plannedCount === 1 ? "" : "s"} planned`;
+  weeklySummary.innerHTML = `
+    <div><strong>${calories || "-"}</strong><span>kcal total</span></div>
+    <div><strong>${protein || "-"}</strong><span>g protein</span></div>
+    <div><strong>${carbs || "-"}</strong><span>g carbs</span></div>
+    <div><strong>${fat || "-"}</strong><span>g fat</span></div>
+  `;
+
+  const ingredients = uniqueIngredients(plannedRecipes).slice(0, 28);
+  shoppingList.replaceChildren(
+    ...(ingredients.length
+      ? ingredients.map(item => {
+          const listItem = document.createElement("li");
+          listItem.textContent = item;
+          return listItem;
+        })
+      : [Object.assign(document.createElement("li"), {
+          className: "shopping-empty",
+          textContent: "Plan meals to build a shopping list."
+        })])
+  );
+}
+
+async function copyShoppingList() {
+  const ingredients = uniqueIngredients(getPlannedRecipesForWeek());
+
+  if (!ingredients.length) {
+    showToast("Plan a few meals first");
+    return;
+  }
+
+  const text = ingredients.map(item => `- ${item}`).join("\n");
+
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast("Shopping list copied");
+  } catch {
+    showToast("Could not copy list in this browser");
+  }
+}
+
 function closeDialog() {
   dialog.close();
   document.body.classList.remove("dialog-open");
@@ -416,10 +550,15 @@ todayWeekButton.addEventListener("click", () => {
 organizeWeekButton.addEventListener("click", organizeWeek);
 clearWeekButton.addEventListener("click", clearWeek);
 plannerSearch.addEventListener("input", renderRecipePicker);
+copyShoppingListButton.addEventListener("click", copyShoppingList);
 dialogClose.addEventListener("click", closeDialog);
 dialog.addEventListener("click", event => {
   if (event.target === dialog) closeDialog();
 });
 
 favouriteCount.textContent = savedRecipeIds.size;
+document.querySelectorAll("[data-favourite-count]").forEach(item => {
+  item.textContent = savedRecipeIds.size;
+});
+updateSaveStatus(savedPlanAt);
 renderPlanner();

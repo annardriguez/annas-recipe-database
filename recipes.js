@@ -1119,34 +1119,6 @@ const recipes = [
     note: "Approximate macros with water and coconut omitted; milk/toppings increase them."
   },
   {
-    id: "pizza-side-salad-plate",
-    title: "Leftover Pizza Balanced Plate",
-    emoji: "🍕",
-    description: "A practical way to turn leftover pizza into a satisfying meal.",
-    category: "main",
-    tags: ["quick", "leftovers"],
-    servings: 1,
-    time: 10,
-    calories: 600,
-    protein: 30,
-    carbs: 66,
-    fat: 24,
-    fiber: 8,
-    equipment: ["air fryer optional"],
-    ingredients: [
-      "2 leftover pizza slices, about 220 g total",
-      "200 g crunchy salad vegetables",
-      "100 g cottage cheese/skyr dip or other protein-rich side",
-      "10 g balsamic dressing"
-    ],
-    steps: [
-      "Air-fry pizza at 180°C for 4–6 minutes or reheat in a pan until crisp underneath.",
-      "Chop vegetables and toss with balsamic dressing.",
-      "Serve pizza with the salad and protein-rich dip/side."
-    ],
-    note: "Macros vary a lot by pizza; values are a realistic placeholder for two medium slices plus sides."
-  },
-  {
     id: "cucumber-tuna-crunch-salad",
     title: "Cucumber Tuna Crunch Salad",
     emoji: "🥒",
@@ -1563,10 +1535,10 @@ const recipes = [
       "180 g potatoes, cubed",
       "200 g Brussels sprouts, halved",
       "3 g olive oil",
-      "70 g skyr/yogurt",
-      "8 g Dijon mustard",
-      "1/2 lemon",
-      "Garlic powder, salt and pepper"
+      "1 tbsp hoisin sauce",
+      "1 tsp honey,,
+      "1 tsp soy sauce",
+      "Garlic powder, ginger, salt and pepper"
     ],
     steps: [
       "Preheat air fryer to 195°C. Toss potatoes and Brussels with oil and seasoning; air-fry 12 minutes, shaking once.",
@@ -1574,7 +1546,7 @@ const recipes = [
       "Mix yogurt, Dijon, lemon juice and a pinch of garlic powder.",
       "Serve salmon with crispy vegetables and sauce."
     ],
-    note: "Approximate macros per serving."
+    note: "Approximate macros per serving. Add cheese or nuts  for extra fat"
   },
   {
     id: "judias-verdes-con-tomate",
@@ -1646,5 +1618,671 @@ const recipes = [
       "Finish with lemon juice, dill and black pepper."
     ],
     note: "Approximate macros per serving."
-  }
-];
+  },
+  {
+  id: "ramen",
+  title: "Miso Tofu Egg Ramen",
+  emoji: "🍜",
+  description: "Cozy miso ramen with tofu, egg, mushrooms and greens.",
+  category: "main",
+  tags: ["high protein", "comfort food", "quick"],
+  servings: 1,
+  time: 20,
+  calories: 525,
+  protein: 31,
+  carbs: 62,
+  fat: 18,
+  fiber: 8,
+  equipment: ["hob"],
+  ingredients: [
+    "70 g ramen noodles",
+    "120 g firm tofu, cubed",
+    "1 egg",
+    "100 g mushrooms",
+    "100 g pak choi",
+    "15 g miso paste",
+    "8 g peanut butter",
+    "1 tsp soy sauce",
+    "400 ml vegetable stock",
+    "Garlic and ginger"
+  ],
+  steps: [
+    "Sauté mushrooms, garlic and ginger until fragrant.",
+    "Add stock, miso and soy sauce and bring to a gentle simmer.",
+    "Add tofu, pak choi and noodles; cook until tender.",
+    "Stir peanut butter into the broth until creamy.",
+    "Top with a soft-boiled egg."
+  ]
+},
+
+{
+  id: "kimchi-risotto",
+  title: "Kimchi Edamame Risotto",
+  emoji: "🍚",
+  description: "Creamy savoury risotto with kimchi and parmesan.",
+  category: "main",
+  tags: ["high protein", "vegetarian", "comfort food", "meal prep"],
+  servings: 1,
+  time: 30,
+  calories: 505,
+  protein: 25,
+  carbs: 68,
+  fat: 15,
+  fiber: 8,
+  equipment: ["hob"],
+  ingredients: [
+    "70 g risotto rice",
+    "100 g kimchi",
+    "15 g parmesan",
+    "5 g sesame oil",
+    "50 g onion",
+    "1 garlic clove",
+    "400 ml vegetable stock",
+    "1 tsp soy sauce"
+  ],
+  steps: [
+    "Sauté onion and garlic until soft.",
+    "Add rice and toast for 1–2 minutes.",
+    "Gradually add hot stock while stirring.",
+    "Stir in kimchi and edamame during the final 5 minutes.",
+    "Finish with parmesan, sesame oil and soy sauce."
+  ]
+},
+
+{
+  id: "feta-chickpea-tuna-salad",
+  title: "Feta Chickpea Tuna Salad",
+  emoji: "🥗",
+  description: "Fresh lemony chickpea salad with tuna, feta and crunchy vegetables.",
+  category: "main",
+  tags: ["high protein", "high fibre", "meal prep", "quick"],
+  servings: 1,
+  time: 10,
+  calories: 480,
+  protein: 38,
+  carbs: 43,
+  fat: 17,
+  fiber: 11,
+  equipment: ["none"],
+  ingredients: [
+    "120 g chickpeas, drained",
+    "80 g tuna, drained",
+    "40 g feta",
+    "100 g cucumber",
+    "50 g roasted pepper",
+    "30 g red onion",
+    "5 g olive oil",
+    "Juice of 1/2 lemon",
+    "Parsley",
+    "Salt and pepper"
+  ],
+  steps: [
+    "Chop the vegetables and add them to a bowl.",
+    "Add chickpeas, tuna and crumbled feta.",
+    "Dress with olive oil, lemon, parsley, salt and pepper.",
+    "Toss everything together and serve."
+  ]
+},
+
+{
+  id: "meatballs-rice-tomato",
+  title: "Meatballs with Rice & Tomato",
+  emoji: "🍅",
+  description: "Juicy meatballs with rice and a rich garlicky tomato sauce.",
+  category: "main",
+  tags: ["high protein", "meal prep", "comfort food"],
+  servings: 1,
+  time: 30,
+  calories: 520,
+  protein: 34,
+  carbs: 64,
+  fat: 14,
+  fiber: 7,
+  equipment: ["hob", "airfryer"],
+  ingredients: [
+    "120 g lean meatballs",
+    "65 g dry rice",
+    "150 g passata",
+    "100 g courgette",
+    "50 g onion",
+    "5 g olive oil",
+    "1 garlic clove",
+    "Italian herbs",
+    "Salt and pepper"
+  ],
+  steps: [
+    "Cook rice according to package instructions.",
+    "Cook meatballs until browned and cooked through.",
+    "Sauté onion, garlic and courgette in olive oil.",
+    "Add passata and herbs and simmer for 10 minutes.",
+    "Add the meatballs to the sauce and serve with rice."
+  ]
+},
+
+{
+  id: "truffle-carbonara-spekjes",
+  title: "Truffle Carbonara with Spekjes",
+  emoji: "🍝",
+  description: "Silky truffle carbonara with smoky spekjes, egg and parmesan.",
+  category: "main",
+  tags: ["high protein", "pasta", "truffle", "comfort food"],
+  servings: 1,
+  time: 20,
+  calories: 495,
+  protein: 34,
+  carbs: 57,
+  fat: 15,
+  fiber: 6,
+  equipment: ["hob"],
+  ingredients: [
+    "75 g pasta",
+    "80 g spekjes",
+    "1 egg",
+    "20 g parmesan",
+    "1 tsp truffle paste",
+    "Black pepper",
+    "Reserved pasta water"
+  ],
+  steps: [
+    "Cook pasta until al dente and reserve plenty of pasta water.",
+    "Crisp the spekjes in a pan.",
+    "Whisk egg, parmesan, truffle paste and black pepper.",
+    "Remove the pan from the heat and add the pasta.",
+    "Stir through the egg mixture, gradually adding pasta water until glossy and creamy.",
+    "Top with the crispy spekjes and extra black pepper."
+  ]
+},
+
+{
+  id: "berenjena-garbanzos-tomate",
+  title: "Berenjena, Garbanzos & Tomate",
+  emoji: "🍆",
+  description: "Soft aubergine, chickpeas and high-protein mince simmered in smoky tomato.",
+  category: "main",
+  tags: ["high protein", "high fibre", "meal prep"],
+  servings: 1,
+  time: 30,
+  calories: 480,
+  protein: 32,
+  carbs: 50,
+  fat: 16,
+  fiber: 15,
+  equipment: ["hob"],
+  ingredients: [
+    "200 g aubergine",
+    "120 g chickpeas, drained",
+    "100 g vegan mince",
+    "150 g passata",
+    "60 g onion",
+    "5 g olive oil",
+    "1 garlic clove",
+    "1 tsp smoked paprika",
+    "Cumin",
+    "Salt and pepper"
+  ],
+  steps: [
+    "Dice the aubergine and cook until golden and soft.",
+    "Add onion and garlic and sauté.",
+    "Add vegan mince and cook for a few minutes.",
+    "Stir in chickpeas, passata and spices.",
+    "Simmer for 10–15 minutes until rich and thick."
+  ]
+},
+
+{
+  id: "pimientos-rellenos",
+  title: "Pimientos Rellenos",
+  emoji: "🫑",
+  description: "Roasted peppers stuffed with rice, protein-rich mince and melted mozzarella.",
+  category: "main",
+  tags: ["high protein", "meal prep", "oven"],
+  servings: 1,
+  time: 40,
+  calories: 485,
+  protein: 33,
+  carbs: 62,
+  fat: 11,
+  fiber: 9,
+  equipment: ["oven", "hob"],
+  ingredients: [
+    "2 bell peppers",
+    "60 g dry rice",
+    "120 g vegan mince",
+    "100 g passata",
+    "40 g light mozzarella",
+    "50 g onion",
+    "1 garlic clove",
+    "Smoked paprika",
+    "Salt and pepper"
+  ],
+  steps: [
+    "Halve the peppers and remove the seeds.",
+    "Cook the rice until tender.",
+    "Sauté onion and garlic, then add the mince.",
+    "Stir in passata, rice and seasonings.",
+    "Fill the peppers and top with mozzarella.",
+    "Bake at 200°C for 20–25 minutes."
+  ]
+},
+
+{
+  id: "mushroom-risotto",
+  title: "Creamy Mushroom Risotto",
+  emoji: "🍄",
+  description: "Creamy parmesan mushroom risotto with edamame for a little extra protein.",
+  category: "main",
+  tags: ["vegetarian", "high protein", "comfort food"],
+  servings: 1,
+  time: 30,
+  calories: 510,
+  protein: 25,
+  carbs: 68,
+  fat: 15,
+  fiber: 8,
+  equipment: ["hob"],
+  ingredients: [
+    "70 g risotto rice",
+    "200 g mushrooms",
+    "100 g edamame",
+    "15 g parmesan",
+    "5 g olive oil",
+    "50 g onion",
+    "1 garlic clove",
+    "400 ml vegetable stock",
+    "Thyme",
+    "Black pepper"
+  ],
+  steps: [
+    "Brown the mushrooms and set aside.",
+    "Sauté onion and garlic in olive oil.",
+    "Add rice and toast briefly.",
+    "Gradually add stock while stirring.",
+    "Add edamame and mushrooms near the end.",
+    "Finish with parmesan, thyme and black pepper."
+  ]
+},
+
+{
+  id: "tahini-chickpea-shrimp-pasta",
+  title: "Tahini Chickpea Pasta with Shrimp",
+  emoji: "🍤",
+  description: "Creamy lemon-tahini pasta with chickpeas, courgette and juicy shrimp.",
+  category: "main",
+  tags: ["high protein", "high fibre", "pasta"],
+  servings: 1,
+  time: 20,
+  calories: 550,
+  protein: 40,
+  carbs: 66,
+  fat: 15,
+  fiber: 11,
+  equipment: ["hob"],
+  ingredients: [
+    "65 g pasta",
+    "100 g shrimp",
+    "80 g chickpeas, drained",
+    "15 g tahini",
+    "100 g courgette",
+    "Juice of 1/2 lemon",
+    "1 garlic clove",
+    "Reserved pasta water",
+    "Parsley",
+    "Salt and pepper"
+  ],
+  steps: [
+    "Cook pasta and reserve some pasta water.",
+    "Cook shrimp and courgette with garlic.",
+    "Whisk tahini, lemon juice and pasta water until creamy.",
+    "Add chickpeas and pasta to the pan.",
+    "Stir through the tahini sauce and top with shrimp."
+  ]
+},
+
+{
+  id: "hot-honey-chickpea-tofu-bowl",
+  title: "Hot Honey Chickpea Tofu Bowl",
+  emoji: "🍯",
+  description: "Crispy tofu and chickpeas with rice, vegetables and sticky hot honey sauce.",
+  category: "main",
+  tags: ["high protein", "vegetarian", "bowl", "high fibre"],
+  servings: 1,
+  time: 25,
+  calories: 550,
+  protein: 29,
+  carbs: 72,
+  fat: 17,
+  fiber: 12,
+  equipment: ["airfryer", "hob"],
+  ingredients: [
+    "150 g firm tofu",
+    "80 g chickpeas, drained",
+    "50 g dry rice",
+    "150 g mixed vegetables",
+    "15 g hot honey",
+    "5 g sesame oil",
+    "1 tsp soy sauce",
+    "Garlic powder",
+    "Smoked paprika"
+  ],
+  steps: [
+    "Cook rice according to package instructions.",
+    "Season tofu and chickpeas and airfry until crispy.",
+    "Cook the vegetables until just tender.",
+    "Mix hot honey, sesame oil and soy sauce.",
+    "Assemble the bowl and drizzle over the sauce."
+  ]
+},
+
+{
+  id: "pesto-cottage-cheese-sandwich",
+  title: "Pesto Cottage Cheese Sandwich",
+  emoji: "🥪",
+  description: "Golden whole-wheat toast filled with pesto, cottage cheese and melted mozzarella.",
+  category: "lunch",
+  tags: ["high protein", "quick", "vegetarian"],
+  servings: 1,
+  time: 10,
+  calories: 445,
+  protein: 30,
+  carbs: 45,
+  fat: 16,
+  fiber: 7,
+  equipment: ["pan", "sandwich press"],
+  ingredients: [
+    "2 large slices whole-wheat bread",
+    "120 g cottage cheese",
+    "10 g pesto",
+    "30 g light mozzarella",
+    "Handful of spinach",
+    "Black pepper"
+  ],
+  steps: [
+    "Spread pesto over the whole-wheat bread.",
+    "Add cottage cheese, mozzarella and spinach.",
+    "Season with black pepper.",
+    "Close and toast until golden and the mozzarella has melted."
+  ]
+},
+
+{
+  id: "spinach-omelette",
+  title: "Spinach & Feta Omelette",
+  emoji: "🍳",
+  description: "Fluffy spinach and feta omelette with whole-wheat toast.",
+  category: "breakfast",
+  tags: ["high protein", "quick", "vegetarian"],
+  servings: 1,
+  time: 15,
+  calories: 460,
+  protein: 31,
+  carbs: 38,
+  fat: 20,
+  fiber: 7,
+  equipment: ["hob"],
+  ingredients: [
+    "2 eggs",
+    "100 g egg whites",
+    "100 g spinach",
+    "30 g feta",
+    "2 slices whole-wheat bread",
+    "5 g olive oil",
+    "Salt and pepper"
+  ],
+  steps: [
+    "Wilt the spinach in a pan.",
+    "Whisk eggs and egg whites with salt and pepper.",
+    "Pour into the pan and cook gently.",
+    "Add feta and fold the omelette.",
+    "Serve with whole-wheat toast."
+  ]
+},
+
+{
+  id: "mafaldine-al-tartufo",
+  title: "Mafaldine al Tartufo",
+  emoji: "🍝",
+  description: "Silky truffle mafaldine with golden mushrooms and parmesan.",
+  category: "main",
+  tags: ["high protein", "pasta", "truffle", "comfort food"],
+  servings: 1,
+  time: 20,
+  calories: 525,
+  protein: 28,
+  carbs: 65,
+  fat: 18,
+  fiber: 7,
+  equipment: ["hob"],
+  ingredients: [
+    "75 g mafaldine",
+    "150 g mushrooms",
+    "80 g cottage cheese",
+    "20 g parmesan",
+    "1 tsp truffle paste",
+    "5 g olive oil",
+    "1 garlic clove",
+    "Reserved pasta water",
+    "Black pepper"
+  ],
+  steps: [
+    "Cook mafaldine until al dente and reserve pasta water.",
+    "Brown mushrooms with olive oil and garlic.",
+    "Blend cottage cheese, parmesan, truffle paste and pasta water until silky.",
+    "Toss the mafaldine with mushrooms and sauce over low heat.",
+    "Finish with black pepper and extra truffle if desired."
+  ]
+},
+
+{
+  id: "protein-french-toast",
+  title: "French Toast",
+  emoji: "🍓",
+  description: "Cinnamon whole-wheat French toast with creamy yogurt, berries and peanut butter.",
+  category: "breakfast",
+  tags: ["high protein", "sweet", "quick"],
+  servings: 1,
+  time: 15,
+  calories: 475,
+  protein: 31,
+  carbs: 59,
+  fat: 13,
+  fiber: 9,
+  equipment: ["hob"],
+  ingredients: [
+    "3 slices whole-wheat bread",
+    "1 egg",
+    "80 g egg whites",
+    "80 ml milk",
+    "100 g skyr or high-protein yogurt",
+    "100 g berries",
+    "10 g peanut butter",
+    "Cinnamon",
+    "Vanilla",
+    "Maple syrup or sweetener to taste"
+  ],
+  steps: [
+    "Whisk egg, egg whites, milk, cinnamon and vanilla.",
+    "Soak the whole-wheat bread in the mixture.",
+    "Cook in a non-stick pan until golden on both sides.",
+    "Top with yogurt, berries and peanut butter.",
+    "Add maple syrup or sweetener if desired."
+  ]
+},
+
+{
+  id: "burger-bowl",
+  title: "Loaded Burger Bowl",
+  emoji: "🍔",
+  description: "Crispy potatoes, protein-rich mince, avocado and melty cheese with burger sauce.",
+  category: "main",
+  tags: ["high protein", "bowl", "comfort food"],
+  servings: 1,
+  time: 30,
+  calories: 520,
+  protein: 35,
+  carbs: 55,
+  fat: 18,
+  fiber: 10,
+  equipment: ["airfryer", "hob"],
+  ingredients: [
+    "250 g potatoes",
+    "120 g vegan mince",
+    "30 g light cheese",
+    "40 g avocado",
+    "100 g lettuce",
+    "50 g pickles",
+    "30 g onion",
+    "15 g burger sauce",
+    "Paprika",
+    "Garlic powder",
+    "Salt and pepper"
+  ],
+  steps: [
+    "Cut potatoes into cubes, season and airfry until crispy.",
+    "Cook the mince with garlic powder, salt and pepper.",
+    "Melt the cheese over the hot mince.",
+    "Add lettuce, pickles, onion and avocado to a bowl.",
+    "Top with crispy potatoes, cheesy mince and burger sauce."
+  ]
+},
+
+{
+  id: "tahini-sweet-potato-brownies",
+  title: "Tahini Sweet Potato Brownies",
+  emoji: "🍫",
+  description: "Fudgy chocolate sweet potato brownies with nutty tahini.",
+  category: "sweet",
+  tags: ["meal prep", "high fibre", "chocolate"],
+  servings: 4,
+  time: 35,
+  calories: 190,
+  protein: 8,
+  carbs: 23,
+  fat: 8,
+  fiber: 4,
+  equipment: ["oven", "blender"],
+  ingredients: [
+    "250 g cooked sweet potato",
+    "50 g tahini",
+    "40 g oat flour",
+    "30 g chocolate protein powder",
+    "25 g cocoa powder",
+    "1 egg",
+    "40 ml milk",
+    "20 g dark chocolate",
+    "Sweetener to taste",
+    "1/2 tsp baking powder",
+    "Pinch of salt"
+  ],
+  steps: [
+    "Preheat oven to 180°C.",
+    "Blend sweet potato, tahini, egg and milk until smooth.",
+    "Mix in oat flour, protein powder, cocoa, baking powder and sweetener.",
+    "Fold through chopped dark chocolate.",
+    "Bake for 20–25 minutes.",
+    "Cool completely before cutting into 4 pieces."
+  ]
+},
+
+{
+  id: "smoothie-bowl",
+  title: "Mango Berry Smoothie Bowl",
+  emoji: "🥭",
+  description: "Thick mango and berry smoothie bowl with oats, chia and peanut butter.",
+  category: "breakfast",
+  tags: ["high protein", "sweet", "quick", "high fibre"],
+  servings: 1,
+  time: 10,
+  calories: 485,
+  protein: 32,
+  carbs: 66,
+  fat: 12,
+  fiber: 11,
+  equipment: ["blender"],
+  ingredients: [
+    "150 g frozen mango",
+    "100 g frozen berries",
+    "150 g skyr or soy yogurt",
+    "25 g protein powder",
+    "30 g oats",
+    "10 g chia seeds",
+    "10 g peanut butter",
+    "50–100 ml milk or water"
+  ],
+  steps: [
+    "Blend mango, berries, yogurt and protein powder.",
+    "Add only enough liquid to allow it to blend while keeping it thick.",
+    "Transfer to a bowl.",
+    "Top with oats, chia and peanut butter."
+  ]
+},
+
+{
+  id: "high-protein-tacos",
+  title: "High Protein Tacos",
+  emoji: "🌮",
+  description: "Loaded protein-wrap tacos with seasoned mince, avocado, corn and creamy lime sauce.",
+  category: "main",
+  tags: ["high protein", "quick", "mexican-inspired"],
+  servings: 1,
+  time: 20,
+  calories: 520,
+  protein: 40,
+  carbs: 53,
+  fat: 17,
+  fiber: 10,
+  equipment: ["hob"],
+  ingredients: [
+    "2 high-protein wraps",
+    "120 g vegan mince",
+    "40 g avocado",
+    "30 g light cheese",
+    "50 g high-protein yogurt",
+    "50 g corn",
+    "Lettuce",
+    "Lime juice",
+    "Smoked paprika",
+    "Cumin",
+    "Garlic powder"
+  ],
+  steps: [
+    "Cook mince with paprika, cumin and garlic powder.",
+    "Warm the wraps in a dry pan.",
+    "Mix yogurt with lime juice and salt.",
+    "Fill wraps with lettuce, mince, corn, avocado and cheese.",
+    "Drizzle with the lime yogurt sauce."
+  ]
+},
+
+{
+  id: "tortilla-de-patatas",
+  title: "Tortilla de Patatas",
+  emoji: "🥔",
+  description: "Classic Spanish tortilla with soft potatoes, onion and plenty of egg.",
+  category: "main",
+  tags: ["Spanish", "high protein", "vegetarian"],
+  servings: 1,
+  time: 30,
+  calories: 495,
+  protein: 29,
+  carbs: 45,
+  fat: 22,
+  fiber: 5,
+  equipment: ["hob", "microwave"],
+  ingredients: [
+    "220 g potatoes",
+    "2 eggs",
+    "120 g egg whites",
+    "80 g onion",
+    "10 g olive oil",
+    "Salt"
+  ],
+  steps: [
+    "Thinly slice the potatoes and onion.",
+    "Microwave the potatoes until almost tender.",
+    "Cook onion and potatoes gently in olive oil until soft and lightly golden.",
+    "Whisk eggs and egg whites with salt.",
+    "Combine with the potato mixture.",
+    "Cook over medium-low heat until almost set.",
+    "Flip carefully and cook the other side until golden."
+  ]
+}

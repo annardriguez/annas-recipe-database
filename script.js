@@ -15,6 +15,10 @@ const showFavouritesNavButton = document.querySelector("#show-favourites-nav");
 const randomRecipeButton = document.querySelector("#random-recipe");
 const featuredCard = document.querySelector("#featured-card");
 const toast = document.querySelector("#toast");
+const accountButton = document.querySelector("#open-account");
+const accountDialog = document.querySelector("#account-dialog");
+const accountDialogClose = document.querySelector("#account-dialog-close");
+const accountContent = document.querySelector("#account-content");
 
 const savedRecipeIds = new Set(
   JSON.parse(localStorage.getItem("annaRecipeFavourites") || "[]")
@@ -23,6 +27,10 @@ const savedRecipeIds = new Set(
 let activeFilter = "all";
 let showingFavourites = false;
 let toastTimer;
+let profileName = localStorage.getItem("annaKitchenProfile") || "";
+let supabaseClient = null;
+let currentUser = null;
+let cloudSyncReady = false;
 
 const labels = {
   main: "Main meal",
@@ -34,6 +42,8 @@ const filterOptions = [
   ["all", "All Recipes"],
   ["quick", "⚡ Under 15 min"],
   ["high protein", "💪 High protein"],
+  ["breakfast", "Breakfast"],
+  ["snack", "Snack"],
   ["vegetarian", "🌱 Vegetarian"],
   ["sweet", "🍫 Sweet"],
   ["pasta", "🍝 Pasta"],
@@ -81,13 +91,20 @@ function saveFavourites() {
     JSON.stringify([...savedRecipeIds])
   );
   updateFavouriteCount();
+  if (accountDialog?.open) renderAccountDialog();
 }
 
 function updateFavouriteCount() {
   favouriteCount.textContent = savedRecipeIds.size;
+  document.querySelectorAll("[data-favourite-count]").forEach(item => {
+    item.textContent = savedRecipeIds.size;
+  });
+  accountButton.textContent = currentUser ? "My Kitchen" : "Log in";
 }
 
-function toggleFavourite(recipe, button) {
+async function toggleFavourite(recipe, button) {
+  const willSave = !savedRecipeIds.has(recipe.id);
+
   if (savedRecipeIds.has(recipe.id)) {
     savedRecipeIds.delete(recipe.id);
     showToast(`Removed ${recipe.title} from saved recipes`);
@@ -121,6 +138,7 @@ function toggleFavourite(recipe, button) {
   });
 
   if (showingFavourites) renderRecipes();
+  await persistFavouriteToCloud(recipe.id, willSave);
 }
 
 function showToast(message) {
@@ -128,6 +146,264 @@ function showToast(message) {
   toast.classList.add("show");
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => toast.classList.remove("show"), 2200);
+}
+
+function getSavedRecipes() {
+  return recipes.filter(recipe => savedRecipeIds.has(recipe.id));
+}
+
+function isSupabaseConfigured() {
+  const config = window.ANNA_SUPABASE_CONFIG || {};
+
+  return Boolean(
+    window.supabase?.createClient &&
+    config.url &&
+    config.anonKey &&
+    !config.url.includes("PASTE_") &&
+    !config.anonKey.includes("PASTE_")
+  );
+}
+
+function getAccountLabel() {
+  if (!currentUser) return "";
+  return currentUser.user_metadata?.name || currentUser.email || "your kitchen";
+}
+
+async function initSupabaseAuth() {
+  if (!isSupabaseConfigured()) {
+    updateFavouriteCount();
+    return;
+  }
+
+  const config = window.ANNA_SUPABASE_CONFIG;
+  supabaseClient = window.supabase.createClient(config.url, config.anonKey);
+
+  const { data } = await supabaseClient.auth.getSession();
+  currentUser = data.session?.user || null;
+
+  if (currentUser) await syncRemoteFavourites();
+
+  supabaseClient.auth.onAuthStateChange(async (_event, session) => {
+    currentUser = session?.user || null;
+    cloudSyncReady = Boolean(currentUser);
+
+    if (currentUser) {
+      await syncRemoteFavourites();
+      showToast("Logged in and synced");
+    } else {
+      updateFavouriteCount();
+      if (accountDialog?.open) renderAccountDialog();
+    }
+  });
+
+  updateFavouriteCount();
+}
+
+async function syncRemoteFavourites() {
+  if (!supabaseClient || !currentUser) return;
+
+  const { data, error } = await supabaseClient
+    .from("recipe_favourites")
+    .select("recipe_id")
+    .eq("user_id", currentUser.id);
+
+  if (error) {
+    cloudSyncReady = false;
+    showToast("Could not sync saved recipes");
+    return;
+  }
+
+  const remoteIds = new Set((data || []).map(item => item.recipe_id));
+  const mergedIds = new Set([...remoteIds, ...savedRecipeIds]);
+
+  if (mergedIds.size > remoteIds.size) {
+    const rows = [...mergedIds].map(recipeId => ({
+      user_id: currentUser.id,
+      recipe_id: recipeId
+    }));
+
+    await supabaseClient
+      .from("recipe_favourites")
+      .upsert(rows, { onConflict: "user_id,recipe_id" });
+  }
+
+  savedRecipeIds.clear();
+  mergedIds.forEach(id => savedRecipeIds.add(id));
+  cloudSyncReady = true;
+  saveFavourites();
+  renderRecipes();
+}
+
+async function persistFavouriteToCloud(recipeId, shouldSave) {
+  if (!supabaseClient || !currentUser || !cloudSyncReady) return;
+
+  const request = shouldSave
+    ? supabaseClient
+        .from("recipe_favourites")
+        .upsert({ user_id: currentUser.id, recipe_id: recipeId }, { onConflict: "user_id,recipe_id" })
+    : supabaseClient
+        .from("recipe_favourites")
+        .delete()
+        .eq("user_id", currentUser.id)
+        .eq("recipe_id", recipeId);
+
+  const { error } = await request;
+  if (error) showToast("Saved locally, but cloud sync failed");
+}
+
+function renderAccountDialog() {
+  const savedRecipes = getSavedRecipes();
+  const configured = isSupabaseConfigured();
+  const accountLabel = getAccountLabel();
+  const syncText = !configured
+    ? "Supabase setup needed"
+    : currentUser
+      ? cloudSyncReady
+        ? "Cloud sync on"
+        : "Cloud sync checking"
+      : "Log in to sync across devices";
+  const savedList = savedRecipes.length
+    ? savedRecipes.map(recipe => `
+        <article class="account-recipe">
+          <span class="picker-emoji">${escapeHtml(recipe.emoji)}</span>
+          <span>
+            <h3>${escapeHtml(recipe.title)}</h3>
+            <p>${recipe.time} min · ${formatMeta(recipe.protein, " g protein")} · ${labels[recipe.category] || recipe.category}</p>
+          </span>
+          <button class="recipe-add-button" type="button" data-open-recipe="${escapeHtml(recipe.id)}">Open</button>
+          <button class="slot-remove" type="button" data-remove-recipe="${escapeHtml(recipe.id)}">Remove</button>
+        </article>
+      `).join("")
+    : `<p class="account-empty">No saved recipes yet.</p>`;
+
+  accountContent.innerHTML = `
+    <div class="account-panel">
+      <p class="eyebrow">My Kitchen</p>
+      <h2>${currentUser ? `Hi, ${escapeHtml(accountLabel)}` : "Log in to sync saved recipes"}</h2>
+      <p class="account-status ${currentUser ? "synced" : ""}">${syncText}</p>
+
+      ${currentUser ? `
+        <p class="account-helper">Your favorites are saved in the cloud and stay available when you log in on another device.</p>
+      ` : `
+        <form class="account-form" id="account-form">
+          <label>
+            <span>Email</span>
+            <input id="profile-email" type="email" placeholder="you@example.com" autocomplete="email" ${configured ? "" : "disabled"}>
+          </label>
+          <button class="primary-button" type="submit" ${configured ? "" : "disabled"}>Send magic link</button>
+        </form>
+        <p class="account-helper">${configured ? "Supabase will email you a secure login link." : "Paste your Supabase URL and anon key into supabase-config.js first."}</p>
+      `}
+
+      <div class="account-actions">
+        <button class="planner-tool-button" id="view-saved-recipes" type="button">View saved</button>
+        <button class="planner-tool-button" id="export-favourites" type="button">Export saved</button>
+        <button class="planner-tool-button" id="import-favourites" type="button">Import saved</button>
+        ${currentUser ? `<button class="planner-tool-button" id="sign-out-profile" type="button">Log out</button>` : ""}
+      </div>
+
+      <div class="account-saved-header">
+        <h3>Saved recipes</h3>
+        <span>${savedRecipes.length}</span>
+      </div>
+      <div class="account-saved-list">${savedList}</div>
+    </div>
+  `;
+
+  accountContent.querySelector("#account-form")?.addEventListener("submit", async event => {
+    event.preventDefault();
+    const email = accountContent.querySelector("#profile-email").value.trim();
+    if (!email) return;
+
+    const { error } = await supabaseClient.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.href.split("#")[0] }
+    });
+
+    showToast(error ? "Could not send login link" : "Check your email for the login link");
+  });
+
+  accountContent.querySelector("#view-saved-recipes").addEventListener("click", () => {
+    accountDialog.close();
+    document.body.classList.remove("dialog-open");
+    showingFavourites = false;
+    showSavedRecipes();
+  });
+
+  accountContent.querySelector("#export-favourites").addEventListener("click", exportFavourites);
+  accountContent.querySelector("#import-favourites").addEventListener("click", importFavourites);
+  accountContent.querySelector("#sign-out-profile")?.addEventListener("click", async () => {
+    await supabaseClient.auth.signOut();
+    currentUser = null;
+    cloudSyncReady = false;
+    updateFavouriteCount();
+    renderAccountDialog();
+    showToast("Logged out");
+  });
+
+  accountContent.querySelectorAll("[data-open-recipe]").forEach(button => {
+    button.addEventListener("click", () => {
+      const recipe = recipes.find(item => item.id === button.dataset.openRecipe);
+      if (!recipe) return;
+      accountDialog.close();
+      openRecipe(recipe, recipes.indexOf(recipe) % 6);
+    });
+  });
+
+  accountContent.querySelectorAll("[data-remove-recipe]").forEach(button => {
+    button.addEventListener("click", () => {
+      const recipe = recipes.find(item => item.id === button.dataset.removeRecipe);
+      if (!recipe) return;
+      toggleFavourite(recipe);
+    });
+  });
+}
+
+async function exportFavourites() {
+  const backup = JSON.stringify({
+    profileName,
+    savedRecipeIds: [...savedRecipeIds]
+  });
+
+  try {
+    await navigator.clipboard.writeText(backup);
+    showToast("Saved recipes copied");
+  } catch {
+    showToast("Copy was blocked by this browser");
+  }
+}
+
+function importFavourites() {
+  const backup = window.prompt("Paste your saved recipes backup");
+  if (!backup) return;
+
+  try {
+    const parsed = JSON.parse(backup);
+    if (!Array.isArray(parsed.savedRecipeIds)) throw new Error("Invalid backup");
+
+    savedRecipeIds.clear();
+    parsed.savedRecipeIds.forEach(id => {
+      if (recipes.some(recipe => recipe.id === id)) savedRecipeIds.add(id);
+    });
+
+    if (typeof parsed.profileName === "string") {
+      profileName = parsed.profileName.trim();
+      if (profileName) localStorage.setItem("annaKitchenProfile", profileName);
+    }
+
+    saveFavourites();
+    renderRecipes();
+    if (currentUser) syncRemoteFavourites();
+    showToast("Saved recipes imported");
+  } catch {
+    showToast("That backup did not work");
+  }
+}
+
+function openAccountDialog() {
+  renderAccountDialog();
+  accountDialog.showModal();
+  document.body.classList.add("dialog-open");
 }
 
 function createFilterButtons() {
@@ -196,6 +472,8 @@ function createRecipeCard(recipe, index) {
       <div class="recipe-meta">
         <span>${formatMeta(recipe.calories, " kcal")}</span>
         <span>${formatMeta(recipe.protein, " g protein")}</span>
+        <span>${formatMeta(recipe.carbs, " g carbs")}</span>
+        <span>${formatMeta(recipe.fat, " g fat")}</span>
         ${recipe.tags.slice(0, 1).map(tag => `<span>${escapeHtml(tag)}</span>`).join("")}
       </div>
     </div>
@@ -309,6 +587,18 @@ function openRecipe(recipe, palette = 0) {
             <strong>${recipe.protein ?? "—"}</strong>
             <span>g protein</span>
           </div>
+          <div>
+            <strong>${recipe.carbs ?? "—"}</strong>
+            <span>g carbs</span>
+          </div>
+          <div>
+            <strong>${recipe.fat ?? "—"}</strong>
+            <span>g fat</span>
+          </div>
+          <div>
+            <strong>${recipe.fiber ?? "—"}</strong>
+            <span>g fiber</span>
+          </div>
         </div>
 
         <button
@@ -408,6 +698,17 @@ function showSavedRecipes() {
 
 showFavouritesButton.addEventListener("click", showSavedRecipes);
 showFavouritesNavButton.addEventListener("click", showSavedRecipes);
+accountButton.addEventListener("click", openAccountDialog);
+accountDialogClose.addEventListener("click", () => {
+  accountDialog.close();
+  document.body.classList.remove("dialog-open");
+});
+accountDialog.addEventListener("click", event => {
+  if (event.target === accountDialog) {
+    accountDialog.close();
+    document.body.classList.remove("dialog-open");
+  }
+});
 
 clearFiltersButton.addEventListener("click", () => {
   activeFilter = "all";
@@ -444,5 +745,6 @@ document.addEventListener("keydown", event => {
 createFilterButtons();
 updateFavouriteCount();
 setStats();
+initSupabaseAuth();
 if (featuredCard) setFeaturedRecipe();
 renderRecipes();

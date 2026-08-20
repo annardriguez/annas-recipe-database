@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#f4efe7">
-  <title>Anna's Kitchen</title>
-  <link rel="stylesheet" href="style.css?v=dark-readable">
+  <title>Anna's Kitchen Index</title>
+  <link rel="stylesheet" href="style.css?v=planner-summary">
 </head>
 
 <body>
@@ -25,8 +25,9 @@
 
     <div class="header-actions">
       <button class="icon-button" type="button" aria-label="Toggle dark mode">☾</button>
+      <button class="account-button" id="open-account" type="button">Log in</button>
       <button class="nav-favourites" id="show-favourites">
-        ♡ <span id="favourite-count">0</span>
+        ♡ <span id="favourite-count" data-favourite-count>0</span>
       </button>
     </div>
   </header>
@@ -124,8 +125,15 @@
     <div id="dialog-content"></div>
   </dialog>
 
+  <dialog id="account-dialog">
+    <button class="dialog-close" id="account-dialog-close" aria-label="Close My Kitchen">×</button>
+    <div id="account-content"></div>
+  </dialog>
+
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
   <script src="theme.js"></script>
   <script src="recipes.js"></script>
   <script src="script.js"></script>

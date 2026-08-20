@@ -19,6 +19,18 @@ function applyTheme(theme) {
 const savedTheme = localStorage.getItem("annaKitchenTheme") || "light";
 applyTheme(savedTheme);
 
+function updateSharedFavouriteCounts() {
+  const savedRecipeIds = JSON.parse(
+    localStorage.getItem("annaRecipeFavourites") || "[]"
+  );
+
+  document.querySelectorAll("[data-favourite-count]").forEach(item => {
+    item.textContent = savedRecipeIds.length;
+  });
+}
+
+updateSharedFavouriteCounts();
+
 themeButtons.forEach(button => {
   button.addEventListener("click", () => {
     const nextTheme = document.body.classList.contains("dark-theme")

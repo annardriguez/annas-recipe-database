@@ -163,7 +163,8 @@ body.dark-theme .slot-label {
 }
 
 .icon-button,
-.nav-favourites {
+.nav-favourites,
+.account-button {
   border: 0;
   background: transparent;
   cursor: pointer;
@@ -183,6 +184,27 @@ body.dark-theme .slot-label {
 .icon-button:focus-visible {
   background: rgba(220, 130, 103, .12);
   outline: none;
+}
+
+.account-button {
+  min-width: 84px;
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--ink);
+  background: rgba(255, 253, 249, .68);
+}
+
+.account-button:hover,
+.account-button:focus-visible {
+  border-color: rgba(220, 130, 103, .42);
+  background: rgba(220, 130, 103, .12);
+  outline: none;
+}
+
+body.dark-theme .account-button {
+  background: #332b27;
 }
 
 .nav-favourites {
@@ -251,7 +273,8 @@ body.dark-theme .nav-favourites {
 body.dark-theme .library-stats,
 body.dark-theme .control-panel,
 body.dark-theme .planner-board,
-body.dark-theme .recipe-picker {
+body.dark-theme .recipe-picker,
+body.dark-theme .summary-panel {
   border-color: var(--line);
   background: rgba(29, 27, 25, .92);
 }
@@ -726,12 +749,24 @@ body.dark-theme .image-badges span {
   gap: 24px;
 }
 
+.planner-summary {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, .82fr) minmax(320px, 1fr);
+  gap: 24px;
+}
+
 .planner-board,
-.recipe-picker {
+.recipe-picker,
+.summary-panel {
   border: 1px solid var(--line);
   border-radius: 18px;
   background: rgba(255, 253, 249, .72);
   box-shadow: 0 12px 36px rgba(87, 68, 52, .08);
+}
+
+.summary-panel {
+  padding: 18px;
 }
 
 .planner-toolbar {
@@ -754,6 +789,10 @@ body.dark-theme .image-badges span {
   color: var(--muted);
   font-size: .84rem;
   font-weight: 700;
+}
+
+.planner-save-status {
+  color: var(--accent-dark);
 }
 
 .planner-actions,
@@ -1231,32 +1270,94 @@ dialog::backdrop {
   gap: 60px;
 }
 
-.dialog-stats {
+.dialog-stats,
+.summary-stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
   gap: 10px;
 }
 
-.dialog-stats div {
+.dialog-stats {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.summary-stats {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.dialog-stats div,
+.summary-stats div {
   padding: 18px;
   border-radius: 14px;
   background: var(--paper);
 }
 
 .dialog-stats strong,
-.dialog-stats span {
+.dialog-stats span,
+.summary-stats strong,
+.summary-stats span {
   display: block;
 }
 
-.dialog-stats strong {
+.dialog-stats strong,
+.summary-stats strong {
   font-family: "Instrument Serif", Georgia, serif;
   font-size: 1.8rem;
   font-weight: 400;
 }
 
-.dialog-stats span {
+.dialog-stats span,
+.summary-stats span {
   color: var(--muted);
   font-size: .72rem;
+}
+
+.summary-heading {
+  margin-bottom: 16px;
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.summary-heading h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.summary-heading > span {
+  flex: none;
+  padding: 7px 11px;
+  border-radius: 999px;
+  color: var(--accent-dark);
+  background: rgba(220, 130, 103, .12);
+  font-size: .76rem;
+  font-weight: 900;
+}
+
+.shopping-list {
+  min-height: 120px;
+  max-height: 260px;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 16px;
+  overflow: auto;
+  list-style: none;
+}
+
+.shopping-list li {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--muted);
+  font-size: .84rem;
+  font-weight: 700;
+}
+
+.shopping-list .shopping-empty {
+  grid-column: 1 / -1;
 }
 
 .dialog-body h3 {
@@ -1317,6 +1418,141 @@ dialog::backdrop {
   color: white;
   background: var(--accent);
   border-color: var(--accent);
+}
+
+.account-panel {
+  padding: 42px;
+}
+
+.account-panel h2 {
+  margin: 0 0 20px;
+  font-family: "Instrument Serif", Georgia, serif;
+  font-size: clamp(2.6rem, 5vw, 4.6rem);
+  font-weight: 400;
+  line-height: .9;
+}
+
+.account-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+}
+
+.account-form label {
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font-size: .78rem;
+  font-weight: 900;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.account-form input {
+  min-height: 52px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  outline: none;
+  background: var(--paper-soft);
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.account-form input:disabled,
+.account-form button:disabled {
+  cursor: not-allowed;
+  opacity: .58;
+}
+
+.account-status {
+  width: max-content;
+  max-width: 100%;
+  margin: -6px 0 18px;
+  padding: 7px 11px;
+  border-radius: 999px;
+  color: var(--accent-dark);
+  background: rgba(220, 130, 103, .12);
+  font-size: .78rem;
+  font-weight: 900;
+}
+
+.account-status.synced {
+  color: var(--green);
+  background: rgba(92, 154, 102, .14);
+}
+
+.account-helper {
+  margin: -4px 0 18px;
+  color: var(--muted);
+  font-size: .92rem;
+  font-weight: 700;
+}
+
+.account-actions {
+  margin: 18px 0 26px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.account-saved-header {
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.account-saved-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.account-saved-header span {
+  min-width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: white;
+  background: var(--accent);
+  font-weight: 900;
+}
+
+.account-saved-list {
+  display: grid;
+  gap: 10px;
+}
+
+.account-recipe {
+  padding: 12px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper-soft);
+}
+
+.account-recipe h3,
+.account-recipe p,
+.account-empty {
+  margin: 0;
+}
+
+.account-recipe h3 {
+  font-size: 1rem;
+}
+
+.account-recipe p,
+.account-empty {
+  color: var(--muted);
+  font-size: .84rem;
+  font-weight: 700;
 }
 
 .toast {
@@ -1414,6 +1650,7 @@ body.dark-theme .palette-5 { background-color: #57433e; }
   .about-hero,
   .planner-hero,
   .planner-shell,
+  .planner-summary,
   .dialog-body,
   .dialog-cover {
     grid-template-columns: 1fr;
@@ -1488,5 +1725,19 @@ body.dark-theme .palette-5 { background-color: #57433e; }
   .dialog-body,
   .dialog-cover {
     padding: 28px;
+  }
+
+  .account-panel {
+    padding: 28px;
+  }
+
+  .account-form,
+  .account-recipe {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-stats,
+  .shopping-list {
+    grid-template-columns: 1fr;
   }
 }

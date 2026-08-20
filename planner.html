@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#f4efe7">
   <title>Meal Planner | Anna's Kitchen Index</title>
-  <link rel="stylesheet" href="style.css?v=dark-readable">
+  <link rel="stylesheet" href="style.css?v=planner-summary">
 </head>
 
 <body>
@@ -25,7 +25,7 @@
 
     <div class="header-actions">
       <button class="icon-button" type="button" aria-label="Toggle dark mode">☾</button>
-      <a class="nav-favourites" href="index.html#recipes">♡ <span id="planner-favourite-count">0</span></a>
+      <a class="nav-favourites" href="index.html#recipes">♡ <span id="planner-favourite-count" data-favourite-count>0</span></a>
     </div>
   </header>
 
@@ -47,6 +47,7 @@
           <div>
             <h2 class="planner-week-title" id="planner-week-title">This week</h2>
             <p id="planner-week-subtitle">Choose a meal slot to start planning.</p>
+            <p class="planner-save-status" id="planner-save-status">Saved on this device.</p>
           </div>
           <div class="planner-actions">
             <div class="week-actions">
@@ -74,6 +75,30 @@
 
         <div class="picker-list" id="planner-recipe-list"></div>
       </aside>
+
+      <section class="planner-summary" aria-label="Weekly plan summary">
+        <div class="summary-panel">
+          <div class="summary-heading">
+            <div>
+              <p class="eyebrow">Week at a glance</p>
+              <h2>Nutrition snapshot</h2>
+            </div>
+            <span id="planned-meal-count">0 meals planned</span>
+          </div>
+          <div class="summary-stats" id="weekly-summary"></div>
+        </div>
+
+        <div class="summary-panel">
+          <div class="summary-heading">
+            <div>
+              <p class="eyebrow">Groceries</p>
+              <h2>Shopping list</h2>
+            </div>
+            <button class="planner-tool-button" id="copy-shopping-list" type="button">Copy list</button>
+          </div>
+          <ul class="shopping-list" id="shopping-list"></ul>
+        </div>
+      </section>
     </section>
   </main>
 
@@ -86,6 +111,6 @@
 
   <script src="theme.js"></script>
   <script src="recipes.js"></script>
-  <script src="planner.js?v=no-repeat-days"></script>
+  <script src="planner.js?v=planner-summary"></script>
 </body>
 </html>
