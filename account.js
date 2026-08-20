@@ -32,11 +32,6 @@ function accountIsSupabaseConfigured() {
   );
 }
 
-function accountGetSavedRecipes() {
-  if (typeof recipes === "undefined" || !Array.isArray(recipes)) return [];
-  return recipes.filter(recipe => accountSavedRecipeIds.has(recipe.id));
-}
-
 function accountUpdateButton() {
   if (!accountButton) return;
   accountButton.textContent = accountCurrentUser ? "My Kitchen" : "Log in";
@@ -127,55 +122,36 @@ function accountShowToast(message) {
 
 function accountRenderDialog() {
   const configured = accountIsSupabaseConfigured();
-  const savedRecipes = accountGetSavedRecipes();
   const syncText = !configured
     ? "Supabase setup needed"
     : accountCurrentUser
       ? accountCloudSyncReady ? "Cloud sync on" : "Cloud sync checking"
-      : "Log in to sync across devices";
-
-  const savedList = savedRecipes.length
-    ? savedRecipes.map(recipe => `
-        <article class="account-recipe">
-          <span class="picker-emoji">${accountEscapeHtml(recipe.emoji)}</span>
-          <span>
-            <h3>${accountEscapeHtml(recipe.title)}</h3>
-            <p>${recipe.time} min · ${recipe.protein ?? "Flexible"} g protein</p>
-          </span>
-          <a class="recipe-add-button" href="index.html#recipes">Open library</a>
-        </article>
-      `).join("")
-    : `<p class="account-empty">No saved recipes yet.</p>`;
+      : "Ready when you are";
 
   accountContent.innerHTML = `
     <div class="account-panel">
       <p class="eyebrow">My Kitchen</p>
-      <h2>${accountCurrentUser ? `Hi, ${accountEscapeHtml(accountCurrentUser.email || "your kitchen")}` : "Log in to sync saved recipes"}</h2>
+      <h2>${accountCurrentUser ? "Cloud sync is on" : "Sync your favorites"}</h2>
+      ${accountCurrentUser ? `<p class="account-email">${accountEscapeHtml(accountCurrentUser.email || "Signed in")}</p>` : ""}
       <p class="account-status ${accountCurrentUser ? "synced" : ""}">${syncText}</p>
 
       ${accountCurrentUser ? `
-        <p class="account-helper">Your favorites are saved in the cloud and stay available when you log in on another device.</p>
+        <p class="account-helper">Your favorites are saved in the cloud and will be there when you sign in on another device.</p>
       ` : `
         <form class="account-form" id="account-form">
           <label>
             <span>Email</span>
-            <input id="profile-email" type="email" placeholder="you@example.com" autocomplete="email" ${configured ? "" : "disabled"}>
+            <input id="profile-email" type="email" placeholder="anna@example.com" autocomplete="email" ${configured ? "" : "disabled"}>
           </label>
-          <button class="primary-button" type="submit" ${configured ? "" : "disabled"}>Send magic link</button>
+          <button class="primary-button" type="submit" ${configured ? "" : "disabled"}>Send sign-in link</button>
         </form>
-        <p class="account-helper">${configured ? "Supabase will email you a secure login link." : "Supabase is not configured yet."}</p>
+        <p class="account-helper">${configured ? "Enter your email and I will send a secure sign-in link. No password needed." : "Cloud sync is almost ready. Supabase still needs its public config."}</p>
       `}
 
       <div class="account-actions">
-        <a class="planner-tool-button" href="index.html#recipes">View saved</a>
+        <a class="planner-tool-button" href="index.html#recipes">Open favorites</a>
         ${accountCurrentUser ? `<button class="planner-tool-button" id="sign-out-profile" type="button">Log out</button>` : ""}
       </div>
-
-      <div class="account-saved-header">
-        <h3>Saved recipes</h3>
-        <span>${savedRecipes.length}</span>
-      </div>
-      <div class="account-saved-list">${savedList}</div>
     </div>
   `;
 

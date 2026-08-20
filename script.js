@@ -252,7 +252,6 @@ async function persistFavouriteToCloud(recipeId, shouldSave) {
 }
 
 function renderAccountDialog() {
-  const savedRecipes = getSavedRecipes();
   const configured = isSupabaseConfigured();
   const accountLabel = getAccountLabel();
   const syncText = !configured
@@ -261,52 +260,32 @@ function renderAccountDialog() {
       ? cloudSyncReady
         ? "Cloud sync on"
         : "Cloud sync checking"
-      : "Log in to sync across devices";
-  const savedList = savedRecipes.length
-    ? savedRecipes.map(recipe => `
-        <article class="account-recipe">
-          <span class="picker-emoji">${escapeHtml(recipe.emoji)}</span>
-          <span>
-            <h3>${escapeHtml(recipe.title)}</h3>
-            <p>${recipe.time} min · ${formatMeta(recipe.protein, " g protein")} · ${labels[recipe.category] || recipe.category}</p>
-          </span>
-          <button class="recipe-add-button" type="button" data-open-recipe="${escapeHtml(recipe.id)}">Open</button>
-          <button class="slot-remove" type="button" data-remove-recipe="${escapeHtml(recipe.id)}">Remove</button>
-        </article>
-      `).join("")
-    : `<p class="account-empty">No saved recipes yet.</p>`;
+      : "Ready when you are";
 
   accountContent.innerHTML = `
     <div class="account-panel">
       <p class="eyebrow">My Kitchen</p>
-      <h2>${currentUser ? `Hi, ${escapeHtml(accountLabel)}` : "Log in to sync saved recipes"}</h2>
+      <h2>${currentUser ? "Cloud sync is on" : "Sync your favorites"}</h2>
+      ${currentUser ? `<p class="account-email">${escapeHtml(accountLabel)}</p>` : ""}
       <p class="account-status ${currentUser ? "synced" : ""}">${syncText}</p>
 
       ${currentUser ? `
-        <p class="account-helper">Your favorites are saved in the cloud and stay available when you log in on another device.</p>
+        <p class="account-helper">Your favorites are saved in the cloud and will be there when you sign in on another device.</p>
       ` : `
         <form class="account-form" id="account-form">
           <label>
             <span>Email</span>
-            <input id="profile-email" type="email" placeholder="you@example.com" autocomplete="email" ${configured ? "" : "disabled"}>
+            <input id="profile-email" type="email" placeholder="anna@example.com" autocomplete="email" ${configured ? "" : "disabled"}>
           </label>
-          <button class="primary-button" type="submit" ${configured ? "" : "disabled"}>Send magic link</button>
+          <button class="primary-button" type="submit" ${configured ? "" : "disabled"}>Send sign-in link</button>
         </form>
-        <p class="account-helper">${configured ? "Supabase will email you a secure login link." : "Paste your Supabase URL and anon key into supabase-config.js first."}</p>
+        <p class="account-helper">${configured ? "Enter your email and I will send a secure sign-in link. No password needed." : "Cloud sync is almost ready. Supabase still needs its public config."}</p>
       `}
 
       <div class="account-actions">
-        <button class="planner-tool-button" id="view-saved-recipes" type="button">View saved</button>
-        <button class="planner-tool-button" id="export-favourites" type="button">Export saved</button>
-        <button class="planner-tool-button" id="import-favourites" type="button">Import saved</button>
+        <button class="planner-tool-button" id="view-saved-recipes" type="button">Open favorites</button>
         ${currentUser ? `<button class="planner-tool-button" id="sign-out-profile" type="button">Log out</button>` : ""}
       </div>
-
-      <div class="account-saved-header">
-        <h3>Saved recipes</h3>
-        <span>${savedRecipes.length}</span>
-      </div>
-      <div class="account-saved-list">${savedList}</div>
     </div>
   `;
 
@@ -330,8 +309,6 @@ function renderAccountDialog() {
     showSavedRecipes();
   });
 
-  accountContent.querySelector("#export-favourites").addEventListener("click", exportFavourites);
-  accountContent.querySelector("#import-favourites").addEventListener("click", importFavourites);
   accountContent.querySelector("#sign-out-profile")?.addEventListener("click", async () => {
     await supabaseClient.auth.signOut();
     currentUser = null;
@@ -341,63 +318,6 @@ function renderAccountDialog() {
     showToast("Logged out");
   });
 
-  accountContent.querySelectorAll("[data-open-recipe]").forEach(button => {
-    button.addEventListener("click", () => {
-      const recipe = recipes.find(item => item.id === button.dataset.openRecipe);
-      if (!recipe) return;
-      accountDialog.close();
-      openRecipe(recipe, recipes.indexOf(recipe) % 6);
-    });
-  });
-
-  accountContent.querySelectorAll("[data-remove-recipe]").forEach(button => {
-    button.addEventListener("click", () => {
-      const recipe = recipes.find(item => item.id === button.dataset.removeRecipe);
-      if (!recipe) return;
-      toggleFavourite(recipe);
-    });
-  });
-}
-
-async function exportFavourites() {
-  const backup = JSON.stringify({
-    profileName,
-    savedRecipeIds: [...savedRecipeIds]
-  });
-
-  try {
-    await navigator.clipboard.writeText(backup);
-    showToast("Saved recipes copied");
-  } catch {
-    showToast("Copy was blocked by this browser");
-  }
-}
-
-function importFavourites() {
-  const backup = window.prompt("Paste your saved recipes backup");
-  if (!backup) return;
-
-  try {
-    const parsed = JSON.parse(backup);
-    if (!Array.isArray(parsed.savedRecipeIds)) throw new Error("Invalid backup");
-
-    savedRecipeIds.clear();
-    parsed.savedRecipeIds.forEach(id => {
-      if (recipes.some(recipe => recipe.id === id)) savedRecipeIds.add(id);
-    });
-
-    if (typeof parsed.profileName === "string") {
-      profileName = parsed.profileName.trim();
-      if (profileName) localStorage.setItem("annaKitchenProfile", profileName);
-    }
-
-    saveFavourites();
-    renderRecipes();
-    if (currentUser) syncRemoteFavourites();
-    showToast("Saved recipes imported");
-  } catch {
-    showToast("That backup did not work");
-  }
 }
 
 function openAccountDialog() {

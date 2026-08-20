@@ -188,12 +188,16 @@ body.dark-theme .slot-label {
 
 .account-button {
   min-width: 84px;
-  min-height: 42px;
+  height: 42px;
   padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid var(--line);
   border-radius: 999px;
   color: var(--ink);
   background: rgba(255, 253, 249, .68);
+  line-height: 1;
 }
 
 .account-button:hover,
@@ -1425,11 +1429,11 @@ dialog::backdrop {
 }
 
 .account-panel h2 {
-  margin: 0 0 20px;
+  margin: 0 0 12px;
   font-family: "Instrument Serif", Georgia, serif;
-  font-size: clamp(2.6rem, 5vw, 4.6rem);
+  font-size: clamp(2.5rem, 4.4vw, 4rem);
   font-weight: 400;
-  line-height: .9;
+  line-height: .95;
 }
 
 .account-form {
@@ -1470,7 +1474,7 @@ dialog::backdrop {
 .account-status {
   width: max-content;
   max-width: 100%;
-  margin: -6px 0 18px;
+  margin: 0 0 18px;
   padding: 7px 11px;
   border-radius: 999px;
   color: var(--accent-dark);
@@ -1485,10 +1489,19 @@ dialog::backdrop {
 }
 
 .account-helper {
-  margin: -4px 0 18px;
+  max-width: 720px;
+  margin: 0 0 18px;
   color: var(--muted);
   font-size: .92rem;
   font-weight: 700;
+}
+
+.account-email {
+  margin: 0 0 12px;
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font-size: 1.1rem;
+  font-weight: 800;
 }
 
 .account-actions {
@@ -1496,63 +1509,6 @@ dialog::backdrop {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-}
-
-.account-saved-header {
-  margin-bottom: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-}
-
-.account-saved-header h3 {
-  margin: 0;
-  font-size: 1.2rem;
-}
-
-.account-saved-header span {
-  min-width: 32px;
-  height: 32px;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-  color: white;
-  background: var(--accent);
-  font-weight: 900;
-}
-
-.account-saved-list {
-  display: grid;
-  gap: 10px;
-}
-
-.account-recipe {
-  padding: 12px;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
-  align-items: center;
-  gap: 12px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--paper-soft);
-}
-
-.account-recipe h3,
-.account-recipe p,
-.account-empty {
-  margin: 0;
-}
-
-.account-recipe h3 {
-  font-size: 1rem;
-}
-
-.account-recipe p,
-.account-empty {
-  color: var(--muted);
-  font-size: .84rem;
-  font-weight: 700;
 }
 
 .toast {
@@ -1731,8 +1687,7 @@ body.dark-theme .palette-5 { background-color: #57433e; }
     padding: 28px;
   }
 
-  .account-form,
-  .account-recipe {
+  .account-form {
     grid-template-columns: 1fr;
   }
 
