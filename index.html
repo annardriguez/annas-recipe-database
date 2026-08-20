@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#f4efe7">
   <title>Anna's Kitchen Index</title>
-  <link rel="stylesheet" href="style.css?v=stat-refresh">
+  <link rel="stylesheet" href="style.css?v=editorial-refresh">
 </head>
 
 <body>
@@ -16,9 +16,7 @@
     </a>
 
     <nav class="navigation" aria-label="Primary navigation">
-      <a class="active" href="#discover">Home</a>
-      <a href="#recipes">All Recipes</a>
-      <button class="nav-link-button" id="show-favourites-nav">Favorites</button>
+      <a class="active" href="#recipes">Recipes</a>
       <a href="planner.html">Meal Planner</a>
       <a href="about.html">About</a>
     </nav>
@@ -39,39 +37,16 @@
         <p class="hero-text">Good food, good mood.</p>
       </div>
 
-      <div class="library-stats" aria-label="Recipe library highlights">
-        <div class="stats-intro">
-          <p class="eyebrow">Browse the index</p>
-          <h2>Pick a mood, then pick dinner.</h2>
+      <div class="mood-board" aria-label="Kitchen shortcuts">
+        <p class="eyebrow">Tonight's vibe</p>
+        <h2>What are we pretending to have energy for?</h2>
+        <div class="mood-actions">
+          <a href="#recipes" data-mood-search="pasta">Pasta emergency</a>
+          <a href="#recipes" data-mood-search="quick">Fast and decent</a>
+          <a href="planner.html">Plan the week</a>
+          <button id="hero-favourites" type="button">Saved cravings</button>
         </div>
-        <a class="stat-card" href="#recipes">
-          <span class="stat-icon">▣</span>
-          <span>
-            <strong id="total-recipes">0</strong>
-            <span>all recipes</span>
-          </span>
-        </a>
-        <a class="stat-card" href="#recipes">
-          <span class="stat-icon leaf">☘</span>
-          <span>
-            <strong id="vegetarian-recipes">0</strong>
-            <span>vegetarian-ish</span>
-          </span>
-        </a>
-        <a class="stat-card" href="#recipes">
-          <span class="stat-icon clock">◷</span>
-          <span>
-            <strong id="quick-recipes">0</strong>
-            <span>quick wins</span>
-          </span>
-        </a>
-        <a class="stat-card" href="#recipes">
-          <span class="stat-icon dumbbell">↔</span>
-          <span>
-            <strong id="protein-recipes">0</strong>
-            <span>protein plates</span>
-          </span>
-        </a>
+        <p class="mood-note">Search, save, plan, repeat. Tiny kitchen control center, but cute.</p>
       </div>
     </section>
 
@@ -148,6 +123,6 @@
   <script src="supabase-config.js"></script>
   <script src="theme.js?v=fix-recipes"></script>
   <script src="recipes.js?v=account-polish"></script>
-  <script src="script.js?v=account-polish"></script>
+  <script src="script.js?v=editorial-refresh"></script>
 </body>
 </html>

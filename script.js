@@ -11,7 +11,7 @@ const quickFilters = document.querySelector("#quick-filters");
 const activeSummary = document.querySelector("#active-summary");
 const favouriteCount = document.querySelector("#favourite-count");
 const showFavouritesButton = document.querySelector("#show-favourites");
-const showFavouritesNavButton = document.querySelector("#show-favourites-nav");
+const heroFavouritesButton = document.querySelector("#hero-favourites");
 const randomRecipeButton = document.querySelector("#random-recipe");
 const featuredCard = document.querySelector("#featured-card");
 const toast = document.querySelector("#toast");
@@ -587,16 +587,6 @@ function setFeaturedRecipe() {
   featuredCard.addEventListener("click", () => openRecipe(featured, 2));
 }
 
-function setStats() {
-  document.querySelector("#total-recipes").textContent = recipes.length;
-  document.querySelector("#vegetarian-recipes").textContent =
-    recipes.filter(recipe => recipe.tags.includes("vegetarian")).length;
-  document.querySelector("#quick-recipes").textContent =
-    recipes.filter(isQuick).length;
-  document.querySelector("#protein-recipes").textContent =
-    recipes.filter(isHighProtein).length;
-}
-
 randomRecipeButton.addEventListener("click", () => {
   const pool = getVisibleRecipes().length ? getVisibleRecipes() : recipes;
   const randomRecipe = pool[Math.floor(Math.random() * pool.length)];
@@ -617,7 +607,18 @@ function showSavedRecipes() {
 }
 
 showFavouritesButton.addEventListener("click", showSavedRecipes);
-showFavouritesNavButton.addEventListener("click", showSavedRecipes);
+heroFavouritesButton?.addEventListener("click", showSavedRecipes);
+document.querySelectorAll("[data-mood-search]").forEach(link => {
+  link.addEventListener("click", () => {
+    searchInput.value = link.dataset.moodSearch;
+    showingFavourites = false;
+    activeFilter = "all";
+    quickFilters.querySelectorAll("button").forEach(button => {
+      button.classList.toggle("active", button.dataset.filter === "all");
+    });
+    renderRecipes();
+  });
+});
 accountButton.addEventListener("click", openAccountDialog);
 accountDialogClose.addEventListener("click", () => {
   accountDialog.close();
@@ -664,7 +665,6 @@ document.addEventListener("keydown", event => {
 
 createFilterButtons();
 updateFavouriteCount();
-setStats();
 initSupabaseAuth();
 if (featuredCard) setFeaturedRecipe();
 renderRecipes();
