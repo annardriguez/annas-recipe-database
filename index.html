@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#f4efe7">
   <title>Anna's Kitchen Index</title>
-  <link rel="stylesheet" href="style.css?v=account-polish">
+  <link rel="stylesheet" href="style.css?v=stat-refresh">
 </head>
 
 <body>
@@ -39,27 +39,39 @@
         <p class="hero-text">Good food, good mood.</p>
       </div>
 
-      <div class="library-stats" aria-label="Recipe library statistics">
-        <div>
+      <div class="library-stats" aria-label="Recipe library highlights">
+        <div class="stats-intro">
+          <p class="eyebrow">Browse the index</p>
+          <h2>Pick a mood, then pick dinner.</h2>
+        </div>
+        <a class="stat-card" href="#recipes">
           <span class="stat-icon">▣</span>
-          <strong id="total-recipes">0</strong>
-          <span>Recipes</span>
-        </div>
-        <div>
+          <span>
+            <strong id="total-recipes">0</strong>
+            <span>all recipes</span>
+          </span>
+        </a>
+        <a class="stat-card" href="#recipes">
           <span class="stat-icon leaf">☘</span>
-          <strong id="vegetarian-recipes">0</strong>
-          <span>Vegetarian</span>
-        </div>
-        <div>
+          <span>
+            <strong id="vegetarian-recipes">0</strong>
+            <span>vegetarian-ish</span>
+          </span>
+        </a>
+        <a class="stat-card" href="#recipes">
           <span class="stat-icon clock">◷</span>
-          <strong id="quick-recipes">0</strong>
-          <span>Under 15 min</span>
-        </div>
-        <div>
+          <span>
+            <strong id="quick-recipes">0</strong>
+            <span>quick wins</span>
+          </span>
+        </a>
+        <a class="stat-card" href="#recipes">
           <span class="stat-icon dumbbell">↔</span>
-          <strong id="protein-recipes">0</strong>
-          <span>High Protein</span>
-        </div>
+          <span>
+            <strong id="protein-recipes">0</strong>
+            <span>protein plates</span>
+          </span>
+        </a>
       </div>
     </section>
 
