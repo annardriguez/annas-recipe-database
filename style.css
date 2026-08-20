@@ -18,7 +18,7 @@
 body,
 .site-header,
 .control-panel,
-.mood-board,
+.recipe-finder,
 .about-card,
 .recipe-card,
 .planner-board,
@@ -262,21 +262,20 @@ body.dark-theme .nav-favourites {
   font-style: italic;
 }
 
-.mood-board {
-  min-height: 250px;
-  padding: clamp(26px, 4vw, 42px);
+.recipe-finder {
+  padding: clamp(24px, 4vw, 38px);
   display: flex;
   flex-direction: column;
   justify-content: center;
   border: 1px solid rgba(255,255,255,.7);
   border-radius: 18px;
   background:
-    radial-gradient(circle at 92% 12%, rgba(92, 154, 102, .16), transparent 34%),
+    radial-gradient(circle at 92% 12%, rgba(92, 154, 102, .12), transparent 34%),
     linear-gradient(135deg, rgba(255, 253, 249, .94), rgba(246, 232, 219, .76));
   box-shadow: var(--shadow);
 }
 
-body.dark-theme .mood-board,
+body.dark-theme .recipe-finder,
 body.dark-theme .control-panel,
 body.dark-theme .planner-board,
 body.dark-theme .recipe-picker,
@@ -285,26 +284,60 @@ body.dark-theme .summary-panel {
   background: rgba(29, 27, 25, .92);
 }
 
-.mood-board h2 {
-  max-width: 620px;
-  margin: 0;
+.recipe-finder h2 {
+  margin: 0 0 18px;
   font-family: "Instrument Serif", Georgia, serif;
-  font-size: clamp(2.5rem, 4.4vw, 5.2rem);
+  font-size: clamp(2.4rem, 3.6vw, 4rem);
   font-weight: 400;
-  line-height: .9;
+  line-height: .95;
 }
 
-.mood-actions {
-  margin-top: 24px;
-  display: flex;
-  flex-wrap: wrap;
+.hero-search {
+  display: grid;
+  gap: 9px;
+}
+
+.hero-search label {
+  color: var(--muted);
+  font-size: .84rem;
+  font-weight: 800;
+}
+
+.hero-search div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 10px;
 }
 
-.mood-actions a,
-.mood-actions button {
-  min-height: 44px;
-  padding: 0 15px;
+.hero-search input {
+  min-height: 54px;
+  width: 100%;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  outline: none;
+  background: var(--paper-soft);
+  color: var(--ink);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.hero-search input:focus {
+  border-color: rgba(220, 130, 103, .5);
+  box-shadow: 0 0 0 4px rgba(220, 130, 103, .12);
+}
+
+.finder-shortcuts {
+  margin-top: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.finder-shortcuts button,
+.finder-plan-link {
+  min-height: 40px;
+  padding: 0 13px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -314,25 +347,24 @@ body.dark-theme .summary-panel {
   background: rgba(255, 253, 249, .72);
   cursor: pointer;
   font: inherit;
+  font-size: .9rem;
   font-weight: 800;
   text-decoration: none;
 }
 
-.mood-actions a:hover,
-.mood-actions a:focus-visible,
-.mood-actions button:hover,
-.mood-actions button:focus-visible {
+.finder-shortcuts button:hover,
+.finder-shortcuts button:focus-visible,
+.finder-plan-link:hover,
+.finder-plan-link:focus-visible {
   border-color: rgba(220, 130, 103, .38);
   background: #fffdf9;
   outline: none;
 }
 
-.mood-note {
-  max-width: 520px;
-  margin: 22px 0 0;
-  color: var(--muted);
-  font-size: 1rem;
-  font-weight: 700;
+.finder-plan-link {
+  width: max-content;
+  margin-top: 12px;
+  color: var(--accent-dark);
 }
 
 .section {
@@ -1712,14 +1744,21 @@ body.dark-theme .palette-5 { background-color: #57433e; }
     padding-top: 38px;
   }
 
-  .mood-board {
-    min-height: 0;
+  .recipe-finder {
     padding: 24px;
   }
 
-  .mood-actions {
-    flex-direction: column;
+  .hero-search div {
+    grid-template-columns: 1fr;
+  }
+
+  .finder-shortcuts {
     align-items: stretch;
+    flex-direction: column;
+  }
+
+  .finder-plan-link {
+    width: 100%;
   }
 
   .about-card {

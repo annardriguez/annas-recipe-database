@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#f4efe7">
   <title>Anna's Kitchen Index</title>
-  <link rel="stylesheet" href="style.css?v=editorial-refresh">
+  <link rel="stylesheet" href="style.css?v=usable-hero">
 </head>
 
 <body>
@@ -37,16 +37,23 @@
         <p class="hero-text">Good food, good mood.</p>
       </div>
 
-      <div class="mood-board" aria-label="Kitchen shortcuts">
-        <p class="eyebrow">Tonight's vibe</p>
-        <h2>What are we pretending to have energy for?</h2>
-        <div class="mood-actions">
-          <a href="#recipes" data-mood-search="pasta">Pasta emergency</a>
-          <a href="#recipes" data-mood-search="quick">Fast and decent</a>
-          <a href="planner.html">Plan the week</a>
-          <button id="hero-favourites" type="button">Saved cravings</button>
+      <div class="recipe-finder" aria-label="Recipe finder">
+        <p class="eyebrow">Recipe finder</p>
+        <h2>Find dinner fast.</h2>
+        <form class="hero-search" id="hero-search-form">
+          <label for="hero-search-input">Search by ingredient, craving, or recipe name</label>
+          <div>
+            <input id="hero-search-input" type="search" placeholder="chicken, pasta, oats..." autocomplete="off">
+            <button class="primary-button" type="submit">Search</button>
+          </div>
+        </form>
+        <div class="finder-shortcuts" aria-label="Quick recipe filters">
+          <button type="button" data-finder-filter="quick">Under 15 min</button>
+          <button type="button" data-finder-filter="high protein">High protein</button>
+          <button type="button" data-finder-filter="vegetarian">Vegetarian</button>
+          <button id="hero-favourites" type="button">Saved recipes</button>
         </div>
-        <p class="mood-note">Search, save, plan, repeat. Tiny kitchen control center, but cute.</p>
+        <a class="finder-plan-link" href="planner.html">Open meal planner</a>
       </div>
     </section>
 
@@ -123,6 +130,6 @@
   <script src="supabase-config.js"></script>
   <script src="theme.js?v=fix-recipes"></script>
   <script src="recipes.js?v=account-polish"></script>
-  <script src="script.js?v=editorial-refresh"></script>
+  <script src="script.js?v=usable-hero"></script>
 </body>
 </html>

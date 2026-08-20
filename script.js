@@ -12,6 +12,8 @@ const activeSummary = document.querySelector("#active-summary");
 const favouriteCount = document.querySelector("#favourite-count");
 const showFavouritesButton = document.querySelector("#show-favourites");
 const heroFavouritesButton = document.querySelector("#hero-favourites");
+const heroSearchForm = document.querySelector("#hero-search-form");
+const heroSearchInput = document.querySelector("#hero-search-input");
 const randomRecipeButton = document.querySelector("#random-recipe");
 const featuredCard = document.querySelector("#featured-card");
 const toast = document.querySelector("#toast");
@@ -608,15 +610,29 @@ function showSavedRecipes() {
 
 showFavouritesButton.addEventListener("click", showSavedRecipes);
 heroFavouritesButton?.addEventListener("click", showSavedRecipes);
-document.querySelectorAll("[data-mood-search]").forEach(link => {
-  link.addEventListener("click", () => {
-    searchInput.value = link.dataset.moodSearch;
+heroSearchForm?.addEventListener("submit", event => {
+  event.preventDefault();
+  searchInput.value = heroSearchInput.value.trim();
+  showingFavourites = false;
+  activeFilter = "all";
+  sortSelect.value = "default";
+  quickFilters.querySelectorAll("button").forEach(button => {
+    button.classList.toggle("active", button.dataset.filter === "all");
+  });
+  renderRecipes();
+  document.querySelector("#recipes").scrollIntoView({ behavior: "smooth" });
+});
+document.querySelectorAll("[data-finder-filter]").forEach(button => {
+  button.addEventListener("click", () => {
+    activeFilter = button.dataset.finderFilter;
+    searchInput.value = "";
+    if (heroSearchInput) heroSearchInput.value = "";
     showingFavourites = false;
-    activeFilter = "all";
     quickFilters.querySelectorAll("button").forEach(button => {
-      button.classList.toggle("active", button.dataset.filter === "all");
+      button.classList.toggle("active", button.dataset.filter === activeFilter);
     });
     renderRecipes();
+    document.querySelector("#recipes").scrollIntoView({ behavior: "smooth" });
   });
 });
 accountButton.addEventListener("click", openAccountDialog);
