@@ -464,11 +464,47 @@ function getPlannedRecipesForWeek() {
   });
 }
 
+function getPlannedRecipesForDay(date) {
+  const dateKey = toDateKey(date);
+
+  return mealSlots
+    .map(slot => getRecipeById(mealPlan[makeSlotKey(dateKey, slot)]))
+    .filter(Boolean);
+}
+
 function sumMacro(plannedRecipes, key) {
   return plannedRecipes.reduce((total, recipe) => {
     const value = recipe[key];
     return typeof value === "number" ? total + value : total;
   }, 0);
+}
+
+function formatDailyMacro(value, suffix = "") {
+  return value ? `${value}${suffix}` : "-";
+}
+
+function renderDailyMacro(date) {
+  const plannedRecipes = getPlannedRecipesForDay(date);
+  const plannedCount = plannedRecipes.length;
+  const calories = sumMacro(plannedRecipes, "calories");
+  const protein = sumMacro(plannedRecipes, "protein");
+  const carbs = sumMacro(plannedRecipes, "carbs");
+  const fat = sumMacro(plannedRecipes, "fat");
+
+  return `
+    <article class="daily-summary ${plannedCount ? "" : "empty"}">
+      <div>
+        <strong>${dayFormatter.format(date)}</strong>
+        <span>${dateFormatter.format(date)} · ${plannedCount || "no"} meal${plannedCount === 1 ? "" : "s"}</span>
+      </div>
+      <dl>
+        <div><dt>kcal</dt><dd>${formatDailyMacro(calories)}</dd></div>
+        <div><dt>protein</dt><dd>${formatDailyMacro(protein, "g")}</dd></div>
+        <div><dt>carbs</dt><dd>${formatDailyMacro(carbs, "g")}</dd></div>
+        <div><dt>fat</dt><dd>${formatDailyMacro(fat, "g")}</dd></div>
+      </dl>
+    </article>
+  `;
 }
 
 function uniqueIngredients(plannedRecipes) {
@@ -489,18 +525,9 @@ function uniqueIngredients(plannedRecipes) {
 function renderWeeklySummary() {
   const plannedRecipes = getPlannedRecipesForWeek();
   const plannedCount = plannedRecipes.length;
-  const calories = sumMacro(plannedRecipes, "calories");
-  const protein = sumMacro(plannedRecipes, "protein");
-  const carbs = sumMacro(plannedRecipes, "carbs");
-  const fat = sumMacro(plannedRecipes, "fat");
 
   plannedMealCount.textContent = `${plannedCount} meal${plannedCount === 1 ? "" : "s"} planned`;
-  weeklySummary.innerHTML = `
-    <div><strong>${calories || "-"}</strong><span>kcal total</span></div>
-    <div><strong>${protein || "-"}</strong><span>g protein</span></div>
-    <div><strong>${carbs || "-"}</strong><span>g carbs</span></div>
-    <div><strong>${fat || "-"}</strong><span>g fat</span></div>
-  `;
+  weeklySummary.innerHTML = getWeekDates().map(renderDailyMacro).join("");
 
   const ingredients = uniqueIngredients(plannedRecipes).slice(0, 28);
   shoppingList.replaceChildren(

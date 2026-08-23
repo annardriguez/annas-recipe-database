@@ -1389,11 +1389,10 @@ dialog::backdrop {
 }
 
 .summary-stats {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: 1fr;
 }
 
-.dialog-stats div,
-.summary-stats div {
+.dialog-stats div {
   padding: 18px;
   border-radius: 14px;
   background: var(--paper);
@@ -1406,17 +1405,66 @@ dialog::backdrop {
   display: block;
 }
 
-.dialog-stats strong,
-.summary-stats strong {
+.dialog-stats strong {
   font-family: "Instrument Serif", Georgia, serif;
   font-size: 1.8rem;
   font-weight: 400;
 }
 
 .dialog-stats span,
-.summary-stats span {
+.daily-summary span {
   color: var(--muted);
   font-size: .72rem;
+}
+
+.daily-summary {
+  padding: 14px;
+  display: grid;
+  grid-template-columns: minmax(100px, .85fr) minmax(0, 1.8fr);
+  align-items: center;
+  gap: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--paper);
+}
+
+.daily-summary.empty {
+  opacity: .62;
+}
+
+.daily-summary > div > strong {
+  font-size: 1rem;
+}
+
+.daily-summary dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.daily-summary dl div {
+  min-width: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.daily-summary dt,
+.daily-summary dd {
+  margin: 0;
+}
+
+.daily-summary dt {
+  color: var(--muted);
+  font-size: .66rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.daily-summary dd {
+  margin-top: 3px;
+  font-weight: 900;
 }
 
 .summary-heading {
@@ -1811,5 +1859,13 @@ body.dark-theme .palette-5 { background-color: #57433e; }
   .summary-stats,
   .shopping-list {
     grid-template-columns: 1fr;
+  }
+
+  .daily-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .daily-summary dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
