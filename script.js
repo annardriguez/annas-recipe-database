@@ -21,6 +21,10 @@ const accountButton = document.querySelector("#open-account");
 const accountDialog = document.querySelector("#account-dialog");
 const accountDialogClose = document.querySelector("#account-dialog-close");
 const accountContent = document.querySelector("#account-content");
+const customRecipeButton = document.querySelector("#open-custom-recipe");
+const customRecipeDialog = document.querySelector("#custom-recipe-dialog");
+const customRecipeClose = document.querySelector("#custom-recipe-close");
+const customRecipeForm = document.querySelector("#custom-recipe-form");
 
 const savedRecipeIds = new Set(
   JSON.parse(localStorage.getItem("annaRecipeFavourites") || "[]")
@@ -37,7 +41,10 @@ let cloudSyncReady = false;
 const labels = {
   main: "Main meal",
   breakfast: "Breakfast",
-  snack: "Sweet & snack"
+  snack: "Sweet & snack",
+  sweet: "Sweet",
+  side: "Side",
+  lunch: "Lunch"
 };
 
 const filterOptions = [
@@ -152,6 +159,16 @@ function showToast(message) {
 
 function getSavedRecipes() {
   return recipes.filter(recipe => savedRecipeIds.has(recipe.id));
+}
+
+function removeCustomRecipe(recipeId) {
+  window.AnnaCustomRecipes?.remove(recipeId);
+  savedRecipeIds.delete(recipeId);
+  saveFavourites();
+  renderRecipes();
+  dialog.close();
+  document.body.classList.remove("dialog-open");
+  showToast("Custom recipe removed");
 }
 
 function isSupabaseConfigured() {
@@ -385,7 +402,7 @@ function createRecipeCard(recipe, index) {
     <div class="recipe-content">
       <div class="recipe-kicker">
         <span>${labels[recipe.category] || recipe.category}</span>
-        <span>${recipe.time} min</span>
+        <span>${recipe.isCustom ? "Your recipe" : `${recipe.time} min`}</span>
       </div>
 
       <h3>${escapeHtml(recipe.title)}</h3>
@@ -490,6 +507,7 @@ function openRecipe(recipe, palette = 0) {
         <p class="eyebrow">${labels[recipe.category] || recipe.category}</p>
         <h2>${escapeHtml(recipe.title)}</h2>
         <p>${escapeHtml(recipe.description)}</p>
+        ${recipe.isCustom ? `<p class="custom-recipe-badge">Your recipe</p>` : ""}
       </div>
       <div class="dialog-cover-emoji">${escapeHtml(recipe.emoji)}</div>
     </header>
@@ -529,6 +547,7 @@ function openRecipe(recipe, palette = 0) {
         >
           ${saved ? "♥ Saved to favourites" : "♡ Save recipe"}
         </button>
+        ${recipe.isCustom ? `<button class="dialog-delete" id="delete-custom-recipe" type="button">Delete custom recipe</button>` : ""}
 
         <h3>Ingredients</h3>
         <ul>
@@ -555,6 +574,9 @@ function openRecipe(recipe, palette = 0) {
 
   dialogContent.querySelector(".dialog-save").addEventListener("click", event => {
     toggleFavourite(recipe, event.currentTarget);
+  });
+  dialogContent.querySelector("#delete-custom-recipe")?.addEventListener("click", () => {
+    removeCustomRecipe(recipe.id);
   });
 
   dialog.showModal();
@@ -645,6 +667,39 @@ accountDialog.addEventListener("click", event => {
     accountDialog.close();
     document.body.classList.remove("dialog-open");
   }
+});
+
+customRecipeButton?.addEventListener("click", () => {
+  customRecipeForm.reset();
+  customRecipeDialog.showModal();
+  document.body.classList.add("dialog-open");
+});
+customRecipeClose?.addEventListener("click", () => {
+  customRecipeDialog.close();
+  document.body.classList.remove("dialog-open");
+});
+customRecipeDialog?.addEventListener("click", event => {
+  if (event.target === customRecipeDialog) {
+    customRecipeDialog.close();
+    document.body.classList.remove("dialog-open");
+  }
+});
+customRecipeForm?.addEventListener("submit", event => {
+  event.preventDefault();
+  const formData = new FormData(customRecipeForm);
+  const recipe = window.AnnaCustomRecipes.add(Object.fromEntries(formData));
+
+  customRecipeDialog.close();
+  document.body.classList.remove("dialog-open");
+  searchInput.value = recipe.title;
+  activeFilter = "all";
+  showingFavourites = false;
+  quickFilters.querySelectorAll("button").forEach(button => {
+    button.classList.toggle("active", button.dataset.filter === "all");
+  });
+  renderRecipes();
+  document.querySelector("#recipes").scrollIntoView({ behavior: "smooth" });
+  showToast("Recipe added");
 });
 
 clearFiltersButton.addEventListener("click", () => {

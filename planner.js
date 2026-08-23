@@ -43,7 +43,10 @@ const savedRecipeIds = new Set(
 const labels = {
   main: "Main meal",
   breakfast: "Breakfast",
-  snack: "Sweet & snack"
+  snack: "Sweet & snack",
+  sweet: "Sweet",
+  side: "Side",
+  lunch: "Lunch"
 };
 
 function escapeHtml(value) {
