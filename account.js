@@ -149,11 +149,14 @@ function accountRenderDialog() {
       `}
 
       <div class="account-actions">
+        <button class="planner-tool-button" data-nutrition-toggle type="button">Nutrition off</button>
         <a class="planner-tool-button" href="index.html#recipes">Open favorites</a>
         ${accountCurrentUser ? `<button class="planner-tool-button" id="sign-out-profile" type="button">Log out</button>` : ""}
       </div>
     </div>
   `;
+
+  window.AnnaNutrition?.apply(window.AnnaNutrition.isVisible());
 
   accountContent.querySelector("#account-form")?.addEventListener("submit", async event => {
     event.preventDefault();
