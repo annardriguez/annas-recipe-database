@@ -409,10 +409,10 @@ function createRecipeCard(recipe, index) {
       <p>${escapeHtml(recipe.description)}</p>
 
       <div class="recipe-meta">
-        <span>${formatMeta(recipe.calories, " kcal")}</span>
-        <span>${formatMeta(recipe.protein, " g protein")}</span>
-        <span>${formatMeta(recipe.carbs, " g carbs")}</span>
-        <span>${formatMeta(recipe.fat, " g fat")}</span>
+        <span class="nutrition-only">${formatMeta(recipe.calories, " kcal")}</span>
+        <span class="nutrition-only">${formatMeta(recipe.protein, " g protein")}</span>
+        <span class="nutrition-only">${formatMeta(recipe.carbs, " g carbs")}</span>
+        <span class="nutrition-only">${formatMeta(recipe.fat, " g fat")}</span>
         ${recipe.tags.slice(0, 1).map(tag => `<span>${escapeHtml(tag)}</span>`).join("")}
       </div>
     </div>
@@ -519,23 +519,23 @@ function openRecipe(recipe, palette = 0) {
             <strong>${recipe.time}</strong>
             <span>minutes</span>
           </div>
-          <div>
+          <div class="nutrition-only">
             <strong>${recipe.calories ?? "—"}</strong>
             <span>kcal</span>
           </div>
-          <div>
+          <div class="nutrition-only">
             <strong>${recipe.protein ?? "—"}</strong>
             <span>g protein</span>
           </div>
-          <div>
+          <div class="nutrition-only">
             <strong>${recipe.carbs ?? "—"}</strong>
             <span>g carbs</span>
           </div>
-          <div>
+          <div class="nutrition-only">
             <strong>${recipe.fat ?? "—"}</strong>
             <span>g fat</span>
           </div>
-          <div>
+          <div class="nutrition-only">
             <strong>${recipe.fiber ?? "—"}</strong>
             <span>g fiber</span>
           </div>
@@ -601,7 +601,7 @@ function setFeaturedRecipe() {
 
     <div>
       <h2>${escapeHtml(featured.title)}</h2>
-      <div class="featured-meta">
+      <div class="featured-meta nutrition-only">
         <span>${formatMeta(featured.calories, " kcal")}</span>
         <span>${formatMeta(featured.protein, " g protein")}</span>
       </div>

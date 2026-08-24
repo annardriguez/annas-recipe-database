@@ -223,7 +223,7 @@ function renderSlot(dateKey, slot) {
       <span class="slot-label">${escapeHtml(slot)}</span>
       <span class="slot-meal">
         <strong>${escapeHtml(recipe.title)}</strong>
-        <span>${recipe.time} min · ${formatMeta(recipe.protein, " g protein")}</span>
+        <span>${recipe.time} min <span class="nutrition-only">· ${formatMeta(recipe.protein, " g protein")}</span></span>
       </span>
       <span class="slot-remove" data-remove="true">Remove</span>
     `
@@ -283,7 +283,7 @@ function renderPickerRecipe(recipe) {
       <p>${escapeHtml(recipe.description)}</p>
       <span class="picker-meta">
         <span>${recipe.time} min</span>
-        <span>${formatMeta(recipe.protein, " g protein")}</span>
+        <span class="nutrition-only">${formatMeta(recipe.protein, " g protein")}</span>
         <span>${isQuick(recipe) ? "quick" : labels[recipe.category] || recipe.category}</span>
       </span>
     </span>
@@ -415,23 +415,23 @@ function openRecipe(recipe) {
             <strong>${recipe.time}</strong>
             <span>minutes</span>
           </div>
-          <div>
+          <div class="nutrition-only">
             <strong>${recipe.calories ?? "-"}</strong>
             <span>kcal</span>
           </div>
-          <div>
+          <div class="nutrition-only">
             <strong>${recipe.protein ?? "-"}</strong>
             <span>g protein</span>
           </div>
-          <div>
+          <div class="nutrition-only">
             <strong>${recipe.carbs ?? "-"}</strong>
             <span>g carbs</span>
           </div>
-          <div>
+          <div class="nutrition-only">
             <strong>${recipe.fat ?? "-"}</strong>
             <span>g fat</span>
           </div>
-          <div>
+          <div class="nutrition-only">
             <strong>${recipe.fiber ?? "-"}</strong>
             <span>g fiber</span>
           </div>

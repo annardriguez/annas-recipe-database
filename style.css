@@ -164,7 +164,8 @@ body.dark-theme .slot-label {
 
 .icon-button,
 .nav-favourites,
-.account-button {
+.account-button,
+.nutrition-toggle {
   border: 0;
   background: transparent;
   cursor: pointer;
@@ -200,15 +201,37 @@ body.dark-theme .slot-label {
   line-height: 1;
 }
 
+.nutrition-toggle {
+  min-width: 118px;
+  height: 42px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  background: rgba(255, 253, 249, .5);
+  font-size: .84rem;
+  line-height: 1;
+}
+
 .account-button:hover,
-.account-button:focus-visible {
+.account-button:focus-visible,
+.nutrition-toggle:hover,
+.nutrition-toggle:focus-visible {
   border-color: rgba(220, 130, 103, .42);
   background: rgba(220, 130, 103, .12);
   outline: none;
 }
 
-body.dark-theme .account-button {
+body.dark-theme .account-button,
+body.dark-theme .nutrition-toggle {
   background: #332b27;
+}
+
+body.hide-nutrition .nutrition-only {
+  display: none !important;
 }
 
 .nav-favourites {
@@ -1872,6 +1895,23 @@ body.dark-theme .palette-5 { background-color: #57433e; }
   }
 
   .header-actions { gap: 8px; }
+
+  .nutrition-toggle {
+    width: 42px;
+    min-width: 42px;
+    padding: 0;
+    font-size: 0;
+  }
+
+  .nutrition-toggle::before {
+    content: "N";
+    font-size: .84rem;
+  }
+
+  body.hide-nutrition .nutrition-toggle {
+    opacity: .68;
+    text-decoration: line-through;
+  }
 
   .hero,
   .about-hero,
