@@ -384,6 +384,14 @@ function createRecipeCard(recipe, index) {
   const badgeClass = badgeTag.toLowerCase().includes("vegetarian")
     ? "vegetarian"
     : "";
+  const primaryTags = [
+    recipe.isCustom ? "your recipe" : labels[recipe.category] || recipe.category,
+    isQuick(recipe) ? "quick" : "",
+    recipe.tags.includes("vegetarian") ? "vegetarian" : "",
+    ...recipe.tags.filter(tag =>
+      !["custom", "quick", "vegetarian", "high protein"].includes(tag)
+    )
+  ].filter(Boolean).slice(0, 3);
 
   article.innerHTML = `
     <div class="recipe-visual palette-${palette}">
@@ -409,11 +417,9 @@ function createRecipeCard(recipe, index) {
       <p>${escapeHtml(recipe.description)}</p>
 
       <div class="recipe-meta">
-        <span class="nutrition-only">${formatMeta(recipe.calories, " kcal")}</span>
-        <span class="nutrition-only">${formatMeta(recipe.protein, " g protein")}</span>
-        <span class="nutrition-only">${formatMeta(recipe.carbs, " g carbs")}</span>
-        <span class="nutrition-only">${formatMeta(recipe.fat, " g fat")}</span>
-        ${recipe.tags.slice(0, 1).map(tag => `<span>${escapeHtml(tag)}</span>`).join("")}
+        ${primaryTags.map(tag => `<span>${escapeHtml(tag)}</span>`).join("")}
+        <span class="nutrition-only nutrition-chip">${formatMeta(recipe.calories, " kcal")}</span>
+        <span class="nutrition-only nutrition-chip">${formatMeta(recipe.protein, " g protein")}</span>
       </div>
     </div>
   `;

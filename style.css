@@ -778,6 +778,14 @@ body.dark-theme .image-badges span {
   font-size: .84rem;
 }
 
+.recipe-meta .nutrition-chip {
+  color: #8a8178;
+  background: transparent;
+  box-shadow: none;
+  border: 1px solid var(--line);
+  font-weight: 800;
+}
+
 .empty-state {
   padding: 90px 20px;
   text-align: center;
