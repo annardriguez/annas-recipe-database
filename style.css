@@ -53,20 +53,20 @@ body {
 }
 
 body.dark-theme {
-  --ink: #fff8ee;
-  --muted: #ded2c4;
-  --paper: #292622;
-  --paper-soft: #24211e;
-  --card: #24211f;
-  --line: rgba(255, 246, 235, .22);
-  --accent: #f09779;
-  --accent-dark: #f0a38b;
-  --green: #8fca95;
-  --shadow: 0 18px 48px rgba(0, 0, 0, .28);
+  --ink: #fff7ee;
+  --muted: #d7c8bc;
+  --paper: #1f1d24;
+  --paper-soft: #2b2630;
+  --card: #29242c;
+  --line: rgba(255, 239, 224, .17);
+  --accent: #ff9b7f;
+  --accent-dark: #ffb096;
+  --green: #9bd3ad;
+  --shadow: 0 22px 56px rgba(8, 7, 10, .34);
   background:
-    radial-gradient(circle at 8% 12%, rgba(240, 151, 121, .16), transparent 26rem),
-    radial-gradient(circle at 93% 20%, rgba(143, 202, 149, .12), transparent 30rem),
-    linear-gradient(180deg, #181716 0%, #24201d 100%);
+    radial-gradient(circle at 9% 10%, rgba(255, 155, 127, .18), transparent 27rem),
+    radial-gradient(circle at 92% 18%, rgba(155, 211, 173, .12), transparent 31rem),
+    linear-gradient(180deg, #191820 0%, #241f27 54%, #211d22 100%);
 }
 
 body.dialog-open { overflow: hidden; }
@@ -93,7 +93,7 @@ button { color: inherit; }
 }
 
 body.dark-theme .site-header {
-  background: rgba(30, 28, 26, .9);
+  background: rgba(29, 27, 34, .9);
 }
 
 .logo {
@@ -208,7 +208,7 @@ body.dark-theme .slot-label {
 }
 
 body.dark-theme .account-button {
-  background: #332b27;
+  background: rgba(50, 43, 52, .86);
 }
 
 body.hide-nutrition .nutrition-only {
@@ -230,7 +230,7 @@ body.hide-nutrition .nutrition-only {
 }
 
 body.dark-theme .nav-favourites {
-  background: #332b27;
+  background: rgba(61, 46, 51, .92);
 }
 
 .nav-favourites span {
@@ -285,7 +285,9 @@ body.dark-theme .planner-board,
 body.dark-theme .recipe-picker,
 body.dark-theme .summary-panel {
   border-color: var(--line);
-  background: rgba(29, 27, 25, .92);
+  background:
+    radial-gradient(circle at 92% 10%, rgba(155, 211, 173, .08), transparent 25rem),
+    rgba(41, 36, 44, .9);
 }
 
 .recipe-finder h2 {
@@ -371,6 +373,21 @@ body.dark-theme .summary-panel {
   color: var(--accent-dark);
 }
 
+body.dark-theme .finder-shortcuts button,
+body.dark-theme .finder-plan-link {
+  border-color: rgba(255, 239, 224, .18);
+  color: var(--ink);
+  background: rgba(247, 236, 225, .14);
+}
+
+body.dark-theme .finder-shortcuts button:hover,
+body.dark-theme .finder-shortcuts button:focus-visible,
+body.dark-theme .finder-plan-link:hover,
+body.dark-theme .finder-plan-link:focus-visible {
+  border-color: rgba(255, 176, 150, .42);
+  background: rgba(255, 155, 127, .18);
+}
+
 .section {
   max-width: 1640px;
   margin: 0 auto;
@@ -416,7 +433,8 @@ body.dark-theme .planner-tool-button,
 body.dark-theme .recipe-add-button,
 body.dark-theme .slot-remove,
 body.dark-theme .picker-search input {
-  background: rgba(54, 49, 44, .96);
+  border-color: rgba(255, 239, 224, .17);
+  background: rgba(48, 42, 52, .96);
 }
 
 .search-icon {
@@ -469,8 +487,8 @@ body.dark-theme .picker-meta span,
 body.dark-theme .picker-emoji,
 body.dark-theme .recipe-note,
 body.dark-theme .dialog-stats div {
-  color: #eee4d9;
-  background: #332e2a;
+  color: #f6eadf;
+  background: rgba(255, 239, 224, .12);
 }
 
 .sort-box {
@@ -913,7 +931,7 @@ body.dark-theme .image-badges span {
 .calendar-day:last-child { border-right: 0; }
 
 body.dark-theme .calendar-day {
-  background: rgba(24, 22, 20, .34);
+  background: rgba(31, 28, 36, .42);
 }
 
 .day-header {
@@ -953,8 +971,8 @@ body.dark-theme .calendar-day {
 }
 
 body.dark-theme .meal-slot {
-  border-color: rgba(255, 248, 238, .22);
-  background: rgba(53, 49, 45, .92);
+  border-color: rgba(255, 239, 224, .17);
+  background: rgba(48, 42, 52, .78);
 }
 
 .meal-slot.active {
@@ -969,9 +987,9 @@ body.dark-theme .meal-slot {
 }
 
 body.dark-theme .meal-slot.has-meal {
-  border-color: rgba(255, 248, 238, .32);
-  background: #f6f1ea;
-  color: #2c2824;
+  border-color: rgba(255, 176, 150, .34);
+  background: #342b32;
+  color: var(--ink);
 }
 
 body.dark-theme .meal-slot.active {
@@ -994,7 +1012,7 @@ body.dark-theme .meal-slot.active {
 }
 
 body.dark-theme .slot-empty {
-  color: #f0e5d8;
+  color: #eaded3;
 }
 
 .slot-meal {
@@ -1015,7 +1033,7 @@ body.dark-theme .slot-empty {
 
 body.dark-theme .meal-slot.has-meal .slot-label,
 body.dark-theme .meal-slot.has-meal .slot-meal span {
-  color: #7c7065;
+  color: var(--muted);
 }
 
 .slot-remove {
@@ -1027,9 +1045,9 @@ body.dark-theme .meal-slot.has-meal .slot-meal span {
 }
 
 body.dark-theme .slot-remove {
-  color: #ffb097;
-  border-color: rgba(255, 176, 151, .28);
-  background: #39332e;
+  color: var(--accent-dark);
+  border-color: rgba(255, 176, 150, .28);
+  background: rgba(255, 155, 127, .12);
 }
 
 .recipe-picker {
@@ -1785,6 +1803,13 @@ dialog::backdrop {
   font-weight: 700;
 }
 
+body.dark-theme .toast {
+  border: 1px solid rgba(255, 176, 150, .34);
+  color: #fff7ee;
+  background: #3b2f36;
+  box-shadow: 0 18px 46px rgba(0, 0, 0, .44), 0 0 0 1px rgba(255, 255, 255, .04) inset;
+}
+
 .toast.show {
   opacity: 1;
   transform: translateY(0);
@@ -1797,12 +1822,12 @@ dialog::backdrop {
 .palette-4 { background-color: #e5ead8; }
 .palette-5 { background-color: #eaded8; }
 
-body.dark-theme .palette-0 { background-color: #55483e; }
-body.dark-theme .palette-1 { background-color: #5c4438; }
-body.dark-theme .palette-2 { background-color: #40523f; }
-body.dark-theme .palette-3 { background-color: #5a4b3a; }
-body.dark-theme .palette-4 { background-color: #4c573b; }
-body.dark-theme .palette-5 { background-color: #57433e; }
+body.dark-theme .palette-0 { background-color: #4a3f49; }
+body.dark-theme .palette-1 { background-color: #543d45; }
+body.dark-theme .palette-2 { background-color: #364d42; }
+body.dark-theme .palette-3 { background-color: #4c4358; }
+body.dark-theme .palette-4 { background-color: #3f5048; }
+body.dark-theme .palette-5 { background-color: #513f4c; }
 
 @keyframes recipe-arrive {
   0% { transform: translateY(16px) scale(.94); opacity: 0; }
