@@ -6,6 +6,10 @@ DESIGN CHANGES
 - Three equal columns on desktop, two on tablet, one on mobile
 - Warm neutral base with a muted baby-blue accent
 - Restrained card colours rather than a rainbow palette
+- My Kitchen login-style profile panel for saved recipes
+- Export/import saved recipes for moving favourites between browsers
+- Optional Supabase email login for cloud-synced favourites across devices
+- Weekly meal planner summary with macros and a shopping list
 - All V2 features are preserved: favourites, random recipe, search, sorting,
   filters, keyboard shortcut and recipe dialog
 
@@ -41,3 +45,15 @@ PLANNER AND NAVIGATION REFINEMENT
 - Filters and reset stay within the current collection.
 - Favourites count lives in the navigation; the duplicate heart shortcut is removed.
 - Planner uses one row per day, with a modal recipe chooser and keyboard-accessible removal.
+
+- account.js: shared login dialog for planner/about pages
+- theme.js: dark/light theme toggle
+- supabase-config.js: Supabase project URL and publishable key for login sync
+- supabase-schema.sql: database setup script for synced favourites
+
+SUPABASE LOGIN STATUS
+- Project configured: jlcvhiwfdpskvvecybuq
+- Favourites table created: public.recipe_favourites
+- Row Level Security enabled for per-user saved recipes
+- Site URL set to: https://annardriguez.github.io/annas-recipe-database/
+- Upload/push the updated files to GitHub, then test My Kitchen > Log in.

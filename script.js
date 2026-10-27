@@ -13,6 +13,14 @@ const favouriteCount = document.querySelector("#favourite-count");
 const randomRecipeButton = document.querySelector("#random-recipe");
 const featuredCard = document.querySelector("#featured-card");
 const toast = document.querySelector("#toast");
+const accountButton = document.querySelector("#open-account");
+const accountDialog = document.querySelector("#account-dialog");
+const accountDialogClose = document.querySelector("#account-dialog-close");
+const accountContent = document.querySelector("#account-content");
+const customRecipeButton = document.querySelector("#open-custom-recipe");
+const customRecipeDialog = document.querySelector("#custom-recipe-dialog");
+const customRecipeClose = document.querySelector("#custom-recipe-close");
+const customRecipeForm = document.querySelector("#custom-recipe-form");
 
 const savedRecipeIds = new Set(
   JSON.parse(localStorage.getItem("annaRecipeFavourites") || "[]")
@@ -23,11 +31,18 @@ const requestedView = new URLSearchParams(location.search).get("view");
 const libraryView = ["recipes", "favourites"].includes(requestedView) ? requestedView : "home";
 const showingFavourites = libraryView === "favourites";
 let toastTimer;
+let profileName = localStorage.getItem("annaKitchenProfile") || "";
+let supabaseClient = null;
+let currentUser = null;
+let cloudSyncReady = false;
 
 const labels = {
   main: "Main meal",
   breakfast: "Breakfast",
-  snack: "Sweet & snack"
+  snack: "Sweet & snack",
+  sweet: "Sweet",
+  side: "Side",
+  lunch: "Lunch"
 };
 
 const filterOptions = [
@@ -84,13 +99,20 @@ function saveFavourites() {
     JSON.stringify([...savedRecipeIds])
   );
   updateFavouriteCount();
+  if (accountDialog?.open) renderAccountDialog();
 }
 
 function updateFavouriteCount() {
   favouriteCount.textContent = savedRecipeIds.size;
+  document.querySelectorAll("[data-favourite-count]").forEach(item => {
+    item.textContent = savedRecipeIds.size;
+  });
+  accountButton.textContent = currentUser ? "My Kitchen" : "Log in";
 }
 
-function toggleFavourite(recipe, button) {
+async function toggleFavourite(recipe, button) {
+  const willSave = !savedRecipeIds.has(recipe.id);
+
   if (savedRecipeIds.has(recipe.id)) {
     savedRecipeIds.delete(recipe.id);
     showToast(`Removed ${recipe.title} from saved recipes`);
@@ -126,6 +148,7 @@ function toggleFavourite(recipe, button) {
   });
 
   if (showingFavourites) renderRecipes();
+  await persistFavouriteToCloud(recipe.id, willSave);
 }
 
 function showToast(message) {
@@ -133,6 +156,197 @@ function showToast(message) {
   toast.classList.add("show");
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => toast.classList.remove("show"), 2200);
+}
+
+function getSavedRecipes() {
+  return recipes.filter(recipe => savedRecipeIds.has(recipe.id));
+}
+
+function removeCustomRecipe(recipeId) {
+  window.AnnaCustomRecipes?.remove(recipeId);
+  savedRecipeIds.delete(recipeId);
+  updateLibraryStats();
+  saveFavourites();
+  renderRecipes();
+  dialog.close();
+  document.body.classList.remove("dialog-open");
+  showToast("Custom recipe removed");
+}
+
+function isSupabaseConfigured() {
+  const config = window.ANNA_SUPABASE_CONFIG || {};
+
+  return Boolean(
+    window.supabase?.createClient &&
+    config.url &&
+    config.anonKey &&
+    !config.url.includes("PASTE_") &&
+    !config.anonKey.includes("PASTE_")
+  );
+}
+
+function getAccountLabel() {
+  if (!currentUser) return "";
+  return currentUser.user_metadata?.name || currentUser.email || "your kitchen";
+}
+
+async function initSupabaseAuth() {
+  if (!isSupabaseConfigured()) {
+    updateFavouriteCount();
+    return;
+  }
+
+  const config = window.ANNA_SUPABASE_CONFIG;
+  supabaseClient = window.supabase.createClient(config.url, config.anonKey);
+
+  const { data } = await supabaseClient.auth.getSession();
+  currentUser = data.session?.user || null;
+
+  if (currentUser) await syncRemoteFavourites();
+
+  supabaseClient.auth.onAuthStateChange(async (_event, session) => {
+    currentUser = session?.user || null;
+    cloudSyncReady = Boolean(currentUser);
+
+    if (currentUser) {
+      await syncRemoteFavourites();
+      showToast("Logged in and synced");
+    } else {
+      updateFavouriteCount();
+      if (accountDialog?.open) renderAccountDialog();
+    }
+  });
+
+  updateFavouriteCount();
+}
+
+async function syncRemoteFavourites() {
+  if (!supabaseClient || !currentUser) return;
+
+  const { data, error } = await supabaseClient
+    .from("recipe_favourites")
+    .select("recipe_id")
+    .eq("user_id", currentUser.id);
+
+  if (error) {
+    cloudSyncReady = false;
+    showToast("Could not sync saved recipes");
+    return;
+  }
+
+  const remoteIds = new Set((data || []).map(item => item.recipe_id));
+  const mergedIds = new Set([...remoteIds, ...savedRecipeIds]);
+
+  if (mergedIds.size > remoteIds.size) {
+    const rows = [...mergedIds].map(recipeId => ({
+      user_id: currentUser.id,
+      recipe_id: recipeId
+    }));
+
+    await supabaseClient
+      .from("recipe_favourites")
+      .upsert(rows, { onConflict: "user_id,recipe_id" });
+  }
+
+  savedRecipeIds.clear();
+  mergedIds.forEach(id => savedRecipeIds.add(id));
+  cloudSyncReady = true;
+  saveFavourites();
+  renderRecipes();
+}
+
+async function persistFavouriteToCloud(recipeId, shouldSave) {
+  if (!supabaseClient || !currentUser || !cloudSyncReady) return;
+
+  const request = shouldSave
+    ? supabaseClient
+        .from("recipe_favourites")
+        .upsert({ user_id: currentUser.id, recipe_id: recipeId }, { onConflict: "user_id,recipe_id" })
+    : supabaseClient
+        .from("recipe_favourites")
+        .delete()
+        .eq("user_id", currentUser.id)
+        .eq("recipe_id", recipeId);
+
+  const { error } = await request;
+  if (error) showToast("Saved locally, but cloud sync failed");
+}
+
+function renderAccountDialog() {
+  const configured = isSupabaseConfigured();
+  const accountLabel = getAccountLabel();
+  const syncText = !configured
+    ? "Supabase setup needed"
+    : currentUser
+      ? cloudSyncReady
+        ? "Cloud sync on"
+        : "Cloud sync checking"
+      : "Ready when you are";
+
+  accountContent.innerHTML = `
+    <div class="account-panel">
+      <p class="eyebrow">My Kitchen</p>
+      <h2>${currentUser ? "Cloud sync is on" : "Sync your favorites"}</h2>
+      ${currentUser ? `<p class="account-email">${escapeHtml(accountLabel)}</p>` : ""}
+      <p class="account-status ${currentUser ? "synced" : ""}">${syncText}</p>
+
+      ${currentUser ? `
+        <p class="account-helper">Your favorites are saved in the cloud and will be there when you sign in on another device.</p>
+      ` : `
+        <form class="account-form" id="account-form">
+          <label>
+            <span>Email</span>
+            <input id="profile-email" type="email" placeholder="anna@example.com" autocomplete="email" ${configured ? "" : "disabled"}>
+          </label>
+          <button class="primary-button" type="submit" ${configured ? "" : "disabled"}>Send sign-in link</button>
+        </form>
+        <p class="account-helper">${configured ? "Enter your email and I will send a secure sign-in link. No password needed." : "Cloud sync is almost ready. Supabase still needs its public config."}</p>
+      `}
+
+      <div class="account-actions">
+        <button class="planner-tool-button" data-nutrition-toggle type="button">Nutrition off</button>
+        <button class="planner-tool-button" id="view-saved-recipes" type="button">Open favorites</button>
+        ${currentUser ? `<button class="planner-tool-button" id="sign-out-profile" type="button">Log out</button>` : ""}
+      </div>
+    </div>
+  `;
+
+  window.AnnaNutrition?.apply(window.AnnaNutrition.isVisible());
+
+  accountContent.querySelector("#account-form")?.addEventListener("submit", async event => {
+    event.preventDefault();
+    const email = accountContent.querySelector("#profile-email").value.trim();
+    if (!email) return;
+
+    const { error } = await supabaseClient.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.href.split("#")[0] }
+    });
+
+    showToast(error ? "Could not send login link" : "Check your email for the login link");
+  });
+
+  accountContent.querySelector("#view-saved-recipes").addEventListener("click", () => {
+    accountDialog.close();
+    document.body.classList.remove("dialog-open");
+    window.location.href = "index.html?view=favourites";
+  });
+
+  accountContent.querySelector("#sign-out-profile")?.addEventListener("click", async () => {
+    await supabaseClient.auth.signOut();
+    currentUser = null;
+    cloudSyncReady = false;
+    updateFavouriteCount();
+    renderAccountDialog();
+    showToast("Logged out");
+  });
+
+}
+
+function openAccountDialog() {
+  renderAccountDialog();
+  accountDialog.showModal();
+  document.body.classList.add("dialog-open");
 }
 
 function createFilterButtons() {
@@ -176,6 +390,14 @@ function createRecipeCard(recipe, index) {
   const badgeClass = badgeTag.toLowerCase().includes("vegetarian")
     ? "vegetarian"
     : "";
+  const primaryTags = [
+    recipe.isCustom ? "your recipe" : labels[recipe.category] || recipe.category,
+    isQuick(recipe) ? "quick" : "",
+    recipe.tags.includes("vegetarian") ? "vegetarian" : "",
+    ...recipe.tags.filter(tag =>
+      !["custom", "quick", "vegetarian", "high protein"].includes(tag)
+    )
+  ].filter(Boolean).slice(0, 3);
 
   article.innerHTML = `
     <div class="recipe-visual palette-${palette}">
@@ -195,16 +417,16 @@ function createRecipeCard(recipe, index) {
     <div class="recipe-content">
       <div class="recipe-kicker">
         <span>${labels[recipe.category] || recipe.category}</span>
-        <span>${recipe.time} min</span>
+        <span>${recipe.isCustom ? "Your recipe" : `${recipe.time} min`}</span>
       </div>
 
       <h3>${escapeHtml(recipe.title)}</h3>
       <p>${escapeHtml(recipe.description)}</p>
 
       <div class="recipe-meta">
-        <span>${formatMeta(recipe.calories, " kcal")}</span>
-        <span>${formatMeta(recipe.protein, " g protein")}</span>
-        ${recipe.tags.slice(0, 1).map(tag => `<span>${escapeHtml(tag)}</span>`).join("")}
+        ${primaryTags.map(tag => `<span>${escapeHtml(tag)}</span>`).join("")}
+        <span class="nutrition-only nutrition-chip">${formatMeta(recipe.calories, " kcal")}</span>
+        <span class="nutrition-only nutrition-chip">${formatMeta(recipe.protein, " g protein")}</span>
       </div>
     </div>
   `;
@@ -310,6 +532,7 @@ function openRecipe(recipe, palette = 0) {
         <p class="eyebrow">${labels[recipe.category] || recipe.category}</p>
         <h2 id="recipe-dialog-title">${escapeHtml(recipe.title)}</h2>
         <p>${escapeHtml(recipe.description)}</p>
+        ${recipe.isCustom ? `<p class="custom-recipe-badge">Your recipe</p>` : ""}
       </div>
       <div class="dialog-cover-emoji">${escapeHtml(recipe.emoji)}</div>
     </header>
@@ -321,13 +544,25 @@ function openRecipe(recipe, palette = 0) {
             <strong>${recipe.time}</strong>
             <span>minutes</span>
           </div>
-          <div>
+          <div class="nutrition-only">
             <strong>${recipe.calories ?? "—"}</strong>
             <span>kcal</span>
           </div>
-          <div>
+          <div class="nutrition-only">
             <strong>${recipe.protein ?? "—"}</strong>
             <span>g protein</span>
+          </div>
+          <div class="nutrition-only">
+            <strong>${recipe.carbs ?? "—"}</strong>
+            <span>g carbs</span>
+          </div>
+          <div class="nutrition-only">
+            <strong>${recipe.fat ?? "—"}</strong>
+            <span>g fat</span>
+          </div>
+          <div class="nutrition-only">
+            <strong>${recipe.fiber ?? "—"}</strong>
+            <span>g fiber</span>
           </div>
         </div>
 
@@ -337,6 +572,7 @@ function openRecipe(recipe, palette = 0) {
         >
           ${saved ? "♥ Saved to favourites" : "♡ Save recipe"}
         </button>
+        ${recipe.isCustom ? `<button class="dialog-delete" id="delete-custom-recipe" type="button">Delete custom recipe</button>` : ""}
 
         <h3>Ingredients <small>${recipe.servings || 1} serving${recipe.servings > 1 ? "s" : ""}</small></h3>
         <ul class="ingredient-list">
@@ -364,6 +600,9 @@ function openRecipe(recipe, palette = 0) {
   dialogContent.querySelector(".dialog-save").addEventListener("click", event => {
     toggleFavourite(recipe, event.currentTarget);
   });
+  dialogContent.querySelector("#delete-custom-recipe")?.addEventListener("click", () => {
+    removeCustomRecipe(recipe.id);
+  });
 
   dialog.showModal();
   dialogContent.scrollTop = 0;
@@ -380,20 +619,10 @@ function setFeaturedRecipe() {
 
   featuredCard.innerHTML = `
     <div class="featured-art" aria-hidden="true"><span class="feature-spark">✳</span><span class="featured-emoji">${escapeHtml(featured.emoji)}</span><span class="feature-note">a little kitchen favourite</span></div>
-    <div class="featured-info"><span class="featured-label">On the menu today</span><h2>${escapeHtml(featured.title)}</h2><div class="featured-meta"><span>◷ ${featured.time} min</span><span>${formatMeta(featured.protein, " g protein")}</span><span class="feature-arrow" aria-hidden="true">↗</span></div></div>
+    <div class="featured-info"><span class="featured-label">On the menu today</span><h2>${escapeHtml(featured.title)}</h2><div class="featured-meta"><span>◷ ${featured.time} min</span><span class="nutrition-only">${formatMeta(featured.protein, " g protein")}</span><span class="feature-arrow" aria-hidden="true">↗</span></div></div>
   `;
 
   featuredCard.addEventListener("click", () => openRecipe(featured, 2));
-}
-
-function setStats() {
-  document.querySelector("#total-recipes").textContent = recipes.length;
-  document.querySelector("#vegetarian-recipes").textContent =
-    recipes.filter(recipe => recipe.tags.includes("vegetarian")).length;
-  document.querySelector("#quick-recipes").textContent =
-    recipes.filter(isQuick).length;
-  document.querySelector("#protein-recipes").textContent =
-    recipes.filter(isHighProtein).length;
 }
 
 randomRecipeButton.addEventListener("click", () => {
@@ -401,6 +630,53 @@ randomRecipeButton.addEventListener("click", () => {
   if (!pool.length) return;
   const randomRecipe = pool[Math.floor(Math.random() * pool.length)];
   openRecipe(randomRecipe, Math.floor(Math.random() * 6));
+});
+
+accountButton.addEventListener("click", openAccountDialog);
+accountDialogClose.addEventListener("click", () => {
+  accountDialog.close();
+  document.body.classList.remove("dialog-open");
+});
+accountDialog.addEventListener("click", event => {
+  if (event.target === accountDialog) {
+    accountDialog.close();
+    document.body.classList.remove("dialog-open");
+  }
+});
+
+customRecipeButton?.addEventListener("click", () => {
+  customRecipeForm.reset();
+  customRecipeDialog.showModal();
+  document.body.classList.add("dialog-open");
+});
+customRecipeClose?.addEventListener("click", () => {
+  customRecipeDialog.close();
+  document.body.classList.remove("dialog-open");
+});
+customRecipeDialog?.addEventListener("click", event => {
+  if (event.target === customRecipeDialog) {
+    customRecipeDialog.close();
+    document.body.classList.remove("dialog-open");
+  }
+});
+customRecipeForm?.addEventListener("submit", event => {
+  event.preventDefault();
+  const formData = new FormData(customRecipeForm);
+  const recipe = window.AnnaCustomRecipes.add(Object.fromEntries(formData));
+
+  customRecipeDialog.close();
+  document.body.classList.remove("dialog-open");
+  searchInput.value = recipe.title;
+  activeFilter = "all";
+  if (showingFavourites) savedRecipeIds.add(recipe.id);
+  saveFavourites();
+  quickFilters.querySelectorAll("button").forEach(button => {
+    button.classList.toggle("active", button.dataset.filter === "all");
+  });
+  updateLibraryStats();
+  renderRecipes();
+  document.querySelector("#recipes").scrollIntoView({ behavior: "smooth" });
+  showToast("Recipe added");
 });
 
 clearFiltersButton.addEventListener("click", () => {
@@ -452,8 +728,19 @@ if (libraryView !== "home") {
   document.title = `${showingFavourites ? "Favourites" : "All recipes"} | Anna's Kitchen`;
   searchInput.placeholder = showingFavourites ? "Search your favourites…" : "Search recipes or ingredients…";
 }
+function updateLibraryStats() {
+  document.querySelector("#total-recipes").textContent = recipes.length;
+  document.querySelector("#vegetarian-recipes").textContent = recipes.filter(recipe => recipe.tags.includes("vegetarian")).length;
+  document.querySelector("#quick-recipes").textContent = recipes.filter(isQuick).length;
+  document.querySelector("#protein-recipes").textContent = recipes.filter(isHighProtein).length;
+}
+updateLibraryStats();
 createFilterButtons();
 updateFavouriteCount();
-setStats();
+initSupabaseAuth();
 if (featuredCard) setFeaturedRecipe();
 renderRecipes();
+
+[accountDialog, customRecipeDialog].forEach(modal => {
+  modal.addEventListener("close", () => document.body.classList.remove("dialog-open"));
+});

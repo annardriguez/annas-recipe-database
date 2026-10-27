@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#f4efe7">
   <title>Meal Planner | Anna's Kitchen</title>
-  <link rel="stylesheet" href="style.css?v=dark-readable">
-  <link rel="stylesheet" href="refinements.css">
+  <link rel="stylesheet" href="style.css?v=combined-kitchen-20261027">
+  <link rel="stylesheet" href="refinements.css?v=combined-kitchen-20261027">
 </head>
 
 <body>
@@ -26,6 +26,7 @@
     </nav>
     <div class="header-actions">
       <button class="icon-button" type="button" aria-label="Toggle dark mode">☾</button>
+      <button class="account-button" id="open-account" type="button">Log in</button>
     </div>
   </header>
 
@@ -65,6 +66,29 @@
 
 
     </section>
+      <section class="planner-summary" aria-label="Weekly plan summary">
+        <div class="summary-panel nutrition-only">
+          <div class="summary-heading">
+            <div>
+              <p class="eyebrow">Week at a glance</p>
+              <h2>Daily nutrition</h2>
+            </div>
+            <span id="planned-meal-count">0 meals planned</span>
+          </div>
+          <div class="summary-stats" id="weekly-summary"></div>
+        </div>
+
+        <div class="summary-panel">
+          <div class="summary-heading">
+            <div>
+              <p class="eyebrow">Groceries</p>
+              <h2>Shopping list</h2>
+            </div>
+            <button class="planner-tool-button" id="copy-shopping-list" type="button">Copy list</button>
+          </div>
+          <ul class="shopping-list" id="shopping-list"></ul>
+        </div>
+      </section>
   </main>
 
       <dialog class="recipe-picker" id="recipe-picker-dialog" aria-labelledby="picker-title">
@@ -86,10 +110,20 @@
     <div id="dialog-content"></div>
   </dialog>
 
+  <dialog id="account-dialog">
+    <button class="dialog-close" id="account-dialog-close" aria-label="Close My Kitchen">×</button>
+    <div id="account-content"></div>
+  </dialog>
+
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="theme.js"></script>
-  <script src="recipes.js"></script>
-  <script src="planner.js?v=device-save-status"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="theme.js?v=combined-kitchen-20261027"></script>
+  <script src="nutrition.js?v=combined-kitchen-20261027"></script>
+  <script src="recipes.js?v=combined-kitchen-20261027"></script>
+  <script src="custom-recipes.js?v=combined-kitchen-20261027"></script>
+  <script src="planner.js?v=combined-kitchen-20261027"></script>
+  <script src="account.js?v=combined-kitchen-20261027"></script>
 </body>
 </html>

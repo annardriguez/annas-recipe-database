@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#f4efe7">
   <title>About | Anna's Kitchen</title>
-  <link rel="stylesheet" href="style.css?v=dark-readable">
-  <link rel="stylesheet" href="refinements.css">
+  <link rel="stylesheet" href="style.css?v=combined-kitchen-20261027">
+  <link rel="stylesheet" href="refinements.css?v=combined-kitchen-20261027">
 </head>
 
 <body>
@@ -26,6 +26,7 @@
     </nav>
     <div class="header-actions">
       <button class="icon-button" type="button" aria-label="Toggle dark mode">☾</button>
+      <button class="account-button" id="open-account" type="button">Log in</button>
     </div>
   </header>
 
@@ -33,19 +34,41 @@
     <section class="about-hero">
       <div>
         <p class="eyebrow">About the kitchen</p>
-        <h1>Not another sad recipe folder.</h1>
+        <h1>A recipe drawer for real-life appetite.</h1>
       </div>
       <div class="about-intro">
         <p>
-          I built Anna's Kitchen because my recipes were living everywhere: screenshots, saved posts, notes, random links, and the occasional memory I definitely could not be trusted to keep.
+          Anna's Kitchen Index is for the recipes that survive actual life: screenshots, saved posts, notes app chaos, grocery-store panic, and the occasional meal you swear you will remember and absolutely will not.
         </p>
         <p>
-          I wanted one friendly place where I could find meals fast, compare the useful stuff, save favourites, and plan the week without making food feel like admin.
+          It is built to help you decide faster, save the good stuff, and plan just enough without turning dinner into a productivity seminar.
         </p>
+        <a class="primary-button about-cta" href="index.html?view=recipes">Browse recipes</a>
+      </div>
+    </section>
+
+    <section class="about-kitchen section" aria-label="What this site is for">
+      <div class="about-card about-card-feature">
+        <p class="eyebrow">The rule</p>
+        <h2>Food should feel possible.</h2>
         <p>
-          So that is what this is: a warm, practical little kitchen index for hungry days, busy days, and the days where picking dinner is somehow the hardest task on earth.
+          This is not a perfect wellness museum. It is a practical, pretty place for meals with protein, comfort, shortcuts, and enough structure to make future-you slightly less annoyed.
         </p>
-        <a class="primary-button about-cta" href="index.html#recipes">Browse recipes</a>
+      </div>
+      <div class="about-card">
+        <span>01</span>
+        <h3>Find the thing</h3>
+        <p>Search by craving, ingredient, time, protein, or whatever word your brain has available.</p>
+      </div>
+      <div class="about-card">
+        <span>02</span>
+        <h3>Save the winners</h3>
+        <p>Favorites sync when you log in, so your reliable meals follow you around.</p>
+      </div>
+      <div class="about-card">
+        <span>03</span>
+        <h3>Plan lightly</h3>
+        <p>The meal planner is for loose intentions, not a legally binding dinner contract.</p>
       </div>
     </section>
   </main>
@@ -54,6 +77,17 @@
     <p>Made for hungry, tired and aggressively indecisive moments.</p>
   </footer>
 
-  <script src="theme.js"></script>
+  <dialog id="account-dialog">
+    <button class="dialog-close" id="account-dialog-close" aria-label="Close My Kitchen">×</button>
+    <div id="account-content"></div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="theme.js?v=combined-kitchen-20261027"></script>
+  <script src="nutrition.js?v=combined-kitchen-20261027"></script>
+  <script src="account.js?v=combined-kitchen-20261027"></script>
 </body>
 </html>

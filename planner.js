@@ -12,6 +12,10 @@ const recipeList = document.querySelector("#planner-recipe-list");
 const pickerTitle = document.querySelector("#picker-title");
 const pickerHelper = document.querySelector("#picker-helper");
 const recipePicker = document.querySelector("#recipe-picker-dialog");
+const plannedMealCount = document.querySelector("#planned-meal-count");
+const weeklySummary = document.querySelector("#weekly-summary");
+const shoppingList = document.querySelector("#shopping-list");
+const copyShoppingListButton = document.querySelector("#copy-shopping-list");
 const dialog = document.querySelector("#recipe-dialog");
 const dialogContent = document.querySelector("#dialog-content");
 const dialogClose = document.querySelector("#dialog-close");
@@ -39,7 +43,10 @@ const savedRecipeIds = new Set(
 const labels = {
   main: "Main meal",
   breakfast: "Breakfast",
-  snack: "Sweet & snack"
+  snack: "Sweet & snack",
+  sweet: "Sweet",
+  side: "Side",
+  lunch: "Lunch"
 };
 
 function escapeHtml(value) {
@@ -186,6 +193,7 @@ function renderPlanner() {
 
   calendarGrid.replaceChildren(...weekDates.map(renderDay));
   renderRecipePicker();
+  renderWeeklySummary();
 }
 
 function renderDay(date) {
@@ -282,7 +290,7 @@ function renderPickerRecipe(recipe) {
       <p>${escapeHtml(recipe.description)}</p>
       <span class="picker-meta">
         <span>${recipe.time} min</span>
-        <span>${formatMeta(recipe.protein, " g protein")}</span>
+        <span class="nutrition-only">${formatMeta(recipe.protein, " g protein")}</span>
         <span>${isQuick(recipe) ? "quick" : labels[recipe.category] || recipe.category}</span>
       </span>
     </span>
@@ -415,13 +423,25 @@ function openRecipe(recipe) {
             <strong>${recipe.time}</strong>
             <span>minutes</span>
           </div>
-          <div>
+          <div class="nutrition-only">
             <strong>${recipe.calories ?? "-"}</strong>
             <span>kcal</span>
           </div>
-          <div>
+          <div class="nutrition-only">
             <strong>${recipe.protein ?? "-"}</strong>
             <span>g protein</span>
+          </div>
+          <div class="nutrition-only">
+            <strong>${recipe.carbs ?? "-"}</strong>
+            <span>g carbs</span>
+          </div>
+          <div class="nutrition-only">
+            <strong>${recipe.fat ?? "-"}</strong>
+            <span>g fat</span>
+          </div>
+          <div class="nutrition-only">
+            <strong>${recipe.fiber ?? "-"}</strong>
+            <span>g fiber</span>
           </div>
         </div>
 
@@ -445,6 +465,114 @@ function openRecipe(recipe) {
   document.body.classList.add("dialog-open");
 }
 
+function getPlannedRecipesForWeek() {
+  return getWeekDates().flatMap(date => {
+    const dateKey = toDateKey(date);
+
+    return mealSlots
+      .map(slot => getRecipeById(mealPlan[makeSlotKey(dateKey, slot)]))
+      .filter(Boolean);
+  });
+}
+
+function getPlannedRecipesForDay(date) {
+  const dateKey = toDateKey(date);
+
+  return mealSlots
+    .map(slot => getRecipeById(mealPlan[makeSlotKey(dateKey, slot)]))
+    .filter(Boolean);
+}
+
+function sumMacro(plannedRecipes, key) {
+  return plannedRecipes.reduce((total, recipe) => {
+    const value = recipe[key];
+    return typeof value === "number" ? total + value : total;
+  }, 0);
+}
+
+function formatDailyMacro(value, suffix = "") {
+  return value ? `${value}${suffix}` : "-";
+}
+
+function renderDailyMacro(date) {
+  const plannedRecipes = getPlannedRecipesForDay(date);
+  const plannedCount = plannedRecipes.length;
+  const calories = sumMacro(plannedRecipes, "calories");
+  const protein = sumMacro(plannedRecipes, "protein");
+  const carbs = sumMacro(plannedRecipes, "carbs");
+  const fat = sumMacro(plannedRecipes, "fat");
+
+  return `
+    <article class="daily-summary ${plannedCount ? "" : "empty"}">
+      <div>
+        <strong>${dayFormatter.format(date)}</strong>
+        <span>${dateFormatter.format(date)} · ${plannedCount || "no"} meal${plannedCount === 1 ? "" : "s"}</span>
+      </div>
+      <dl>
+        <div><dt>kcal</dt><dd>${formatDailyMacro(calories)}</dd></div>
+        <div><dt>protein</dt><dd>${formatDailyMacro(protein, "g")}</dd></div>
+        <div><dt>carbs</dt><dd>${formatDailyMacro(carbs, "g")}</dd></div>
+        <div><dt>fat</dt><dd>${formatDailyMacro(fat, "g")}</dd></div>
+      </dl>
+    </article>
+  `;
+}
+
+function uniqueIngredients(plannedRecipes) {
+  const seen = new Set();
+
+  return plannedRecipes.flatMap(recipe => recipe.ingredients).filter(item => {
+    const normalized = item
+      .toLowerCase()
+      .replace(/^[\d\s./–-]+(g|ml|tsp|tbsp|small|large|medium)?\s+/i, "")
+      .trim();
+
+    if (seen.has(normalized)) return false;
+    seen.add(normalized);
+    return true;
+  });
+}
+
+function renderWeeklySummary() {
+  const plannedRecipes = getPlannedRecipesForWeek();
+  const plannedCount = plannedRecipes.length;
+
+  plannedMealCount.textContent = `${plannedCount} meal${plannedCount === 1 ? "" : "s"} planned`;
+  weeklySummary.innerHTML = getWeekDates().map(renderDailyMacro).join("");
+
+  const ingredients = uniqueIngredients(plannedRecipes).slice(0, 28);
+  shoppingList.replaceChildren(
+    ...(ingredients.length
+      ? ingredients.map(item => {
+          const listItem = document.createElement("li");
+          listItem.textContent = item;
+          return listItem;
+        })
+      : [Object.assign(document.createElement("li"), {
+          className: "shopping-empty",
+          textContent: "Plan meals to build a shopping list."
+        })])
+  );
+}
+
+async function copyShoppingList() {
+  const ingredients = uniqueIngredients(getPlannedRecipesForWeek());
+
+  if (!ingredients.length) {
+    showToast("Plan a few meals first");
+    return;
+  }
+
+  const text = ingredients.map(item => `- ${item}`).join("\n");
+
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast("Shopping list copied");
+  } catch {
+    showToast("Could not copy list in this browser");
+  }
+}
+
 function closeDialog() {
   dialog.close();
   document.body.classList.remove("dialog-open");
@@ -460,6 +588,7 @@ todayWeekButton.addEventListener("click", () => {
 organizeWeekButton.addEventListener("click", organizeWeek);
 clearWeekButton.addEventListener("click", clearWeek);
 plannerSearch.addEventListener("input", renderRecipePicker);
+copyShoppingListButton.addEventListener("click", copyShoppingList);
 dialog.addEventListener("close", () => document.body.classList.remove("dialog-open"));
 dialogClose.addEventListener("click", closeDialog);
 dialog.addEventListener("click", event => {

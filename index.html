@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#f4efe7">
   <title>Anna's Kitchen</title>
-  <link rel="stylesheet" href="style.css?v=dark-readable">
-  <link rel="stylesheet" href="refinements.css">
+  <link rel="stylesheet" href="style.css?v=combined-kitchen-20261027">
+  <link rel="stylesheet" href="refinements.css?v=combined-kitchen-20261027">
 </head>
 
 <body>
@@ -20,12 +20,13 @@
     <nav class="navigation" aria-label="Primary navigation">
       <a href="index.html" data-view="home">Home</a>
       <a href="index.html?view=recipes" data-view="recipes">All recipes</a>
-      <a href="index.html?view=favourites" data-view="favourites" id="show-favourites-nav">Favourites <span class="nav-count" id="favourite-count">0</span></a>
+      <a href="index.html?view=favourites" data-view="favourites" id="show-favourites-nav">Favourites <span class="nav-count" id="favourite-count" data-favourite-count>0</span></a>
       <a href="planner.html">Meal planner</a>
       <a href="about.html">About</a>
     </nav>
     <div class="header-actions">
       <button class="icon-button" type="button" aria-label="Toggle dark mode">☾</button>
+      <button class="account-button" id="open-account" type="button">Log in</button>
     </div>
   </header>
 
@@ -56,7 +57,7 @@
           <strong id="quick-recipes">0</strong>
           <span>15 min or less</span>
         </div>
-        <div>
+        <div class="nutrition-only">
           <span class="stat-icon dumbbell">↔</span>
           <strong id="protein-recipes">0</strong>
           <span>High Protein</span>
@@ -96,6 +97,7 @@
         <button class="primary-button" id="random-recipe" type="button">
           ◈ Surprise me!
         </button>
+        <button class="primary-button secondary" id="open-custom-recipe" type="button">+ Add recipe</button>
       </div>
 
       <div class="filter-toolbar">
@@ -132,10 +134,84 @@
     <div id="dialog-content"></div>
   </dialog>
 
+  <dialog id="account-dialog">
+    <button class="dialog-close" id="account-dialog-close" aria-label="Close My Kitchen">×</button>
+    <div id="account-content"></div>
+  </dialog>
+
+  <dialog id="custom-recipe-dialog">
+    <button class="dialog-close" id="custom-recipe-close" aria-label="Close add recipe">×</button>
+    <form class="custom-recipe-form" id="custom-recipe-form">
+      <p class="eyebrow">Add recipe</p>
+      <h2>Save your own recipe</h2>
+      <div class="custom-form-grid">
+        <label>
+          <span>Recipe name</span>
+          <input name="title" required placeholder="Creamy pesto chicken">
+        </label>
+        <label>
+          <span>Emoji</span>
+          <input name="emoji" maxlength="4" placeholder="🍝">
+        </label>
+        <label class="full">
+          <span>Description</span>
+          <input name="description" placeholder="A fast dinner I actually make.">
+        </label>
+        <label>
+          <span>Category</span>
+          <select name="category">
+            <option value="main">Main meal</option>
+            <option value="breakfast">Breakfast</option>
+            <option value="snack">Snack</option>
+            <option value="sweet">Sweet</option>
+            <option value="side">Side</option>
+          </select>
+        </label>
+        <label>
+          <span>Time</span>
+          <input name="time" type="number" min="1" placeholder="20">
+        </label>
+        <label class="nutrition-only">
+          <span>Calories</span>
+          <input name="calories" type="number" min="0" placeholder="520">
+        </label>
+        <label class="nutrition-only">
+          <span>Protein</span>
+          <input name="protein" type="number" min="0" placeholder="35">
+        </label>
+        <label class="nutrition-only">
+          <span>Carbs</span>
+          <input name="carbs" type="number" min="0" placeholder="60">
+        </label>
+        <label class="nutrition-only">
+          <span>Fat</span>
+          <input name="fat" type="number" min="0" placeholder="18">
+        </label>
+        <label class="full">
+          <span>Tags</span>
+          <input name="tags" placeholder="quick, pasta, high protein">
+        </label>
+        <label class="full">
+          <span>Ingredients</span>
+          <textarea name="ingredients" rows="4" placeholder="One per line or comma separated"></textarea>
+        </label>
+        <label class="full">
+          <span>Method</span>
+          <textarea name="steps" rows="4" placeholder="One step per line"></textarea>
+        </label>
+      </div>
+      <button class="primary-button" type="submit">Save recipe</button>
+    </form>
+  </dialog>
+
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="theme.js"></script>
-  <script src="recipes.js"></script>
-  <script src="script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="theme.js?v=combined-kitchen-20261027"></script>
+  <script src="nutrition.js?v=combined-kitchen-20261027"></script>
+  <script src="recipes.js?v=combined-kitchen-20261027"></script>
+  <script src="custom-recipes.js?v=combined-kitchen-20261027"></script>
+  <script src="script.js?v=combined-kitchen-20261027"></script>
 </body>
 </html>
