@@ -58,7 +58,7 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
-function formatMeta(value, suffix, fallback = "Flexible") {
+function formatMeta(value, suffix, fallback = "Not provided") {
   return value === null || value === undefined ? fallback : `${value}${suffix}`;
 }
 
@@ -445,10 +445,11 @@ function openRecipe(recipe) {
           </div>
         </div>
 
-        <h3>Ingredients</h3>
+        <h3>Ingredients <small>${recipe.servings == null ? "Yield not specified" : `${recipe.servings} serving${recipe.servings > 1 ? "s" : ""}`}</small></h3>
         <ul>
           ${recipe.ingredients.map(item => `<li>${escapeHtml(item)}</li>`).join("")}
         </ul>
+        ${recipe.note ? `<div class="recipe-note">${escapeHtml(recipe.note)}</div>` : ""}
       </aside>
 
       <section>

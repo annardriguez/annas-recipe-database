@@ -1,5 +1,314 @@
 const recipes = [
   {
+    "id": "korean-beef-fried-rice",
+    "title": "Korean Beef Fried Rice",
+    "emoji": "🍚",
+    "description": "Gochujang beef and egg fried rice with carrots, spring onions and an optional spicy mayo drizzle.",
+    "category": "main",
+    "tags": [
+      "high protein",
+      "meal prep",
+      "rice",
+      "beef",
+      "korean-inspired"
+    ],
+    "servings": 4,
+    "time": 35,
+    "calories": 547,
+    "protein": 51,
+    "carbs": 45,
+    "fat": 18,
+    "fiber": null,
+    "equipment": [
+      "hob",
+      "large frying pan",
+      "wok"
+    ],
+    "ingredients": [
+      "Korean beef: 680 g extra-lean beef mince (93% lean or leaner)",
+      "Korean beef: 1 tbsp olive oil (15 ml)",
+      "Korean beef: 3 garlic cloves, minced",
+      "Korean beef: 1 tbsp fresh grated ginger (15 g)",
+      "Korean beef: 60 ml low-sodium soy sauce",
+      "Korean beef: 2 tbsp gochujang",
+      "Korean beef: 1 tbsp brown sugar (12 g)",
+      "Korean beef: 1 tbsp rice vinegar (15 ml)",
+      "Korean beef: 1 tsp sesame oil (5 ml)",
+      "Korean beef: 1/2 tsp black pepper",
+      "Fried rice: 480 g cooked jasmine or basmati rice (3 cups), preferably chilled overnight",
+      "Fried rice: 1 tbsp olive oil (15 ml)",
+      "Fried rice: 1 small onion, finely diced (80 g)",
+      "Fried rice: 60 g shredded carrots (1/2 cup)",
+      "Fried rice: 30 g chopped spring onions (1/2 cup)",
+      "Fried rice: 2 eggs, lightly beaten",
+      "Fried rice: 1 tbsp low-sodium soy sauce (15 ml)",
+      "Fried rice: 1 tsp sesame oil (5 ml)",
+      "Optional spicy drizzle: 60 g light mayonnaise (1/4 cup)",
+      "Optional spicy drizzle: 1 tbsp sriracha (15 ml)",
+      "Optional spicy drizzle: 1 tsp rice vinegar (5 ml)",
+      "Optional spicy drizzle: 1/2 tsp garlic powder",
+      "Optional spicy drizzle: 1 tbsp water, if needed to thin",
+      "Garnish: 1 tbsp toasted sesame seeds",
+      "Garnish: 2 spring onions, thinly sliced"
+    ],
+    "steps": [
+      "Heat the beef portion of olive oil in a large frying pan over medium-high heat. Add the mince and cook for 5–6 minutes, breaking it apart, until browned. Add the garlic and ginger and cook for another minute.",
+      "Whisk together the beef soy sauce, gochujang, brown sugar, rice vinegar, sesame oil and black pepper. Stir into the beef and simmer for 2–3 minutes until thickened. Set aside.",
+      "In another large frying pan or wok, heat the fried-rice olive oil over medium heat. Cook the diced onion and shredded carrot for 2–3 minutes until softened.",
+      "Push the vegetables to one side. Add the beaten eggs to the clear side of the pan and scramble until just cooked, then mix with the vegetables.",
+      "Add the chilled cooked rice, fried-rice soy sauce and sesame oil. Stir-fry for 3–4 minutes until the rice is evenly coated and hot.",
+      "Add the cooked beef and toss together. Stir in the chopped spring onions and remove from the heat.",
+      "If using the drizzle, mix the light mayonnaise, sriracha, rice vinegar and garlic powder until smooth, adding the water if needed.",
+      "Divide between four bowls or meal-prep containers. Finish with the optional drizzle, sesame seeds and sliced spring onions."
+    ],
+    "note": "Source: Success Mealprep screenshot. Makes 4 servings; ingredient amounts are for the whole batch. Nutrition is per serving as stated in the screenshot, not independently calculated; it is unclear whether the optional drizzle is included. The 35-minute time is an estimate and assumes the rice is already cooked."
+  },
+  {
+    "id": "honey-chilli-tofu",
+    "title": "Honey Chilli Tofu",
+    "emoji": "🥢",
+    "description": "Crispy extra-firm tofu coated in a sticky honey, gochujang and chilli sauce.",
+    "category": "main",
+    "tags": [
+      "vegetarian",
+      "tofu",
+      "spicy"
+    ],
+    "servings": 2,
+    "time": 30,
+    "calories": null,
+    "protein": null,
+    "carbs": null,
+    "fat": null,
+    "fiber": null,
+    "equipment": [
+      "hob",
+      "frying pan"
+    ],
+    "ingredients": [
+      "Tofu marinade: 300 g extra-firm tofu",
+      "Tofu marinade: 2 tbsp cornflour (cornstarch)",
+      "Tofu marinade: 2 tbsp light soy sauce",
+      "Tofu marinade: 1 tbsp rice vinegar",
+      "Tofu marinade: 1 tbsp avocado oil",
+      "Tofu marinade: crushed black pepper, to taste",
+      "Sauce: 2 tbsp light soy sauce",
+      "Sauce: 1/2 tbsp dark soy sauce",
+      "Sauce: 1 tbsp honey",
+      "Sauce: 1/2 tbsp chilli onion crunch",
+      "Sauce: 1 tbsp sriracha, or less to taste",
+      "Sauce: 1 tbsp gochujang",
+      "Sauce: 1/2 tbsp sesame oil, for frying the garlic and spring onion",
+      "Garlic and spring onion, to taste (mentioned in the screenshot; quantities not shown)"
+    ],
+    "steps": [
+      "Suggested method: press or pat the tofu dry, then tear into bite-sized pieces.",
+      "Toss with the marinade light soy sauce, rice vinegar, avocado oil and black pepper. Sprinkle over the cornflour and toss to coat.",
+      "Cook in a non-stick frying pan over medium heat, turning until golden and crisp. Set aside.",
+      "Mix the sauce light soy sauce, dark soy sauce, honey, chilli onion crunch, sriracha and gochujang.",
+      "Heat the sesame oil in the pan and briefly fry the garlic and spring onion. Add the sauce and let it bubble briefly.",
+      "Toss the crispy tofu through the sauce until coated. Serve as it is or with rice and vegetables of your choice."
+    ],
+    "note": "Source: anupriya screenshot. Makes 2 servings; amounts are for the whole recipe. The screenshot provides ingredients but no cooking method, so the method and 30-minute time are suggested. Garlic and spring onion quantities are not shown. Rice and any serving vegetables are optional additions, not included in the source ingredient list. Nutrition was not provided."
+  },
+  {
+    "id": "tomato-courgette-orzo",
+    "title": "Tomato & Courgette Orzo",
+    "emoji": "🍅",
+    "description": "Orzo with cherry tomatoes, courgette, sun-dried tomatoes, basil and a little crème fraîche.",
+    "category": "main",
+    "tags": [
+      "pasta",
+      "orzo",
+      "tomato"
+    ],
+    "servings": 2,
+    "time": 30,
+    "calories": null,
+    "protein": null,
+    "carbs": null,
+    "fat": null,
+    "fiber": null,
+    "equipment": [
+      "hob",
+      "saucepan",
+      "frying pan"
+    ],
+    "ingredients": [
+      "120 g dry orzo",
+      "1 stock cube",
+      "1 red onion",
+      "2 garlic cloves, minced",
+      "1 courgette, diced",
+      "200 g cherry tomatoes",
+      "6 sun-dried tomatoes, diced",
+      "1 large fistful fresh basil, chopped",
+      "1 tbsp tomato purée",
+      "1 tsp smoked paprika",
+      "1 tbsp half-fat crème fraîche",
+      "1 tbsp balsamic vinegar",
+      "30 g parmesan",
+      "Water as needed to cook the orzo (cooking liquid; quantity not shown)"
+    ],
+    "steps": [
+      "Suggested method: finely chop the onion and halve the cherry tomatoes. Cook the orzo according to the packet instructions in water with the stock cube, reserving a little cooking liquid before draining.",
+      "In a non-stick frying pan, soften the onion and courgette with a splash of water, adding more as needed to prevent sticking. Add the garlic and cook briefly.",
+      "Stir in the tomato purée and smoked paprika, then add the cherry tomatoes, sun-dried tomatoes and balsamic vinegar. Cook until the tomatoes soften.",
+      "Stir in the cooked orzo and a splash of its reserved cooking liquid. Take off the heat and fold in the crème fraîche and parmesan.",
+      "Add the chopped basil and adjust the consistency with a little more cooking liquid if needed. Divide between two bowls."
+    ],
+    "note": "Source: saved ingredient screenshot, stated to serve 2. The dish title, cooking method and 30-minute time are suggested because they are not shown. Ingredients are preserved as listed; no meat has been inferred from the background photo. For a vegetarian version, use vegetable stock and a vegetarian parmesan-style cheese. Nutrition was not provided."
+  },
+  {
+    "id": "sun-dried-tomato-butter-bean-lasagne",
+    "title": "Sun-Dried Tomato & Butter Bean Lasagne",
+    "emoji": "🫘",
+    "description": "A pan of butter beans, broken lasagne sheets and spinach in a creamy sun-dried tomato sauce.",
+    "category": "main",
+    "tags": [
+      "pasta",
+      "beans",
+      "one pan",
+      "comfort food"
+    ],
+    "servings": null,
+    "time": 35,
+    "calories": null,
+    "protein": null,
+    "carbs": null,
+    "fat": null,
+    "fiber": null,
+    "equipment": [
+      "hob",
+      "deep frying pan with lid"
+    ],
+    "ingredients": [
+      "1 red onion",
+      "1 tsp minced garlic",
+      "70 g sun-dried tomatoes",
+      "1 tbsp tomato purée",
+      "400 g butter beans (the screenshot does not specify drained or tin weight)",
+      "1 tsp smoked paprika",
+      "1 tsp mixed herbs",
+      "1 tsp cayenne pepper",
+      "Salt and pepper",
+      "1 vegetable stock cube",
+      "6–8 lasagne sheets",
+      "1 handful spinach",
+      "1–2 tbsp crème fraîche",
+      "1 handful fresh basil",
+      "Cheddar cheese, to taste (quantity not shown)",
+      "1 garlic baguette, to serve",
+      "Water as needed to cook the lasagne sheets (cooking liquid; quantity not shown)"
+    ],
+    "steps": [
+      "Suggested method: dice the onion and chop the sun-dried tomatoes. In a deep non-stick pan, soften the onion with a splash of water, then stir in the garlic, sun-dried tomatoes and tomato purée.",
+      "Add the butter beans, smoked paprika, mixed herbs and cayenne. Start with less cayenne if you prefer a milder dish. Crumble in the vegetable stock cube.",
+      "Break the lasagne sheets into pieces and add to the pan with enough hot water to just cover them. Cover and simmer gently, stirring regularly and adding water as needed, until the pasta is tender.",
+      "Fold in the spinach until wilted. Remove from the heat and stir in the crème fraîche and basil. Taste and season with salt and pepper.",
+      "Sprinkle cheddar over the top, cover briefly to melt, and serve with the garlic baguette prepared according to its packet."
+    ],
+    "note": "Source: em screenshot. The ingredient list is visible, but the title, full method, serving count and cooking time are not. The one-pan method and 35-minute time are suggested; yield and nutrition are left unspecified. Cheddar quantity and water amount are not shown. Use vegetarian cheddar if required."
+  },
+  {
+    "id": "hazelnut-date-caramel-slices",
+    "title": "Hazelnut Date Caramel Slices",
+    "emoji": "🍫",
+    "description": "A hazelnut-oat base layered with date and hazelnut caramel, finished with dark chocolate.",
+    "category": "sweet",
+    "tags": [
+      "sweet",
+      "chocolate",
+      "hazelnut",
+      "no bake"
+    ],
+    "servings": null,
+    "time": 120,
+    "calories": null,
+    "protein": null,
+    "carbs": null,
+    "fat": null,
+    "fiber": null,
+    "equipment": [
+      "food processor",
+      "lined baking tin",
+      "fridge"
+    ],
+    "ingredients": [
+      "Base: 1 1/2 cups roasted hazelnuts, blended into flour",
+      "Base: 3/4 cup oat flour",
+      "Base: 3–4 tbsp coconut oil",
+      "Base: 4 tbsp maple syrup",
+      "Base: a dash of vanilla",
+      "Base: a generous pinch of salt",
+      "Caramel: 1 1/2 cups pitted dates",
+      "Caramel: 2 tsp coconut oil",
+      "Caramel: 2–3 tbsp maple syrup",
+      "Caramel: 1–2 tbsp hazelnut butter or hazelnut crème",
+      "Caramel: a pinch of salt",
+      "Caramel: a dash of vanilla",
+      "Topping: around 80 g dark chocolate",
+      "Optional topping: chopped hazelnuts (suggested; the screenshot cuts off after “and chopped”)"
+    ],
+    "steps": [
+      "Suggested method: line a small baking tin. Blend the roasted hazelnuts into a coarse flour, stopping before they turn into nut butter.",
+      "Mix the ground hazelnuts, oat flour, base coconut oil, maple syrup, vanilla and salt. Press firmly into the lined tin and refrigerate.",
+      "If the dates are firm, soften in warm water and drain well. Blend with the caramel coconut oil, maple syrup, hazelnut butter, salt and vanilla until smooth.",
+      "Spread the date caramel over the base and return to the fridge.",
+      "Gently melt the dark chocolate and spread over the caramel. Add chopped hazelnuts if desired.",
+      "Chill until the layers are firm enough to slice. Cut into portions of your preferred size."
+    ],
+    "note": "Source: saved hazelnut-caramel screenshot. The ingredient amounts are transcribed as shown, including cups. No method, tin size, yield or nutrition is visible; the method is suggested and the 2-hour total time is an estimate including chilling. The topping line is cut off after “around 80g dark chocolate and chopped”; chopped hazelnuts are an optional suggestion, not a confirmed transcription."
+  },
+  {
+    "id": "peanut-butter-date-caramel-slices",
+    "title": "Peanut Butter Date Caramel Slices",
+    "emoji": "🥜",
+    "description": "An almond-oat chocolate-chip base with peanut butter date caramel and an optional chocolate finish.",
+    "category": "sweet",
+    "tags": [
+      "sweet",
+      "chocolate",
+      "peanut butter",
+      "no bake"
+    ],
+    "servings": null,
+    "time": 120,
+    "calories": null,
+    "protein": null,
+    "carbs": null,
+    "fat": null,
+    "fiber": null,
+    "equipment": [
+      "food processor",
+      "lined baking tin",
+      "fridge"
+    ],
+    "ingredients": [
+      "Base: 1 cup oat flour",
+      "Base: 1 cup ground almonds",
+      "Base: 4 tbsp coconut oil",
+      "Base: 3 tbsp maple syrup",
+      "Base: a pinch of salt",
+      "Base: a pinch of cinnamon",
+      "Base: chocolate chips, to taste (quantity not shown)",
+      "Caramel: 1 cup dates, soaked and drained",
+      "Caramel: 1 tbsp peanut butter",
+      "Caramel: 2 tsp coconut oil",
+      "Caramel: 3 tbsp maple syrup",
+      "Caramel: a pinch of salt",
+      "Optional topping: melted chocolate (visible in the photo; type and quantity not provided)"
+    ],
+    "steps": [
+      "Mix the oat flour, ground almonds, base coconut oil, maple syrup, salt, cinnamon and chocolate chips until the mixture has a moist consistency.",
+      "Press into a lined tray and set aside in the fridge.",
+      "Suggested remaining method: blend the soaked and drained dates with the peanut butter, caramel coconut oil, maple syrup and salt until smooth.",
+      "Spread the caramel over the chilled base. If using a chocolate topping, gently melt the chocolate and spread it over the caramel.",
+      "Chill until firm enough to slice, then cut into portions of your preferred size."
+    ],
+    "note": "Source: elle gibson screenshot. The base ingredients and first two steps are shown; the remaining method is suggested. Chocolate chip quantity, topping details, tin size, yield and nutrition are not provided. The chocolate finish is optional and inferred from the photo. The 2-hour total time is an estimate including chilling."
+  },
+  {
     id: "truffle-pea-pasta",
     title: "Creamy Truffle Pea Pasta",
     emoji: "🍝",

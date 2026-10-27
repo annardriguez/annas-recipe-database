@@ -70,7 +70,7 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
-function formatMeta(value, suffix, fallback = "Flexible") {
+function formatMeta(value, suffix, fallback = "Not provided") {
   return value === null || value === undefined ? fallback : `${value}${suffix}`;
 }
 
@@ -574,7 +574,7 @@ function openRecipe(recipe, palette = 0) {
         </button>
         ${recipe.isCustom ? `<button class="dialog-delete" id="delete-custom-recipe" type="button">Delete custom recipe</button>` : ""}
 
-        <h3>Ingredients <small>${recipe.servings || 1} serving${recipe.servings > 1 ? "s" : ""}</small></h3>
+        <h3>Ingredients <small>${recipe.servings == null ? "Yield not specified" : `${recipe.servings} serving${recipe.servings > 1 ? "s" : ""}`}</small></h3>
         <ul class="ingredient-list">
           ${recipe.ingredients.map(item => `<li class="ingredient-item"><label><input type="checkbox"><span>${escapeHtml(item)}</span></label></li>`).join("")}
         </ul>
