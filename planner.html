@@ -4,40 +4,40 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#f4efe7">
-  <title>Meal Planner | Anna's Kitchen Index</title>
+  <title>Meal Planner | Anna's Kitchen</title>
   <link rel="stylesheet" href="style.css?v=dark-readable">
+  <link rel="stylesheet" href="refinements.css">
 </head>
 
 <body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
   <header class="site-header">
     <a class="logo" href="index.html">
-      <span class="logo-title">Anna's Kitchen Index <span class="logo-spark">✣</span></span>
+      <span class="logo-title">Anna's Kitchen <span class="logo-spark">✣</span></span>
       <span class="logo-subtitle">Recipes that fuel your life</span>
     </a>
 
     <nav class="navigation" aria-label="Primary navigation">
-      <a href="index.html#discover">Home</a>
-      <a href="index.html#recipes">All Recipes</a>
-      <a href="index.html#recipes">Favorites</a>
-      <a class="active" href="planner.html">Meal Planner</a>
+      <a href="index.html" data-view="home">Home</a>
+      <a href="index.html?view=recipes" data-view="recipes">All recipes</a>
+      <a href="index.html?view=favourites" data-view="favourites" id="show-favourites-nav">Favourites <span class="nav-count" data-favourite-count>0</span></a>
+      <a class="active" aria-current="page" href="planner.html">Meal planner</a>
       <a href="about.html">About</a>
     </nav>
-
     <div class="header-actions">
       <button class="icon-button" type="button" aria-label="Toggle dark mode">☾</button>
-      <a class="nav-favourites" href="index.html#recipes">♡ <span id="planner-favourite-count">0</span></a>
     </div>
   </header>
 
-  <main class="planner-page">
+  <main id="main-content" class="planner-page">
     <section class="planner-hero">
       <div>
         <p class="eyebrow">Meal Planner</p>
-        <h1>Plan the week without making it a whole personality test.</h1>
+        <h1>A week of good food.</h1>
       </div>
       <p>
-        Pick a slot, add a recipe, shuffle dinner ideas, and come back later.
-        Your calendar saves automatically on this browser.
+        A little planning, one less thing to think about.
+        Choose a meal below to find something you’ll love.
       </p>
     </section>
 
@@ -46,15 +46,16 @@
         <div class="planner-toolbar">
           <div>
             <h2 class="planner-week-title" id="planner-week-title">This week</h2>
-            <p id="planner-week-subtitle">Choose a meal slot to start planning.</p>
+            <p id="planner-week-subtitle">Choose any meal to add a recipe.</p>
+            <p class="planner-save-status" id="planner-save-status">Saved on this device.</p>
           </div>
           <div class="planner-actions">
             <div class="week-actions">
-              <button class="planner-tool-button" id="previous-week" type="button">←</button>
-              <button class="planner-tool-button" id="today-week" type="button">Today</button>
-              <button class="planner-tool-button" id="next-week" type="button">→</button>
+              <button class="planner-tool-button" id="previous-week" aria-label="Previous week" type="button">←</button>
+              <button class="planner-tool-button" id="today-week" type="button">This week</button>
+              <button class="planner-tool-button" id="next-week" aria-label="Next week" type="button">→</button>
             </div>
-            <button class="planner-tool-button primary" id="organize-week" type="button">Organize week</button>
+            <button class="planner-tool-button primary" id="organize-week" type="button">Fill the week</button>
             <button class="planner-tool-button" id="clear-week" type="button">Clear week</button>
           </div>
         </div>
@@ -62,7 +63,12 @@
         <div class="calendar-grid" id="calendar-grid"></div>
       </div>
 
-      <aside class="recipe-picker" aria-label="Recipe picker">
+
+    </section>
+  </main>
+
+      <dialog class="recipe-picker" id="recipe-picker-dialog" aria-labelledby="picker-title">
+        <button class="picker-close" type="button" aria-label="Close recipe picker">×</button>
         <div class="picker-header">
           <h2 id="picker-title">Pick a meal slot</h2>
           <p id="picker-helper">Then choose a recipe to place in the calendar.</p>
@@ -73,11 +79,9 @@
         </div>
 
         <div class="picker-list" id="planner-recipe-list"></div>
-      </aside>
-    </section>
-  </main>
+      </dialog>
 
-  <dialog id="recipe-dialog">
+  <dialog id="recipe-dialog" aria-labelledby="recipe-dialog-title">
     <button class="dialog-close" id="dialog-close" aria-label="Close recipe">×</button>
     <div id="dialog-content"></div>
   </dialog>
@@ -86,6 +90,6 @@
 
   <script src="theme.js"></script>
   <script src="recipes.js"></script>
-  <script src="planner.js?v=no-repeat-days"></script>
+  <script src="planner.js?v=device-save-status"></script>
 </body>
 </html>

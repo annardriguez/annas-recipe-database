@@ -28,3 +28,9 @@ themeButtons.forEach(button => {
     applyTheme(nextTheme);
   });
 });
+
+// Keep saved counts correct on pages without the recipe library script.
+document.querySelectorAll("[data-favourite-count]").forEach(element => {
+  try { element.textContent = JSON.parse(localStorage.getItem("annaRecipeFavourites") || "[]").length; }
+  catch { element.textContent = "0"; }
+});

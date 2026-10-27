@@ -756,6 +756,10 @@ body.dark-theme .image-badges span {
   font-weight: 700;
 }
 
+.planner-save-status {
+  color: var(--accent-dark);
+}
+
 .planner-actions,
 .week-actions {
   display: flex;

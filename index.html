@@ -6,9 +6,11 @@
   <meta name="theme-color" content="#f4efe7">
   <title>Anna's Kitchen</title>
   <link rel="stylesheet" href="style.css?v=dark-readable">
+  <link rel="stylesheet" href="refinements.css">
 </head>
 
 <body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
   <header class="site-header">
     <a class="logo" href="index.html">
       <span class="logo-title">Anna's Kitchen <span class="logo-spark">✣</span></span>
@@ -16,28 +18,28 @@
     </a>
 
     <nav class="navigation" aria-label="Primary navigation">
-      <a class="active" href="#discover">Home</a>
-      <a href="#recipes">All Recipes</a>
-      <button class="nav-link-button" id="show-favourites-nav">Favorites</button>
-      <a href="planner.html">Meal Planner</a>
+      <a href="index.html" data-view="home">Home</a>
+      <a href="index.html?view=recipes" data-view="recipes">All recipes</a>
+      <a href="index.html?view=favourites" data-view="favourites" id="show-favourites-nav">Favourites <span class="nav-count" id="favourite-count">0</span></a>
+      <a href="planner.html">Meal planner</a>
       <a href="about.html">About</a>
     </nav>
-
     <div class="header-actions">
       <button class="icon-button" type="button" aria-label="Toggle dark mode">☾</button>
-      <button class="nav-favourites" id="show-favourites">
-        ♡ <span id="favourite-count">0</span>
-      </button>
     </div>
   </header>
 
-  <main>
+  <main id="main-content">
     <section class="hero" id="discover">
       <div class="hero-copy">
-        <h1>Welcome back! <span>♡</span></h1>
-        <p class="hero-text">Good food, good mood.</p>
+        <p class="eyebrow">A little collection, a lot of love</p>
+        <h1>Good food.<br><em>Better days.</em> <span>♡</span></h1>
+        <p class="hero-text">Your favourites, your next obsession, and the answer to “what’s for dinner?” All in one happy place.</p>
+        <a class="hero-browse" href="index.html?view=recipes">Find something delicious <span aria-hidden="true">↗</span></a>
       </div>
+      <button class="featured-card" id="featured-card" type="button" aria-label="Open featured recipe">
 
+      </button>
       <div class="library-stats" aria-label="Recipe library statistics">
         <div>
           <span class="stat-icon">▣</span>
@@ -52,7 +54,7 @@
         <div>
           <span class="stat-icon clock">◷</span>
           <strong id="quick-recipes">0</strong>
-          <span>Under 15 min</span>
+          <span>15 min or less</span>
         </div>
         <div>
           <span class="stat-icon dumbbell">↔</span>
@@ -62,7 +64,11 @@
       </div>
     </section>
 
-    <section class="control-panel section">
+    <section class="collection-heading section" aria-label="Recipe collection">
+      <div><p class="eyebrow" id="collection-eyebrow">The recipe collection</p><h2 id="collection-title">What are you craving?</h2><p class="collection-description" id="collection-description" hidden></p></div>
+      <a href="planner.html">Make a little plan <span aria-hidden="true">↗</span></a>
+    </section>
+    <section class="control-panel section" aria-label="Search and filter recipes">
       <div class="search-row">
         <label class="search-box">
           <span class="search-icon">⌕</span>
@@ -79,7 +85,7 @@
         <label class="sort-box">
           <span>Sort by:</span>
           <select id="sort-select" aria-label="Sort recipes">
-            <option value="default">Newest</option>
+            <option value="default">Anna’s order</option>
             <option value="time">Fastest first</option>
             <option value="protein">Most protein</option>
             <option value="calories">Lowest calories</option>
@@ -101,15 +107,17 @@
     <section class="section recipe-section" id="recipes">
       <div class="section-heading">
         <p id="active-summary">Showing the whole kitchen.</p>
-        <p id="recipe-count"></p>
+        <p id="recipe-count" role="status" aria-live="polite" aria-atomic="true"></p>
       </div>
 
       <div class="recipe-grid" id="recipe-grid"></div>
 
       <div class="empty-state" id="empty-message" hidden>
-        <span>🥲</span>
-        <h3>The fridge has defeated us.</h3>
-        <p>Try removing a filter or searching another ingredient.</p>
+        <span aria-hidden="true">♡</span>
+        <h3 id="empty-title">No recipes found.</h3>
+        <p id="empty-description">Try another ingredient or clear your filters.</p>
+        <button class="primary-button" id="empty-reset" type="button">Clear filters</button>
+        <a class="empty-browse" href="index.html?view=recipes" hidden>Browse all recipes →</a>
       </div>
     </section>
 
@@ -119,7 +127,7 @@
     <p>Made for hungry, tired and aggressively indecisive moments.</p>
   </footer>
 
-  <dialog id="recipe-dialog">
+  <dialog id="recipe-dialog" aria-labelledby="recipe-dialog-title">
     <button class="dialog-close" id="dialog-close" aria-label="Close recipe">×</button>
     <div id="dialog-content"></div>
   </dialog>

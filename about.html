@@ -4,32 +4,32 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#f4efe7">
-  <title>About | Anna's Kitchen Index</title>
+  <title>About | Anna's Kitchen</title>
   <link rel="stylesheet" href="style.css?v=dark-readable">
+  <link rel="stylesheet" href="refinements.css">
 </head>
 
 <body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
   <header class="site-header">
     <a class="logo" href="index.html">
-      <span class="logo-title">Anna's Kitchen Index <span class="logo-spark">✣</span></span>
+      <span class="logo-title">Anna's Kitchen <span class="logo-spark">✣</span></span>
       <span class="logo-subtitle">Recipes that fuel your life</span>
     </a>
 
     <nav class="navigation" aria-label="Primary navigation">
-      <a href="index.html#discover">Home</a>
-      <a href="index.html#recipes">All Recipes</a>
-      <a href="index.html#recipes">Favorites</a>
-      <a href="planner.html">Meal Planner</a>
-      <a class="active" href="about.html">About</a>
+      <a href="index.html" data-view="home">Home</a>
+      <a href="index.html?view=recipes" data-view="recipes">All recipes</a>
+      <a href="index.html?view=favourites" data-view="favourites" id="show-favourites-nav">Favourites <span class="nav-count" data-favourite-count>0</span></a>
+      <a href="planner.html">Meal planner</a>
+      <a class="active" aria-current="page" href="about.html">About</a>
     </nav>
-
     <div class="header-actions">
       <button class="icon-button" type="button" aria-label="Toggle dark mode">☾</button>
-      <a class="nav-favourites" href="index.html#recipes">♡ <span>0</span></a>
     </div>
   </header>
 
-  <main class="about-page">
+  <main id="main-content" class="about-page">
     <section class="about-hero">
       <div>
         <p class="eyebrow">About the kitchen</p>
@@ -37,7 +37,7 @@
       </div>
       <div class="about-intro">
         <p>
-          I built Anna's Kitchen Index because my recipes were living everywhere: screenshots, saved posts, notes, random links, and the occasional memory I definitely could not be trusted to keep.
+          I built Anna's Kitchen because my recipes were living everywhere: screenshots, saved posts, notes, random links, and the occasional memory I definitely could not be trusted to keep.
         </p>
         <p>
           I wanted one friendly place where I could find meals fast, compare the useful stuff, save favourites, and plan the week without making food feel like admin.

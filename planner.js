@@ -1,6 +1,7 @@
 const calendarGrid = document.querySelector("#calendar-grid");
 const weekTitle = document.querySelector("#planner-week-title");
 const weekSubtitle = document.querySelector("#planner-week-subtitle");
+const saveStatus = document.querySelector("#planner-save-status");
 const previousWeekButton = document.querySelector("#previous-week");
 const nextWeekButton = document.querySelector("#next-week");
 const todayWeekButton = document.querySelector("#today-week");
@@ -10,7 +11,7 @@ const plannerSearch = document.querySelector("#planner-search");
 const recipeList = document.querySelector("#planner-recipe-list");
 const pickerTitle = document.querySelector("#picker-title");
 const pickerHelper = document.querySelector("#picker-helper");
-const favouriteCount = document.querySelector("#planner-favourite-count");
+const recipePicker = document.querySelector("#recipe-picker-dialog");
 const dialog = document.querySelector("#recipe-dialog");
 const dialogContent = document.querySelector("#dialog-content");
 const dialogClose = document.querySelector("#dialog-close");
@@ -30,6 +31,7 @@ let selectedSlot = null;
 let toastTimer;
 
 const mealPlan = JSON.parse(localStorage.getItem("annaMealPlan") || "{}");
+const savedPlanAt = localStorage.getItem("annaMealPlanSavedAt");
 const savedRecipeIds = new Set(
   JSON.parse(localStorage.getItem("annaRecipeFavourites") || "[]")
 );
@@ -83,8 +85,42 @@ function getRecipeById(id) {
   return recipes.find(recipe => recipe.id === id);
 }
 
-function savePlan() {
+function formatSavedTime(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(date);
+}
+
+function hasSavedMeals() {
+  return Object.keys(mealPlan).length > 0;
+}
+
+function updateSaveStatus(savedAt = localStorage.getItem("annaMealPlanSavedAt")) {
+  if (!saveStatus) return;
+
+  if (!hasSavedMeals()) {
+    saveStatus.textContent =
+      "This planner saves on this device when you add meals.";
+    return;
+  }
+
+  const savedTime = formatSavedTime(savedAt);
+  saveStatus.textContent = savedTime
+    ? `Saved on this device · last updated ${savedTime}`
+    : "Saved on this device.";
+}
+
+function savePlan(savedAt = new Date().toISOString()) {
   localStorage.setItem("annaMealPlan", JSON.stringify(mealPlan));
+  localStorage.setItem("annaMealPlanSavedAt", savedAt);
+  updateSaveStatus(savedAt);
 }
 
 function showToast(message) {
@@ -95,7 +131,7 @@ function showToast(message) {
 }
 
 function isQuick(recipe) {
-  return recipe.time <= 15 || recipe.tags.includes("quick");
+  return Number.isFinite(recipe.time) && recipe.time <= 15;
 }
 
 function isHighProtein(recipe) {
@@ -110,7 +146,10 @@ function setWeek(offset) {
 
 function selectSlot(dateKey, slot) {
   selectedSlot = { dateKey, slot };
+  plannerSearch.value = "";
   renderPlanner();
+  recipePicker.showModal();
+  plannerSearch.focus();
 }
 
 function assignRecipe(recipeId) {
@@ -122,6 +161,7 @@ function assignRecipe(recipeId) {
   mealPlan[makeSlotKey(selectedSlot.dateKey, selectedSlot.slot)] = recipeId;
   savePlan();
   renderPlanner();
+  recipePicker.close();
   showToast("Meal added to the planner");
 }
 
@@ -142,7 +182,7 @@ function renderPlanner() {
   weekTitle.textContent = `${dateFormatter.format(currentWeekStart)} - ${dateFormatter.format(weekEnd)}`;
   weekSubtitle.textContent = selectedSlot
     ? `${selectedSlot.slot} on ${fullDateFormatter.format(new Date(`${selectedSlot.dateKey}T00:00:00`))}`
-    : "Choose a meal slot to start planning.";
+    : "Choose any meal to add a recipe.";
 
   calendarGrid.replaceChildren(...weekDates.map(renderDay));
   renderRecipePicker();
@@ -152,6 +192,7 @@ function renderDay(date) {
   const dateKey = toDateKey(date);
   const day = document.createElement("section");
   day.className = "calendar-day";
+  day.classList.toggle("is-today", dateKey === toDateKey(new Date()));
   day.innerHTML = `
     <div class="day-header">
       <span class="day-name">${dayFormatter.format(date)}</span>
@@ -159,9 +200,10 @@ function renderDay(date) {
     </div>
   `;
 
-  mealSlots.forEach(slot => {
-    day.appendChild(renderSlot(dateKey, slot));
-  });
+  const meals = document.createElement("div");
+  meals.className = "day-meals";
+  mealSlots.forEach(slot => meals.appendChild(renderSlot(dateKey, slot)));
+  day.appendChild(meals);
 
   return day;
 }
@@ -171,34 +213,29 @@ function renderSlot(dateKey, slot) {
   const recipe = getRecipeById(mealPlan[key]);
   const isActive =
     selectedSlot?.dateKey === dateKey && selectedSlot?.slot === slot;
-  const button = document.createElement("button");
-  button.className = `meal-slot ${recipe ? "has-meal" : ""} ${isActive ? "active" : ""}`;
-  button.type = "button";
-  button.innerHTML = recipe
-    ? `
-      <span class="slot-label">${escapeHtml(slot)}</span>
-      <span class="slot-meal">
-        <strong>${escapeHtml(recipe.title)}</strong>
-        <span>${recipe.time} min · ${formatMeta(recipe.protein, " g protein")}</span>
-      </span>
-      <span class="slot-remove" data-remove="true">Remove</span>
-    `
-    : `
-      <span class="slot-label">${escapeHtml(slot)}</span>
-      <span class="slot-empty">+ Add recipe</span>
-    `;
-
-  button.addEventListener("click", event => {
-    if (event.target.closest("[data-remove]")) {
-      event.stopPropagation();
-      removeMeal(dateKey, slot);
-      return;
-    }
-
-    selectSlot(dateKey, slot);
-  });
-
-  return button;
+  const cell = document.createElement("div");
+  cell.className = `meal-slot ${recipe ? "has-meal" : ""} ${isActive ? "active" : ""}`;
+  const choose = document.createElement("button");
+  choose.type = "button";
+  choose.id = `meal-${dateKey}-${slot}`;
+  choose.className = "meal-choice";
+  choose.setAttribute("aria-label", `${slot} on ${dateKey}: ${recipe ? recipe.title + ". Change recipe" : "Add a recipe"}`);
+  choose.innerHTML = `
+    <span class="slot-label">${escapeHtml(slot)}</span>
+    ${recipe ? `<span class="slot-meal"><strong>${escapeHtml(recipe.title)}</strong><span>${recipe.time} min</span></span>` : '<span class="slot-empty"><span aria-hidden="true">+</span> Add meal</span>'}
+  `;
+  choose.addEventListener("click", () => selectSlot(dateKey, slot));
+  cell.appendChild(choose);
+  if (recipe) {
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "slot-remove";
+    remove.textContent = "×";
+    remove.setAttribute("aria-label", `Remove ${recipe.title} from ${slot} on ${dateKey}`);
+    remove.addEventListener("click", () => removeMeal(dateKey, slot));
+    cell.appendChild(remove);
+  }
+  return cell;
 }
 
 function getFilteredRecipes() {
@@ -213,20 +250,26 @@ function getFilteredRecipes() {
       ...recipe.ingredients
     ].join(" ").toLowerCase();
 
-    return searchable.includes(query);
+    return query.split(/\s+/).every(word => searchable.includes(word));
   });
 }
 
 function renderRecipePicker() {
   pickerTitle.textContent = selectedSlot
     ? `Add to ${selectedSlot.slot}`
-    : "Pick a meal slot";
+    : "Choose a recipe";
   pickerHelper.textContent = selectedSlot
-    ? "Choose a recipe below. Picking another recipe will replace the current meal."
+    ? `${fullDateFormatter.format(new Date(`${selectedSlot.dateKey}T00:00:00`))} · Choose a recipe to add or replace this meal.`
     : "Then choose a recipe to place in the calendar.";
 
   const visible = getFilteredRecipes();
   recipeList.replaceChildren(...visible.map(renderPickerRecipe));
+  if (!visible.length) {
+    const empty = document.createElement("p");
+    empty.className = "picker-empty";
+    empty.textContent = "No recipes found. Try another ingredient.";
+    recipeList.appendChild(empty);
+  }
 }
 
 function renderPickerRecipe(recipe) {
@@ -235,7 +278,7 @@ function renderPickerRecipe(recipe) {
   item.innerHTML = `
     <span class="picker-emoji">${escapeHtml(recipe.emoji)}</span>
     <span>
-      <h3>${escapeHtml(recipe.title)}</h3>
+      <h3><button class="picker-preview" type="button">${escapeHtml(recipe.title)}</button></h3>
       <p>${escapeHtml(recipe.description)}</p>
       <span class="picker-meta">
         <span>${recipe.time} min</span>
@@ -243,14 +286,15 @@ function renderPickerRecipe(recipe) {
         <span>${isQuick(recipe) ? "quick" : labels[recipe.category] || recipe.category}</span>
       </span>
     </span>
-    <button class="recipe-add-button" type="button">Add to slot</button>
+    <button class="recipe-add-button" type="button">Add <span aria-hidden="true">+</span></button>
   `;
 
   item.querySelector(".recipe-add-button").addEventListener("click", () => {
     assignRecipe(recipe.id);
   });
 
-  item.addEventListener("dblclick", () => openRecipe(recipe));
+  item.querySelector(".picker-preview").addEventListener("click", () => openRecipe(recipe));
+  item.querySelector(".recipe-add-button").setAttribute("aria-label", `Add ${recipe.title}`);
 
   return item;
 }
@@ -358,7 +402,7 @@ function openRecipe(recipe) {
     <header class="dialog-cover palette-2">
       <div>
         <p class="eyebrow">${labels[recipe.category] || recipe.category}</p>
-        <h2>${escapeHtml(recipe.title)}</h2>
+        <h2 id="recipe-dialog-title">${escapeHtml(recipe.title)}</h2>
         <p>${escapeHtml(recipe.description)}</p>
       </div>
       <div class="dialog-cover-emoji">${escapeHtml(recipe.emoji)}</div>
@@ -416,10 +460,23 @@ todayWeekButton.addEventListener("click", () => {
 organizeWeekButton.addEventListener("click", organizeWeek);
 clearWeekButton.addEventListener("click", clearWeek);
 plannerSearch.addEventListener("input", renderRecipePicker);
+dialog.addEventListener("close", () => document.body.classList.remove("dialog-open"));
 dialogClose.addEventListener("click", closeDialog);
 dialog.addEventListener("click", event => {
   if (event.target === dialog) closeDialog();
 });
 
-favouriteCount.textContent = savedRecipeIds.size;
+document.querySelector(".picker-close").addEventListener("click", () => recipePicker.close());
+recipePicker.addEventListener("click", event => {
+  if (event.target !== recipePicker) return;
+  const bounds = recipePicker.getBoundingClientRect();
+  if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) recipePicker.close();
+});
+recipePicker.addEventListener("close", () => {
+  const previousSlot = selectedSlot;
+  selectedSlot = null;
+  renderPlanner();
+  if (previousSlot) document.getElementById(`meal-${previousSlot.dateKey}-${previousSlot.slot}`)?.focus();
+});
+updateSaveStatus(savedPlanAt);
 renderPlanner();
