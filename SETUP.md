@@ -20,11 +20,11 @@ Verified against real Appwrite:
 
 Local checks passed: ten data/security tests and the Chromium guest journey (saved recipes, originals, collections, notes, cooking history create/edit/delete, planner, groceries, reload persistence, mobile overflow, account form and no browser exceptions).
 
-These checks use one actual browser and independent API sessions. They are not a claim that a physical iPhone was tested. Production GitHub Pages callback verification is pending publication of this revision.
+These checks use one actual browser and independent API sessions. They are not a claim that a physical iPhone was tested. The GitHub Pages deployment completed successfully. The live profile callback was exercised with an actual emailed magic link, restored the records created from localhost, rendered their private photos, and showed the independent-session edit. A profile save from the deployed UI was read back from the API session. Temporary test recipes, history and images were then removed, and the live profile reflected the cleanup.
 
 For the opt-in real-backend check, run `ANNA_APPWRITE_TEST_CREDENTIALS=/absolute/path/to/test-credentials.json node tests/hosted-appwrite.cjs`. The credentials file must contain a verified test account's email and password and must stay outside the repository. The script creates explicitly test-prefixed records and a test image, checks them, then removes them. Its report is written to `/tmp/anna-kitchen-appwrite-report.json` without credentials.
 
-The temporary test password and cookies are stored only in an owner-readable temporary file outside the repository. They are never included in frontend configuration or committed files. Use a magic email link or password reset to access the account with your own credentials.
+During testing, the generated test password and cookies were stored only in owner-readable temporary files outside the repository; those credential files and consumed email callback links were removed after verification. They are never included in frontend configuration or committed files. Use a magic email link or password reset to access the account with your own credentials.
 
 Project schema, permissions and function deployment instructions are in [appwrite/README.md](appwrite/README.md).
 
@@ -104,3 +104,16 @@ Use a real test email you control and two separate browser profiles (or desktop 
 8. Log out. Confirm private originals, notes, signed-photo elements, plans and account records no longer appear. Public recipes and the independent guest kitchen should still work. Sign in as a second account and confirm it cannot see the first account's data.
 9. Request password recovery from the account dialog. Follow the email back to the GitHub Pages profile URL, save the new password, log out and log in with it.
 10. Run Supabase's Security Advisor and inspect the actual hosted table and Storage policies before calling the rollout complete.
+
+
+## Live entry points
+
+- Website: https://annardriguez.github.io/annas-recipe-database/
+- Cookbook: https://annardriguez.github.io/annas-recipe-database/cookbook.html
+- Profile and email callbacks: https://annardriguez.github.io/annas-recipe-database/profile.html
+
+Use **Log in → Email me a login link** with your verified email. To choose a password yourself, use **Forgot password?** and complete the recovery form from your email. Test fixture data was removed; your existing guest collection can be imported explicitly from the browser where it was originally saved. Existing Supabase cloud data was not exported from the inactive project.
+
+Authentication signup, password login and email verification were tested through the actual Appwrite APIs. Magic login and the GitHub Pages callback were tested through the real browser UI. The password-recovery API/form wiring is implemented, but setting a new personal password through the browser was not performed on the user's behalf. No physical-phone test or live second-user penetration test is claimed; owner isolation is also covered by the function authorization tests.
+
+The main GitHub Pages application assets were fetched after deployment and their hashes matched the local tested sources. `.nojekyll` ensures GitHub Pages serves the bundled SDK under `vendor/` unchanged.
