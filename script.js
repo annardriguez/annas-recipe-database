@@ -18,11 +18,15 @@ const customRecipeDialog = document.querySelector("#custom-recipe-dialog");
 const customRecipeClose = document.querySelector("#custom-recipe-close");
 const customRecipeForm = document.querySelector("#custom-recipe-form");
 
-const savedRecipeIds = new Set(window.AnnaKitchen.list('favourite').map(r => r.id));
+const savedRecipeIds = new Set(
+  window.AnnaKitchen.list("favourite").map((r) => r.id),
+);
 
 let activeFilter = "all";
 const requestedView = new URLSearchParams(location.search).get("view");
-const libraryView = ["recipes", "favourites"].includes(requestedView) ? requestedView : "home";
+const libraryView = ["recipes", "favourites"].includes(requestedView)
+  ? requestedView
+  : "home";
 const showingFavourites = libraryView === "favourites";
 let toastTimer;
 const labels = {
@@ -31,7 +35,7 @@ const labels = {
   snack: "Sweet & snack",
   sweet: "Sweet",
   side: "Side",
-  lunch: "Lunch"
+  lunch: "Lunch",
 };
 
 const filterOptions = [
@@ -47,7 +51,7 @@ const filterOptions = [
   ["bowl", "Bowls"],
   ["meal prep", "Meal prep"],
   ["air fryer", "Air fryer"],
-  ["thermomix", "Thermomix"]
+  ["thermomix", "Thermomix"],
 ];
 
 function escapeHtml(value) {
@@ -74,24 +78,34 @@ function isHighProtein(recipe) {
 function matchesFilter(recipe, filter) {
   if (filter === "all") return true;
   if (filter === "quick") return isQuick(recipe);
+  if (filter === "weeknight")
+    return recipe.category === "main" && recipe.time <= 40;
   if (filter === "high protein") return isHighProtein(recipe);
   return (
-    recipe.tags.includes(filter) ||
+    recipe.tags.some((tag) => tag.toLowerCase() === filter.toLowerCase()) ||
     recipe.equipment.includes(filter) ||
     recipe.category === filter
   );
 }
 
 function updateFavouriteCount() {
-  document.querySelectorAll('[data-favourite-count]').forEach(item => item.textContent = savedRecipeIds.size);
+  document
+    .querySelectorAll("[data-favourite-count]")
+    .forEach((item) => (item.textContent = savedRecipeIds.size));
 }
 async function toggleFavourite(recipe) {
   const K = window.AnnaKitchen;
   try {
-    if (savedRecipeIds.has(recipe.id)) await K.remove('favourite', recipe.id);
-    else await K.set('favourite', recipe.id, {});
-    showToast(savedRecipeIds.has(recipe.id) ? 'Recipe saved to your cookbook' : 'Removed from saved recipes');
-  } catch(e) { showToast(K.errorMessage(e)); }
+    if (savedRecipeIds.has(recipe.id)) await K.remove("favourite", recipe.id);
+    else await K.set("favourite", recipe.id, {});
+    showToast(
+      savedRecipeIds.has(recipe.id)
+        ? "Recipe saved to your cookbook"
+        : "Removed from saved recipes",
+    );
+  } catch (e) {
+    showToast(K.errorMessage(e));
+  }
 }
 
 function showToast(message) {
@@ -102,15 +116,17 @@ function showToast(message) {
 }
 
 function getSavedRecipes() {
-  return recipes.filter(recipe => savedRecipeIds.has(recipe.id));
+  return recipes.filter((recipe) => savedRecipeIds.has(recipe.id));
 }
 
 async function removeCustomRecipe(recipeId) {
   try {
     await window.AnnaCustomRecipes.remove(recipeId);
     dialog.close();
-    showToast('Custom recipe removed');
-  } catch(e) { showToast(window.AnnaKitchen.errorMessage(e)); }
+    showToast("Custom recipe removed");
+  } catch (e) {
+    showToast(window.AnnaKitchen.errorMessage(e));
+  }
 }
 
 function createFilterButtons() {
@@ -124,12 +140,12 @@ function createFilterButtons() {
     quickFilters.appendChild(button);
   });
 
-  quickFilters.addEventListener("click", event => {
+  quickFilters.addEventListener("click", (event) => {
     const button = event.target.closest("button");
     if (!button) return;
 
     activeFilter = button.dataset.filter;
-    quickFilters.querySelectorAll("button").forEach(item => {
+    quickFilters.querySelectorAll("button").forEach((item) => {
       item.classList.toggle("active", item === button);
       item.setAttribute("aria-pressed", String(item === button));
     });
@@ -155,13 +171,17 @@ function createRecipeCard(recipe, index) {
     ? "vegetarian"
     : "";
   const primaryTags = [
-    recipe.isCustom ? "your recipe" : labels[recipe.category] || recipe.category,
+    recipe.isCustom
+      ? "your recipe"
+      : labels[recipe.category] || recipe.category,
     isQuick(recipe) ? "quick" : "",
     recipe.tags.includes("vegetarian") ? "vegetarian" : "",
-    ...recipe.tags.filter(tag =>
-      !["custom", "quick", "vegetarian", "high protein"].includes(tag)
-    )
-  ].filter(Boolean).slice(0, 3);
+    ...recipe.tags.filter(
+      (tag) => !["custom", "quick", "vegetarian", "high protein"].includes(tag),
+    ),
+  ]
+    .filter(Boolean)
+    .slice(0, 3);
 
   article.innerHTML = `
     <div class="recipe-visual palette-${palette}">
@@ -175,7 +195,7 @@ function createRecipeCard(recipe, index) {
         <span>◷ ${recipe.time} min</span>
         <span class="${badgeClass}">${badgeTag === "Vegetarian" ? "☘" : "◈"} ${escapeHtml(badgeTag)}</span>
       </div>
-      <span class="recipe-emoji">${escapeHtml(recipe.emoji)}</span>
+      ${AnnaKitchen.art(recipe)}
     </div>
 
     <div class="recipe-content">
@@ -188,20 +208,20 @@ function createRecipeCard(recipe, index) {
       <p>${escapeHtml(recipe.description)}</p>
 
       <div class="recipe-meta">
-        ${primaryTags.map(tag => `<span>${escapeHtml(tag)}</span>`).join("")}
+        ${primaryTags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}
         <span class="nutrition-only nutrition-chip">${formatMeta(recipe.calories, " kcal")}</span>
         <span class="nutrition-only nutrition-chip">${formatMeta(recipe.protein, " g protein")}</span>
       </div>
     </div>
   `;
 
-  article.querySelector(".card-save").addEventListener("click", event => {
+  article.querySelector(".card-save").addEventListener("click", (event) => {
     event.stopPropagation();
     toggleFavourite(recipe, event.currentTarget);
   });
 
   article.addEventListener("click", () => openRecipe(recipe, palette));
-  article.addEventListener("keydown", event => {
+  article.addEventListener("keydown", (event) => {
     if (event.target !== article) return;
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
@@ -212,24 +232,100 @@ function createRecipeCard(recipe, index) {
   return article;
 }
 
+const advancedIds = [
+  "meal-filter",
+  "time-filter",
+  "diet-filter",
+  "collection-filter",
+  "calorie-filter",
+  "protein-filter",
+  "pantry-filter",
+  "prep-filter",
+];
+function resetAdvanced() {
+  advancedIds.forEach((id) => {
+    const el = document.getElementById(id);
+    if (el.type === "checkbox") el.checked = false;
+    else el.value = "";
+  });
+}
+function hasAdvanced() {
+  return advancedIds.some((id) => {
+    const el = document.getElementById(id);
+    return el.type === "checkbox" ? el.checked : Boolean(el.value);
+  });
+}
+function matchesAdvanced(recipe) {
+  const value = (id) => document.getElementById(id).value;
+  const ingredients = recipe.ingredients.join(" ").toLowerCase();
+  const pantry = value("pantry-filter")
+    .split(",")
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean);
+  const collection = value("collection-filter");
+  const nutritionOn = window.AnnaNutrition?.isVisible();
+  return (
+    (!value("meal-filter") || recipe.category === value("meal-filter")) &&
+    (!value("time-filter") ||
+      (recipe.time != null && recipe.time <= Number(value("time-filter")))) &&
+    (!value("diet-filter") ||
+      recipe.tags.some((t) => t.toLowerCase() === value("diet-filter"))) &&
+    (!collection ||
+      (AnnaKitchen.collections()[collection] || []).includes(recipe.id)) &&
+    (!nutritionOn ||
+      !value("calorie-filter") ||
+      (recipe.calories != null &&
+        recipe.calories <= Number(value("calorie-filter")))) &&
+    (!nutritionOn ||
+      !value("protein-filter") ||
+      (recipe.protein != null &&
+        recipe.protein >= Number(value("protein-filter")))) &&
+    pantry.every((item) => ingredients.includes(item)) &&
+    (!document.getElementById("prep-filter").checked ||
+      recipe.tags.includes("meal prep"))
+  );
+}
+advancedIds.forEach((id) =>
+  document.getElementById(id).addEventListener("input", renderRecipes),
+);
+document.getElementById("save-targets").addEventListener("click", async () => {
+  const target = {
+    calories: document.getElementById("calorie-filter").value,
+    protein: document.getElementById("protein-filter").value,
+  };
+  if (await AnnaKitchen.write("annaNutritionTargets", target))
+    showToast("Nutrition targets remembered on this browser");
+});
+const rememberedTargets = AnnaKitchen.read("annaNutritionTargets", {});
+document.getElementById("calorie-filter").value =
+  rememberedTargets.calories || "";
+document.getElementById("protein-filter").value =
+  rememberedTargets.protein || "";
+
 function getVisibleRecipes() {
   const query = searchInput.value.toLowerCase().trim();
 
-  let visible = recipes.filter(recipe => {
+  let visible = recipes.filter((recipe) => {
     const searchable = [
       recipe.title,
       recipe.description,
       ...recipe.tags,
       ...recipe.ingredients,
-      ...recipe.equipment
-    ].join(" ").toLowerCase();
+      ...recipe.equipment,
+      ...(AnnaKitchen.metadata(recipe.id).tags || []),
+    ]
+      .join(" ")
+      .toLowerCase();
 
-    const queryMatches = query.split(/\s+/).every(word => searchable.includes(word));
+    const queryMatches = query
+      .split(/\s+/)
+      .every((word) => searchable.includes(word));
     const filterMatches = matchesFilter(recipe, activeFilter);
+    const advancedMatches = matchesAdvanced(recipe);
     const favouriteMatches =
       !showingFavourites || savedRecipeIds.has(recipe.id);
 
-    return queryMatches && filterMatches && favouriteMatches;
+    return queryMatches && filterMatches && favouriteMatches && advancedMatches;
   });
 
   const sort = sortSelect.value;
@@ -255,123 +351,54 @@ function updateSummary(visibleCount) {
     return;
   }
 
-  if (activeFilter === "all" && !searchInput.value.trim()) {
+  if (activeFilter === "all" && !searchInput.value.trim() && !hasAdvanced()) {
     activeSummary.textContent = "Showing the whole kitchen.";
     return;
   }
 
   const filterName =
-    filterOptions.find(([value]) => value === activeFilter)?.[1] || activeFilter;
+    filterOptions.find(([value]) => value === activeFilter)?.[1] ||
+    activeFilter;
 
   activeSummary.textContent = searchInput.value.trim()
     ? `${visibleCount} result${visibleCount === 1 ? "" : "s"} for “${searchInput.value.trim()}”${activeFilter !== "all" ? ` in ${filterName}` : ""}.`
-    : `${visibleCount} recipe${visibleCount === 1 ? "" : "s"} in ${filterName}.`;
+    : hasAdvanced()
+      ? `${visibleCount} recipes match your filters.`
+      : `${visibleCount} recipe${visibleCount === 1 ? "" : "s"} in ${filterName}.`;
 }
 
 function renderRecipes() {
   const visible = getVisibleRecipes();
-  clearFiltersButton.hidden = activeFilter === "all" && !searchInput.value && sortSelect.value === "default";
+  clearFiltersButton.hidden =
+    activeFilter === "all" &&
+    !searchInput.value &&
+    sortSelect.value === "default" &&
+    !hasAdvanced();
   recipeGrid.replaceChildren(
-    ...visible.map((recipe, index) => createRecipeCard(recipe, index))
+    ...visible.map((recipe, index) => createRecipeCard(recipe, index)),
   );
 
-  const total = showingFavourites ? recipes.filter(recipe => savedRecipeIds.has(recipe.id)).length : recipes.length;
+  const total = showingFavourites
+    ? recipes.filter((recipe) => savedRecipeIds.has(recipe.id)).length
+    : recipes.length;
   recipeCount.textContent = `${visible.length} of ${total} recipe${total === 1 ? "" : "s"}`;
   randomRecipeButton.disabled = visible.length === 0;
   const noSaved = showingFavourites && total === 0;
-  document.querySelector("#empty-title").textContent = noSaved ? "Keep your favourites close." : "No recipes found.";
-  document.querySelector("#empty-description").textContent = noSaved ? "Tap the heart on a recipe to save it here for another day." : "Try another ingredient or clear your filters.";
+  document.querySelector("#empty-title").textContent = noSaved
+    ? "Keep your favourites close."
+    : "No recipes found.";
+  document.querySelector("#empty-description").textContent = noSaved
+    ? "Tap the heart on a recipe to save it here for another day."
+    : "Try another ingredient or clear your filters.";
   document.querySelector("#empty-reset").hidden = noSaved;
   document.querySelector(".empty-browse").hidden = !noSaved;
   emptyMessage.hidden = visible.length !== 0;
   updateSummary(visible.length);
+  AnnaKitchen.hydratePhotos();
 }
 
-function openRecipe(recipe, palette = 0) {
-  const saved = savedRecipeIds.has(recipe.id);
-
-  dialogContent.innerHTML = `
-    <header class="dialog-cover palette-${palette}">
-      <div>
-        <p class="eyebrow">${labels[recipe.category] || recipe.category}</p>
-        <h2 id="recipe-dialog-title">${escapeHtml(recipe.title)}</h2>
-        <p>${escapeHtml(recipe.description)}</p>
-        ${recipe.isCustom ? `<p class="custom-recipe-badge">Your recipe</p>` : ""}
-      </div>
-      <div class="dialog-cover-emoji">${escapeHtml(recipe.emoji)}</div>
-    </header>
-
-    <div class="dialog-body">
-      <aside>
-        <div class="dialog-stats">
-          <div>
-            <strong>${recipe.time}</strong>
-            <span>minutes</span>
-          </div>
-          <div class="nutrition-only">
-            <strong>${recipe.calories ?? "—"}</strong>
-            <span>kcal</span>
-          </div>
-          <div class="nutrition-only">
-            <strong>${recipe.protein ?? "—"}</strong>
-            <span>g protein</span>
-          </div>
-          <div class="nutrition-only">
-            <strong>${recipe.carbs ?? "—"}</strong>
-            <span>g carbs</span>
-          </div>
-          <div class="nutrition-only">
-            <strong>${recipe.fat ?? "—"}</strong>
-            <span>g fat</span>
-          </div>
-          <div class="nutrition-only">
-            <strong>${recipe.fiber ?? "—"}</strong>
-            <span>g fiber</span>
-          </div>
-        </div>
-
-        <button
-          class="dialog-save ${saved ? "saved" : ""}"
-          data-save-id="${escapeHtml(recipe.id)}"
-        >
-          ${saved ? "♥ Saved to favourites" : "♡ Save recipe"}
-        </button>
-        <a class="planner-tool-button" href="cookbook.html?recipe=${encodeURIComponent(recipe.id)}">Notes & cooking journal ↗</a>
-        ${recipe.isCustom ? `<button class="dialog-delete" id="delete-custom-recipe" type="button">Delete custom recipe</button>` : ""}
-
-        <h3>Ingredients <small>${recipe.servings == null ? "Yield not specified" : `${recipe.servings} serving${recipe.servings > 1 ? "s" : ""}`}</small></h3>
-        <ul class="ingredient-list">
-          ${recipe.ingredients.map(item => `<li class="ingredient-item"><label><input type="checkbox"><span>${escapeHtml(item)}</span></label></li>`).join("")}
-        </ul>
-
-        ${recipe.note ? `
-          <div class="recipe-note">
-            <strong>Anna note</strong><br>
-            ${escapeHtml(recipe.note)}
-          </div>
-        ` : ""}
-      </aside>
-
-      <section>
-        <p class="eyebrow">Method</p>
-        <h3>How to make it</h3>
-        <ol class="dialog-steps">
-          ${recipe.steps.map(item => `<li>${escapeHtml(item)}</li>`).join("")}
-        </ol>
-      </section>
-    </div>
-  `;
-
-  dialogContent.querySelector(".dialog-save").addEventListener("click", event => {
-    toggleFavourite(recipe, event.currentTarget);
-  });
-  dialogContent.querySelector("#delete-custom-recipe")?.addEventListener("click", () => {
-    removeCustomRecipe(recipe.id);
-  });
-
-  dialog.showModal();
-  dialogContent.scrollTop = 0;
-  document.body.classList.add("dialog-open");
+function openRecipe(recipe) {
+  AnnaKitchen.openRecipe(recipe, { toggleFavourite });
 }
 
 function closeDialog() {
@@ -381,13 +408,8 @@ function closeDialog() {
 
 function setFeaturedRecipe() {
   const featured = recipes[0];
-
-  featuredCard.innerHTML = `
-    <div class="featured-art" aria-hidden="true"><span class="feature-spark">✳</span><span class="featured-emoji">${escapeHtml(featured.emoji)}</span><span class="feature-note">a little kitchen favourite</span></div>
-    <div class="featured-info"><span class="featured-label">On the menu today</span><h2>${escapeHtml(featured.title)}</h2><div class="featured-meta"><span>◷ ${featured.time} min</span><span class="nutrition-only">${formatMeta(featured.protein, " g protein")}</span><span class="feature-arrow" aria-hidden="true">↗</span></div></div>
-  `;
-
-  featuredCard.addEventListener("click", () => openRecipe(featured, 2));
+  featuredCard.innerHTML = `${AnnaKitchen.art(featured, true)}<span class="featured-topline">THE KITCHEN FAVOURITE · Nº 01</span><div class="featured-info"><span class="featured-label">A very good place to start</span><h2>${escapeHtml(featured.title)}</h2><div class="featured-meta"><span>${featured.time} MINUTES</span><span>${featured.servings} SERVINGS</span><span class="feature-arrow" aria-hidden="true">↗</span></div></div>`;
+  featuredCard.addEventListener("click", () => openRecipe(featured));
 }
 
 randomRecipeButton.addEventListener("click", () => {
@@ -397,53 +419,59 @@ randomRecipeButton.addEventListener("click", () => {
   openRecipe(randomRecipe, Math.floor(Math.random() * 6));
 });
 
-customRecipeButton?.addEventListener("click", () => {
-  customRecipeForm.reset();
-  customRecipeDialog.showModal();
-  document.body.classList.add("dialog-open");
-});
+customRecipeButton?.addEventListener("click", () => AnnaKitchen.openEditor());
 customRecipeClose?.addEventListener("click", () => {
   customRecipeDialog.close();
   document.body.classList.remove("dialog-open");
 });
-customRecipeDialog?.addEventListener("click", event => {
+customRecipeDialog?.addEventListener("click", (event) => {
   if (event.target === customRecipeDialog) {
     customRecipeDialog.close();
     document.body.classList.remove("dialog-open");
   }
 });
-customRecipeForm?.addEventListener("submit", async event => {
+customRecipeForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
-  const formData = new FormData(customRecipeForm);
   const submit = customRecipeForm.querySelector('[type="submit"]');
   submit.disabled = true;
   let recipe;
-  try { recipe = await window.AnnaCustomRecipes.add(Object.fromEntries(formData)); }
-  catch(e) { showToast(window.AnnaKitchen.errorMessage(e)); return; }
-  finally { submit.disabled = false; }
+  try {
+    recipe = await AnnaKitchen.saveEditor();
+    if (!recipe) return;
+  } catch (e) {
+    showToast(window.AnnaKitchen.errorMessage(e));
+    return;
+  } finally {
+    submit.disabled = false;
+  }
 
   customRecipeDialog.close();
   document.body.classList.remove("dialog-open");
   searchInput.value = recipe.title;
   activeFilter = "all";
+  resetAdvanced();
 
-  quickFilters.querySelectorAll("button").forEach(button => {
+  quickFilters.querySelectorAll("button").forEach((button) => {
     button.classList.toggle("active", button.dataset.filter === "all");
   });
   updateLibraryStats();
   renderRecipes();
   document.querySelector("#recipes").scrollIntoView({ behavior: "smooth" });
-  showToast("Recipe added");
+  showToast("Recipe saved");
 });
 
 clearFiltersButton.addEventListener("click", () => {
   activeFilter = "all";
   searchInput.value = "";
   sortSelect.value = "default";
+  resetAdvanced();
 
-  quickFilters.querySelectorAll("button").forEach(button => {
+  quickFilters.querySelectorAll("button").forEach((button) => {
     button.classList.toggle("active", button.dataset.filter === "all");
-      button.setAttribute("aria-pressed", String(button.dataset.filter === "all"));
+    button.setAttribute(
+      "aria-pressed",
+      String(button.dataset.filter === "all"),
+    );
   });
 
   renderRecipes();
@@ -455,41 +483,59 @@ searchInput.addEventListener("input", () => {
 
 sortSelect.addEventListener("change", renderRecipes);
 
-document.querySelector("#empty-reset").addEventListener("click", () => clearFiltersButton.click());
-dialog.addEventListener("close", () => document.body.classList.remove("dialog-open"));
+document
+  .querySelector("#empty-reset")
+  .addEventListener("click", () => clearFiltersButton.click());
+dialog.addEventListener("close", () =>
+  document.body.classList.remove("dialog-open"),
+);
 
 dialogClose.addEventListener("click", closeDialog);
-dialog.addEventListener("click", event => {
+dialog.addEventListener("click", (event) => {
   if (event.target === dialog) closeDialog();
 });
 
-document.addEventListener("keydown", event => {
+document.addEventListener("keydown", (event) => {
   if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
     event.preventDefault();
     searchInput.focus();
   }
 });
 
-document.querySelector("#discover").hidden = libraryView !== "home";
-document.querySelectorAll(".navigation [data-view]").forEach(link => {
+["discover", "library-stats", "seasonal-section", "collection-strip"].forEach(
+  (id) => (document.getElementById(id).hidden = libraryView !== "home"),
+);
+document.querySelectorAll(".navigation [data-view]").forEach((link) => {
   const current = link.dataset.view === libraryView;
   link.classList.toggle("active", current);
   if (current) link.setAttribute("aria-current", "page");
 });
 if (libraryView !== "home") {
-  document.querySelector("#collection-title").textContent = showingFavourites ? "Your favourites" : "All recipes";
-  document.querySelector("#collection-eyebrow").textContent = showingFavourites ? "Saved for another day" : "The whole kitchen";
+  document.querySelector("#collection-title").textContent = showingFavourites
+    ? "Your favourites"
+    : "All recipes";
+  document.querySelector("#collection-eyebrow").textContent = showingFavourites
+    ? "Saved for another day"
+    : "The whole kitchen";
   const description = document.querySelector("#collection-description");
   description.hidden = false;
-  description.textContent = showingFavourites ? "The ones you love, all in one place." : "Find your next favourite. Search an ingredient or explore the collection.";
+  description.textContent = showingFavourites
+    ? "The ones you love, all in one place."
+    : "Find your next favourite. Search an ingredient or explore the collection.";
   document.title = `${showingFavourites ? "Favourites" : "All recipes"} | Anna's Kitchen`;
-  searchInput.placeholder = showingFavourites ? "Search your favourites…" : "Search recipes or ingredients…";
+  searchInput.placeholder = showingFavourites
+    ? "Search your favourites…"
+    : "Search recipes or ingredients…";
 }
 function updateLibraryStats() {
   document.querySelector("#total-recipes").textContent = recipes.length;
-  document.querySelector("#vegetarian-recipes").textContent = recipes.filter(recipe => recipe.tags.includes("vegetarian")).length;
-  document.querySelector("#quick-recipes").textContent = recipes.filter(isQuick).length;
-  document.querySelector("#protein-recipes").textContent = recipes.filter(isHighProtein).length;
+  document.querySelector("#vegetarian-recipes").textContent = recipes.filter(
+    (recipe) => recipe.tags.includes("vegetarian"),
+  ).length;
+  document.querySelector("#quick-recipes").textContent =
+    recipes.filter(isQuick).length;
+  document.querySelector("#protein-recipes").textContent =
+    recipes.filter(isHighProtein).length;
 }
 updateLibraryStats();
 createFilterButtons();
@@ -498,23 +544,166 @@ updateFavouriteCount();
 if (featuredCard) setFeaturedRecipe();
 renderRecipes();
 
-[customRecipeDialog].forEach(modal => {
-  modal.addEventListener("close", () => document.body.classList.remove("dialog-open"));
+[customRecipeDialog].forEach((modal) => {
+  modal.addEventListener("close", () =>
+    document.body.classList.remove("dialog-open"),
+  );
 });
 
 let libraryOwner = window.AnnaKitchen.user?.id;
-window.addEventListener('kitchen:change', () => {
+window.addEventListener("kitchen:change", () => {
   const K = window.AnnaKitchen;
   if (libraryOwner !== K.user?.id) {
-    dialog.close(); dialogContent.replaceChildren(); customRecipeDialog.close(); customRecipeForm.reset();
+    dialog.close();
+    dialogContent.replaceChildren();
+    customRecipeDialog.close();
+    customRecipeForm.reset();
     libraryOwner = K.user?.id;
   }
-  savedRecipeIds.clear(); K.list('favourite').forEach(r => savedRecipeIds.add(r.id));
-  updateFavouriteCount(); updateLibraryStats(); renderRecipes();
-  document.querySelectorAll('[data-save-id]').forEach(item => {
+  savedRecipeIds.clear();
+  K.list("favourite").forEach((r) => savedRecipeIds.add(r.id));
+  updateFavouriteCount();
+  updateLibraryStats();
+  renderRecipes();
+  document.querySelectorAll("[data-save-id]").forEach((item) => {
     const saved = savedRecipeIds.has(item.dataset.saveId);
-    item.classList.toggle('saved', saved);
-    item.setAttribute('aria-pressed', String(saved));
-    item.textContent = item.classList.contains('dialog-save') ? (saved ? '♥ Saved to favourites' : '♡ Save recipe') : (saved ? '♥' : '♡');
+    item.classList.toggle("saved", saved);
+    item.setAttribute("aria-pressed", String(saved));
+    item.textContent = item.classList.contains("dialog-save")
+      ? saved
+        ? "♥ Saved to favourites"
+        : "♡ Save recipe"
+      : saved
+        ? "♥"
+        : "♡";
   });
+});
+
+function applyCollection(filter) {
+  activeFilter = filter;
+  quickFilters.querySelectorAll("button").forEach((b) => {
+    b.classList.toggle("active", b.dataset.filter === filter);
+    b.setAttribute("aria-pressed", String(b.dataset.filter === filter));
+  });
+  renderRecipes();
+  document
+    .querySelector(".collection-heading")
+    .scrollIntoView({ behavior: "smooth" });
+}
+const curatedCollections = [
+  ["weeknight", "Weeknight dinners"],
+  ["meal prep", "Meal prep favourites"],
+  ["high protein", "Protein, please"],
+  ["sweet", "Something sweet"],
+  ["quick", "In a hurry"],
+  ["comfort food", "A little comfort"],
+];
+document.querySelector("#collection-tiles").innerHTML = curatedCollections
+  .map(
+    ([filter, title], i) =>
+      `<button class="collection-tile" data-curated="${filter}"><span>0${i + 1}<span aria-hidden="true">↗</span></span><strong>${title}</strong></button>`,
+  )
+  .join("");
+document
+  .querySelectorAll("[data-curated]")
+  .forEach((b) => (b.onclick = () => applyCollection(b.dataset.curated)));
+function renderSeason() {
+  const month = new Date().getMonth();
+  const cold = month >= 9 || month <= 1;
+  const spring = month >= 2 && month <= 4;
+  const season = cold
+    ? {
+        label: "THE COSY SEASON",
+        title: "A little comfort<br>for colder days.",
+        description:
+          "Bowls to curl up with. Something warm from the oven. A good reason to stay in.",
+        ids: ["pumpkin-peanut-soup", "mushroom-risotto"],
+        filter: "comfort food",
+      }
+    : spring
+      ? {
+          label: "A FRESH START",
+          title: "A little brighter.<br>A little greener.",
+          description:
+            "Fresh flavours, bright bowls and good things to welcome longer days.",
+          ids: ["feta-chickpea-tuna-salad", "truffle-pea-pasta"],
+          filter: "vegetarian",
+        }
+      : {
+          label: "LONG DAYS, GOOD FOOD",
+          title: "Less time inside.<br>More at the table.",
+          description:
+            "Fresh, easy favourites for sun-filled days and dinners with the windows open.",
+          ids: ["summer-spring-rolls-peanut-dip", "cucumber-tuna-crunch-salad"],
+          filter: "quick",
+        };
+  document.getElementById("season-label").textContent = season.label;
+  document.getElementById("season-title").innerHTML = season.title;
+  document.getElementById("season-description").textContent =
+    season.description;
+  const browse = document.getElementById("season-browse");
+  browse.textContent = cold
+    ? "Explore comfort food ↗"
+    : "Find more inspiration ↗";
+  browse.onclick = () => applyCollection(season.filter);
+  document.getElementById("seasonal-recipes").replaceChildren(
+    ...season.ids.map((id) => {
+      const r = recipes.find((r) => r.id === id);
+      const b = document.createElement("button");
+      b.className = "seasonal-card";
+      b.innerHTML = `<div class="recipe-visual">${AnnaKitchen.art(r)}</div><p class="mini-meta" style="margin-top:15px">${r.time} MINUTES · ${r.tags.includes("vegetarian") ? "VEGETARIAN" : "FROM THE RECIPE BOX"}</p><h3>${escapeHtml(r.title)}</h3>`;
+      b.onclick = () => openRecipe(r);
+      return b;
+    }),
+  );
+}
+renderSeason();
+function openLinkedRecipe() {
+  if (!location.hash.startsWith("#recipe=")) return;
+  let id;
+  try {
+    id = decodeURIComponent(location.hash.slice(8));
+  } catch {
+    return;
+  }
+  const recipe = recipes.find((r) => r.id === id);
+  if (recipe) openRecipe(recipe);
+}
+window.addEventListener("hashchange", openLinkedRecipe);
+openLinkedRecipe();
+const editId = new URLSearchParams(location.search).get("edit");
+if (editId) {
+  const recipe = recipes.find((r) => r.id === editId);
+  if (recipe) AnnaKitchen.openEditor(recipe);
+}
+document.addEventListener("kitchen:changed", () => {
+  updateLibraryStats();
+  renderRecipes();
+});
+document.addEventListener("click", (event) => {
+  if (event.target.closest("[data-nutrition-toggle]")) renderRecipes();
+});
+
+let appliedNutritionTargets = "";
+window.addEventListener("kitchen:change", () => {
+  const targets = AnnaKitchen.read("annaNutritionTargets", {}),
+    encoded = JSON.stringify(targets);
+  if (encoded !== appliedNutritionTargets) {
+    appliedNutritionTargets = encoded;
+    document.getElementById("calorie-filter").value = targets.calories || "";
+    document.getElementById("protein-filter").value = targets.protein || "";
+    renderRecipes();
+  }
+});
+
+window.addEventListener("kitchen:change", () => {
+  if (!dialog.open && location.hash.startsWith("#recipe=")) openLinkedRecipe();
+});
+
+const importControl = document.querySelector(".import-label");
+importControl?.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    document.getElementById("import-kitchen").click();
+  }
 });

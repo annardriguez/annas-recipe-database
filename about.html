@@ -1,98 +1,137 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="referrer" content="same-origin">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#f4efe7">
-  <title>About | Anna's Kitchen</title>
-  <link rel="stylesheet" href="style.css?v=combined-kitchen-20261027">
-  <link rel="stylesheet" href="refinements.css?v=combined-kitchen-20261027">
-  <link rel="stylesheet" href="cookbook.css?v=20261112">
-</head>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="referrer" content="same-origin" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f6f3eb" />
+    <meta
+      name="description"
+      content="A personal cookbook for everyday appetite. Find a recipe, save a favourite, and make a little plan."
+    />
+    <title>About | Anna's Kitchen</title>
+    <link rel="stylesheet" href="style.css?v=redesign-20261113a" />
 
-<body>
-  <a class="skip-link" href="#main-content">Skip to content</a>
-  <header class="site-header">
-    <a class="logo" href="index.html">
-      <span class="logo-title">Anna's Kitchen <span class="logo-spark">✣</span></span>
-      <span class="logo-subtitle">Recipes that fuel your life</span>
-    </a>
+    <link rel="stylesheet" href="cookbook.css?v=20261112" />
+    <link rel="stylesheet" href="cookbook-refinements.css?v=redesign-20261113a" />
+  </head>
 
-    <nav class="navigation" aria-label="Primary navigation">
-      <a href="index.html" data-view="home">Home</a>
-      <a href="index.html?view=recipes" data-view="recipes">All recipes</a>
-      <a href="index.html?view=favourites" data-view="favourites" id="show-favourites-nav">Favourites <span class="nav-count" data-favourite-count>0</span></a>
-      <a href="cookbook.html">My cookbook</a>
-      <a href="planner.html">Meal planner</a>
-      <a class="active" aria-current="page" href="about.html">About</a>
-    </nav>
-    <div class="header-actions">
-      <button class="icon-button" type="button" aria-label="Toggle dark mode">☾</button>
-      <button class="account-button" id="open-account" type="button">Log in</button>
-    </div>
-  </header>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <header class="site-header">
+      <a class="logo" href="index.html">
+        <span class="logo-title"
+          >anna’s kitchen<span class="logo-spark">✳</span></span
+        >
+        <span class="logo-subtitle">A little collection. A lot of love.</span>
+      </a>
 
-  <main id="main-content" class="about-page">
-    <section class="about-hero">
-      <div>
-        <p class="eyebrow">About the kitchen</p>
-        <h1>A recipe drawer for real-life appetite.</h1>
+      <nav class="navigation" aria-label="Primary navigation">
+        <a href="index.html" data-view="home">Home</a>
+        <a href="index.html?view=recipes" data-view="recipes">All recipes</a>
+        <a
+          href="index.html?view=favourites"
+          data-view="favourites"
+          id="show-favourites-nav"
+          >Favourites <span class="nav-count" data-favourite-count>0</span></a
+        >
+        <a href="cookbook.html">My cookbook</a>
+        <a href="planner.html">Meal planner</a>
+        <a class="active" aria-current="page" href="about.html">About</a>
+      </nav>
+      <div class="header-actions">
+        <button class="icon-button" type="button" aria-label="Toggle dark mode">
+          ☾
+        </button>
+        <button class="account-button" id="open-account" type="button">
+          Log in
+        </button>
       </div>
-      <div class="about-intro">
-        <p>
-          Anna's Kitchen Index is for the recipes that survive actual life: screenshots, saved posts, notes app chaos, grocery-store panic, and the occasional meal you swear you will remember and absolutely will not.
-        </p>
-        <p>
-          It is built to help you decide faster, save the good stuff, and plan just enough without turning dinner into a productivity seminar.
-        </p>
-        <a class="primary-button about-cta" href="index.html?view=recipes">Browse recipes</a>
-      </div>
-    </section>
+    </header>
 
-    <section class="about-kitchen section" aria-label="What this site is for">
-      <div class="about-card about-card-feature">
-        <p class="eyebrow">The rule</p>
-        <h2>Food should feel possible.</h2>
-        <p>
-          This is not a perfect wellness museum. It is a practical, pretty place for meals with protein, comfort, shortcuts, and enough structure to make future-you slightly less annoyed.
-        </p>
-      </div>
-      <div class="about-card">
-        <span>01</span>
-        <h3>Find the thing</h3>
-        <p>Search by craving, ingredient, time, protein, or whatever word your brain has available.</p>
-      </div>
-      <div class="about-card">
-        <span>02</span>
-        <h3>Save the winners</h3>
-        <p>Favorites sync when you log in, so your reliable meals follow you around.</p>
-      </div>
-      <div class="about-card">
-        <span>03</span>
-        <h3>Plan lightly</h3>
-        <p>The meal planner is for loose intentions, not a legally binding dinner contract.</p>
-      </div>
-    </section>
-  </main>
+    <main id="main-content" class="about-page">
+      <section class="about-hero">
+        <div>
+          <p class="eyebrow">About the kitchen</p>
+          <h1>A recipe drawer for real-life appetite.</h1>
+        </div>
+        <div class="about-intro">
+          <p>
+            Anna's Kitchen Index is for the recipes that survive actual life:
+            screenshots, saved posts, notes app chaos, grocery-store panic, and
+            the occasional meal you swear you will remember and absolutely will
+            not.
+          </p>
+          <p>
+            It is built to help you decide faster, save the good stuff, and plan
+            just enough without turning dinner into a productivity seminar.
+          </p>
+          <a class="primary-button about-cta" href="index.html?view=recipes"
+            >Browse recipes</a
+          >
+        </div>
+      </section>
 
-  <footer class="site-footer">
-    <p>Made for hungry, tired and aggressively indecisive moments.</p>
-  </footer>
+      <section class="about-kitchen section" aria-label="What this site is for">
+        <div class="about-card about-card-feature">
+          <p class="eyebrow">The rule</p>
+          <h2>Food should feel possible.</h2>
+          <p>
+            This is not a perfect wellness museum. It is a practical, pretty
+            place for meals with protein, comfort, shortcuts, and enough
+            structure to make future-you slightly less annoyed.
+          </p>
+        </div>
+        <div class="about-card">
+          <span>01</span>
+          <h3>Find the thing</h3>
+          <p>
+            Search by craving, ingredient, time, protein, or whatever word your
+            brain has available.
+          </p>
+        </div>
+        <div class="about-card">
+          <span>02</span>
+          <h3>Save the winners</h3>
+          <p>
+            Favorites sync when you log in, so your reliable meals follow you
+            around.
+          </p>
+        </div>
+        <div class="about-card">
+          <span>03</span>
+          <h3>Plan lightly</h3>
+          <p>
+            The meal planner is for loose intentions, not a legally binding
+            dinner contract.
+          </p>
+        </div>
+      </section>
+    </main>
 
-  <dialog id="account-dialog">
-    <button class="dialog-close" id="account-dialog-close" aria-label="Close My Kitchen">×</button>
-    <div id="account-content"></div>
-  </dialog>
+    <footer class="site-footer">
+      <p>Made for hungry, tired and aggressively indecisive moments.</p>
+    </footer>
 
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <dialog id="account-dialog" aria-label="Your account">
+      <button
+        class="dialog-close"
+        id="account-dialog-close"
+        aria-label="Close My Kitchen"
+      >
+        ×
+      </button>
+      <div id="account-content"></div>
+    </dialog>
 
-  <script src="vendor/appwrite-29.2.0.js"></script>
-  <script src="appwrite-config.js"></script>
-  <script src="appwrite-backend.js?v=20261113"></script>
-  <script src="kitchen-data.js?v=20261113"></script>
-  <script src="theme.js?v=combined-kitchen-20261027"></script>
-  <script src="nutrition.js?v=combined-kitchen-20261027"></script>
-  <script src="account.js?v=20261113"></script>
-</body>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script src="vendor/appwrite-29.2.0.js"></script>
+    <script src="appwrite-config.js"></script>
+    <script src="appwrite-backend.js?v=20261113"></script>
+    <script src="kitchen-data.js?v=20261113"></script>
+    <script src="theme.js?v=redesign-20261113a"></script>
+    <script src="nutrition.js?v=combined-kitchen-20261027"></script>
+    <script src="account.js?v=20261113"></script>
+  </body>
 </html>

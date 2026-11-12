@@ -1,3 +1,14 @@
+RECIPE WEBSITE 2.0 — LOCAL REDESIGN (13 NOVEMBER 2026)
+Editorial redesign, serving controls, cooking mode, recipe editing/photos,
+combined discovery filters, notes/collections, planner servings, reusable weeks,
+consolidated groceries and record backups are implemented.
+All 72 source recipes and the existing Appwrite/guest data boundary are retained.
+See REDESIGN.md for changes, limitations, storage compatibility and verification.
+Preview: npm run serve, then http://127.0.0.1:4173/
+Checks: npm test; npm run test:browser; node tests/redesign-browser.cjs
+No runtime dependencies added. Deployment target: the existing GitHub Pages
+site, main branch, repository root.
+
 CURRENT BACKEND — APPWRITE (13 NOVEMBER 2026)
 The website now uses its own Appwrite project for email accounts, private recipes,
 photos, notes, history, collections, meal plans and grocery lists.

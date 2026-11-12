@@ -1,0 +1,239 @@
+/* Align the existing private cookbook and profile with the shared editorial system. */
+:root {
+  --card-bg: var(--card);
+}
+.personal-kitchen {
+  max-width: 1440px;
+  padding: 35px 4% 70px;
+}
+.journal-hero {
+  padding-top: 20px;
+}
+.journal-hero h1 {
+  font-family: var(--serif);
+  letter-spacing: -2px;
+}
+.journal-hero p:not(.eyebrow) {
+  font-size: 15px;
+  color: var(--muted);
+}
+.journal-mark {
+  color: var(--green);
+  font-family: var(--serif);
+  font-size: 125px;
+}
+.journal-tabs button {
+  font-size: 12px;
+}
+.journal-tabs button.active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.memory-grid {
+  gap: 30px 25px;
+}
+.memory-card {
+  border-radius: 2px;
+  border: 0;
+  background: transparent;
+}
+.memory-art {
+  border-radius: 2px;
+  background: var(--paper-soft) !important;
+  color: var(--green);
+  height: auto;
+  aspect-ratio: 1.35;
+  overflow: hidden;
+}
+.memory-art > span:first-child {
+  font: 65px var(--serif);
+}
+.memory-art .recipe-no-photo {
+  position: absolute;
+  inset: 0;
+}
+.memory-art .image-credit {
+  z-index: 2;
+}
+.memory-stamp {
+  border-radius: 2px;
+  padding: 7px 10px;
+  font-size: 8px;
+  background: var(--paper);
+  color: var(--ink);
+  bottom: 12px;
+  left: 12px;
+}
+.memory-copy {
+  padding: 20px 0;
+}
+.memory-copy h3 {
+  font-family: var(--serif);
+  font-size: 32px;
+  line-height: 1.1;
+}
+.memory-copy > p:not(.eyebrow) {
+  color: var(--muted);
+  font-size: 12px;
+}
+.memory-meta {
+  color: var(--muted);
+  font-size: 10px;
+  margin: 15px 0;
+}
+.kitchen-sync-bar {
+  font-size: 11px;
+  border-color: var(--line);
+}
+.import-card {
+  border-radius: 2px;
+  background: var(--butter);
+  color: var(--ink);
+}
+.shelf-toolbar input,
+.shelf-toolbar select,
+.journal-form input,
+.journal-form select,
+.journal-form textarea,
+.grocery-form input {
+  border-color: var(--line);
+  border-radius: 3px;
+  background: var(--card);
+  font-size: 13px;
+}
+.shelf-toolbar {
+  margin-bottom: 28px;
+}
+.journal-empty {
+  border-radius: 2px;
+  border-color: var(--line);
+}
+.journal-empty h3 {
+  font: 39px var(--serif);
+}
+.journal-empty > span {
+  color: var(--green);
+}
+.journal-empty p {
+  font-size: 13px;
+  color: var(--muted);
+}
+.journal-section h2,
+.profile-paper h2 {
+  font-family: var(--serif);
+  font-size: 39px;
+}
+.profile-paper {
+  border-color: var(--line);
+  border-radius: 2px;
+  background: var(--card);
+}
+.profile-stats strong {
+  font-family: var(--serif);
+  color: var(--accent);
+}
+.collection-shelf {
+  border-radius: 2px;
+  border-color: var(--line);
+}
+.collection-shelf > span {
+  color: var(--green);
+}
+.history-date {
+  color: var(--accent);
+}
+.history-card {
+  border-color: var(--line);
+}
+.history-card h3 {
+  font-family: var(--serif);
+  font-size: 31px;
+}
+.history-card p {
+  font-size: 12px;
+  color: var(--muted);
+}
+.history-card img {
+  border-radius: 2px;
+}
+.journal-editor h2 {
+  font-family: var(--serif);
+  font-size: 44px;
+}
+.journal-recipe {
+  border-color: var(--line);
+}
+.journal-recipe h3 {
+  font-family: var(--serif);
+}
+.journal-recipe li {
+  font-size: 12px;
+}
+.journal-form fieldset {
+  border-radius: 2px;
+  border-color: var(--line);
+}
+.journal-form legend {
+  font-size: 12px;
+}
+.memory-log {
+  background: var(--paper-soft);
+  color: var(--ink);
+  border-radius: 2px;
+}
+#journal-dialog {
+  border-radius: 3px;
+}
+body.dark-theme .memory-card,
+body.dark-theme .profile-paper,
+body.dark-theme .journal-form input,
+body.dark-theme .journal-form select,
+body.dark-theme .journal-form textarea,
+body.dark-theme .shelf-toolbar input,
+body.dark-theme .shelf-toolbar select,
+body.dark-theme .grocery-form input {
+  background: var(--card);
+  color: var(--ink);
+}
+@media (max-width: 760px) {
+  .personal-kitchen {
+    padding: 24px 5% 45px;
+  }
+  .journal-hero {
+    padding-bottom: 25px;
+  }
+  .journal-hero h1 {
+    font-size: 57px;
+  }
+  .journal-hero p:not(.eyebrow) {
+    font-size: 13px;
+  }
+  .journal-toolbar {
+    margin-top: 25px;
+  }
+  .journal-tabs button {
+    font-size: 11px;
+    padding: 10px;
+  }
+  .memory-grid {
+    gap: 25px 16px;
+  }
+  .memory-copy h3 {
+    font-size: 28px;
+  }
+  .journal-mark {
+    display: none;
+  }
+  .navigation {
+    flex-wrap: nowrap;
+  }
+  .shelf-toolbar {
+    gap: 10px;
+  }
+  .journal-editor h2 {
+    font-size: 37px;
+  }
+  .profile-paper h2 {
+    font-size: 34px;
+  }
+}

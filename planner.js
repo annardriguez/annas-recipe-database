@@ -1,647 +1,595 @@
-const calendarGrid = document.querySelector("#calendar-grid");
-const weekTitle = document.querySelector("#planner-week-title");
-const weekSubtitle = document.querySelector("#planner-week-subtitle");
-const saveStatus = document.querySelector("#planner-save-status");
-const previousWeekButton = document.querySelector("#previous-week");
-const nextWeekButton = document.querySelector("#next-week");
-const todayWeekButton = document.querySelector("#today-week");
-const organizeWeekButton = document.querySelector("#organize-week");
-const clearWeekButton = document.querySelector("#clear-week");
-const plannerSearch = document.querySelector("#planner-search");
-const recipeList = document.querySelector("#planner-recipe-list");
-const pickerTitle = document.querySelector("#picker-title");
-const pickerHelper = document.querySelector("#picker-helper");
-const recipePicker = document.querySelector("#recipe-picker-dialog");
-const plannedMealCount = document.querySelector("#planned-meal-count");
-const weeklySummary = document.querySelector("#weekly-summary");
-const shoppingList = document.querySelector("#shopping-list");
-const copyShoppingListButton = document.querySelector("#copy-shopping-list");
-const dialog = document.querySelector("#recipe-dialog");
-const dialogContent = document.querySelector("#dialog-content");
-const dialogClose = document.querySelector("#dialog-close");
-const toast = document.querySelector("#toast");
-
-const mealSlots = ["Breakfast", "Lunch", "Dinner", "Snack"];
-const dayFormatter = new Intl.DateTimeFormat("en", { weekday: "short" });
-const dateFormatter = new Intl.DateTimeFormat("en", { month: "short", day: "numeric" });
-const fullDateFormatter = new Intl.DateTimeFormat("en", {
-  weekday: "long",
-  month: "short",
-  day: "numeric"
-});
-
-let currentWeekStart = startOfWeek(new Date());
-let selectedSlot = null;
-let toastTimer;
-
-const mealPlan = Object.fromEntries(window.AnnaKitchen.list("meal").map(r => [r.id,r.data.recipe_id]));
-const savedPlanAt = null;
-const savedRecipeIds = new Set(
-  window.AnnaKitchen.list("favourite").map(r => r.id)
-);
-
-const labels = {
-  main: "Main meal",
-  breakfast: "Breakfast",
-  snack: "Sweet & snack",
-  sweet: "Sweet",
-  side: "Side",
-  lunch: "Lunch"
-};
-
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-function formatMeta(value, suffix, fallback = "Not provided") {
-  return value === null || value === undefined ? fallback : `${value}${suffix}`;
-}
-
-function startOfWeek(date) {
-  const copy = new Date(date);
-  copy.setHours(0, 0, 0, 0);
-  const day = copy.getDay() || 7;
-  copy.setDate(copy.getDate() - day + 1);
-  return copy;
-}
-
-function addDays(date, days) {
-  const copy = new Date(date);
-  copy.setDate(copy.getDate() + days);
-  return copy;
-}
-
-function toDateKey(date) {
-  return [
-    date.getFullYear(),
-    String(date.getMonth() + 1).padStart(2, "0"),
-    String(date.getDate()).padStart(2, "0")
-  ].join("-");
-}
-
-function makeSlotKey(dateKey, slot) {
-  return `${dateKey}|${slot}`;
-}
-
-function getRecipeById(id) {
-  return recipes.find(recipe => recipe.id === id);
-}
-
-function formatSavedTime(value) {
-  if (!value) return "";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-
-  return new Intl.DateTimeFormat("en", {
-    month: "short",
+/* Weekly planner on the existing private/guest data boundary. */
+(() => {
+  const K = window.AnnaKitchen,
+    escape = K.html;
+  const batch = (changes) =>
+    K.batch(changes.map((c) => ({ deleted: false, ...c })));
+  const $ = (selector) => document.querySelector(selector);
+  const slots = ["Breakfast", "Lunch", "Dinner", "Snack"];
+  const startOfWeek = (value) => {
+    const d = new Date(value);
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() - (d.getDay() || 7) + 1);
+    return d;
+  };
+  const addDays = (value, n) => {
+    const d = new Date(value);
+    d.setDate(d.getDate() + n);
+    return d;
+  };
+  const dateKey = (d) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const shortDate = new Intl.DateTimeFormat("en", {
+      month: "short",
+      day: "numeric",
+    }),
+    dayName = new Intl.DateTimeFormat("en", { weekday: "short" });
+  const fullDate = new Intl.DateTimeFormat("en", {
+    weekday: "long",
+    month: "long",
     day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit"
-  }).format(date);
-}
-
-function hasSavedMeals() {
-  return Object.keys(mealPlan).length > 0;
-}
-
-function updateSaveStatus() {
-  saveStatus.textContent = window.AnnaKitchen.status;
-}
-async function savePlan() {
-  const K = window.AnnaKitchen;
-  const previous = Object.fromEntries(K.list('meal').map(r => [r.id,r.data.recipe_id]));
-  const keys = new Set([...Object.keys(previous), ...Object.keys(mealPlan)]);
-  const changes = [...keys].filter(id => previous[id] !== mealPlan[id]).map(id => ({
-    kind:'meal', id, data:mealPlan[id] ? {recipe_id:mealPlan[id]} : {}, deleted:!mealPlan[id]
-  }));
-  try { if (changes.length) await K.batch(changes); return true; }
-  catch(e) { showToast(K.errorMessage(e)); restorePlan(); return false; }
-}
-function restorePlan() {
-  Object.keys(mealPlan).forEach(key => delete mealPlan[key]);
-  window.AnnaKitchen.list('meal').forEach(r => mealPlan[r.id] = r.data.recipe_id);
-  updateSaveStatus(); renderPlanner();
-}
-
-function showToast(message) {
-  toast.textContent = message;
-  toast.classList.add("show");
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toast.classList.remove("show"), 2200);
-}
-
-function isQuick(recipe) {
-  return Number.isFinite(recipe.time) && recipe.time <= 15;
-}
-
-function isHighProtein(recipe) {
-  return recipe.tags.includes("high protein") || (recipe.protein ?? 0) >= 25;
-}
-
-function setWeek(offset) {
-  currentWeekStart = addDays(currentWeekStart, offset * 7);
-  selectedSlot = null;
-  renderPlanner();
-}
-
-function selectSlot(dateKey, slot) {
-  selectedSlot = { dateKey, slot };
-  plannerSearch.value = "";
-  renderPlanner();
-  recipePicker.showModal();
-  plannerSearch.focus();
-}
-
-async function assignRecipe(recipeId) {
-  if (!selectedSlot) {
-    showToast("Pick a calendar slot first");
-    return;
-  }
-
-  mealPlan[makeSlotKey(selectedSlot.dateKey, selectedSlot.slot)] = recipeId;
-  if (!await savePlan()) return;
-  renderPlanner();
-  recipePicker.close();
-  showToast("Meal added to the planner");
-}
-
-async function removeMeal(dateKey, slot) {
-  delete mealPlan[makeSlotKey(dateKey, slot)];
-  if (!await savePlan()) return;
-  renderPlanner();
-  showToast("Meal removed");
-}
-
-function getWeekDates() {
-  return Array.from({ length: 7 }, (_, index) => addDays(currentWeekStart, index));
-}
-
-function renderPlanner() {
-  const weekDates = getWeekDates();
-  const weekEnd = weekDates[6];
-  weekTitle.textContent = `${dateFormatter.format(currentWeekStart)} - ${dateFormatter.format(weekEnd)}`;
-  weekSubtitle.textContent = selectedSlot
-    ? `${selectedSlot.slot} on ${fullDateFormatter.format(new Date(`${selectedSlot.dateKey}T00:00:00`))}`
-    : "Choose any meal to add a recipe.";
-
-  calendarGrid.replaceChildren(...weekDates.map(renderDay));
-  renderRecipePicker();
-  renderWeeklySummary();
-}
-
-function renderDay(date) {
-  const dateKey = toDateKey(date);
-  const day = document.createElement("section");
-  day.className = "calendar-day";
-  day.classList.toggle("is-today", dateKey === toDateKey(new Date()));
-  day.innerHTML = `
-    <div class="day-header">
-      <span class="day-name">${dayFormatter.format(date)}</span>
-      <span class="day-date">${date.getDate()}</span>
-    </div>
-  `;
-
-  const meals = document.createElement("div");
-  meals.className = "day-meals";
-  mealSlots.forEach(slot => meals.appendChild(renderSlot(dateKey, slot)));
-  day.appendChild(meals);
-
-  return day;
-}
-
-function renderSlot(dateKey, slot) {
-  const key = makeSlotKey(dateKey, slot);
-  const recipe = getRecipeById(mealPlan[key]);
-  const isActive =
-    selectedSlot?.dateKey === dateKey && selectedSlot?.slot === slot;
-  const cell = document.createElement("div");
-  cell.className = `meal-slot ${recipe ? "has-meal" : ""} ${isActive ? "active" : ""}`;
-  const choose = document.createElement("button");
-  choose.type = "button";
-  choose.id = `meal-${dateKey}-${slot}`;
-  choose.className = "meal-choice";
-  choose.setAttribute("aria-label", `${slot} on ${dateKey}: ${recipe ? recipe.title + ". Change recipe" : "Add a recipe"}`);
-  choose.innerHTML = `
-    <span class="slot-label">${escapeHtml(slot)}</span>
-    ${recipe ? `<span class="slot-meal"><strong>${escapeHtml(recipe.title)}</strong><span>${recipe.time} min</span></span>` : '<span class="slot-empty"><span aria-hidden="true">+</span> Add meal</span>'}
-  `;
-  choose.addEventListener("click", () => selectSlot(dateKey, slot));
-  cell.appendChild(choose);
-  if (recipe) {
-    const remove = document.createElement("button");
-    remove.type = "button";
-    remove.className = "slot-remove";
-    remove.textContent = "×";
-    remove.setAttribute("aria-label", `Remove ${recipe.title} from ${slot} on ${dateKey}`);
-    remove.addEventListener("click", () => removeMeal(dateKey, slot));
-    cell.appendChild(remove);
-  }
-  return cell;
-}
-
-function getFilteredRecipes() {
-  const query = plannerSearch.value.trim().toLowerCase();
-
-  return recipes.filter(recipe => {
-    const searchable = [
-      recipe.title,
-      recipe.description,
-      recipe.category,
-      ...recipe.tags,
-      ...recipe.ingredients
-    ].join(" ").toLowerCase();
-
-    return query.split(/\s+/).every(word => searchable.includes(word));
   });
-}
-
-function renderRecipePicker() {
-  pickerTitle.textContent = selectedSlot
-    ? `Add to ${selectedSlot.slot}`
-    : "Choose a recipe";
-  pickerHelper.textContent = selectedSlot
-    ? `${fullDateFormatter.format(new Date(`${selectedSlot.dateKey}T00:00:00`))} · Choose a recipe to add or replace this meal.`
-    : "Then choose a recipe to place in the calendar.";
-
-  const visible = getFilteredRecipes();
-  recipeList.replaceChildren(...visible.map(renderPickerRecipe));
-  if (!visible.length) {
-    const empty = document.createElement("p");
-    empty.className = "picker-empty";
-    empty.textContent = "No recipes found. Try another ingredient.";
-    recipeList.appendChild(empty);
-  }
-}
-
-function renderPickerRecipe(recipe) {
-  const item = document.createElement("article");
-  item.className = "picker-recipe";
-  item.innerHTML = `
-    <span class="picker-emoji">${escapeHtml(recipe.emoji)}</span>
-    <span>
-      <h3><button class="picker-preview" type="button">${escapeHtml(recipe.title)}</button></h3>
-      <p>${escapeHtml(recipe.description)}</p>
-      <span class="picker-meta">
-        <span>${recipe.time} min</span>
-        <span class="nutrition-only">${formatMeta(recipe.protein, " g protein")}</span>
-        <span>${isQuick(recipe) ? "quick" : labels[recipe.category] || recipe.category}</span>
-      </span>
-    </span>
-    <button class="recipe-add-button" type="button">Add <span aria-hidden="true">+</span></button>
-  `;
-
-  item.querySelector(".recipe-add-button").addEventListener("click", () => {
-    assignRecipe(recipe.id);
-  });
-
-  item.querySelector(".picker-preview").addEventListener("click", () => openRecipe(recipe));
-  item.querySelector(".recipe-add-button").setAttribute("aria-label", `Add ${recipe.title}`);
-
-  return item;
-}
-
-const mealThemeKeywords = [
-  "rice",
-  "pasta",
-  "noodle",
-  "gnocchi",
-  "potato",
-  "soup",
-  "bowl",
-  "salad",
-  "tofu",
-  "chicken",
-  "salmon",
-  "tuna",
-  "halloumi",
-  "lentil",
-  "aubergine",
-  "pumpkin",
-  "sweet"
-];
-
-function getMealThemes(recipe) {
-  const searchable = [
-    recipe.title,
-    recipe.description,
-    recipe.category,
-    ...recipe.tags,
-    ...recipe.ingredients
-  ].join(" ").toLowerCase();
-
-  return mealThemeKeywords.filter(theme => searchable.includes(theme));
-}
-
-function pickRecipe(pool, index, usedIds, avoidThemes = [], offset = 0) {
-  if (!pool.length) return null;
-
-  const start = (index + offset) % pool.length;
-  const ordered = [...pool.slice(start), ...pool.slice(0, start)];
-  const noRepeat = ordered.filter(recipe => !usedIds.has(recipe.id));
-  const bestMatch = noRepeat.find(recipe =>
-    !getMealThemes(recipe).some(theme => avoidThemes.includes(theme))
+  const recipeById = (id) => recipes.find((r) => r.id === id);
+  let week = startOfWeek(new Date()),
+    selected = null,
+    undo = null,
+    owner = K.user?.id;
+  const params = new URLSearchParams(location.search),
+    incomingId = params.get("add");
+  let incoming = recipeById(incomingId),
+    incomingConsumed = false;
+  const incomingServings = Math.max(
+    1,
+    Math.min(48, Number(params.get("servings")) || 1),
   );
-
-  return bestMatch || noRepeat[0] || ordered[0];
-}
-
-async function organizeWeek() {
-  const breakfastPool = recipes.filter(recipe => recipe.category === "breakfast");
-  const mainPool = recipes.filter(recipe => recipe.category === "main");
-  const lunchPool = mainPool.filter(recipe =>
-    recipe.tags.includes("quick") ||
-    recipe.tags.includes("bowl") ||
-    recipe.tags.includes("meal prep") ||
-    recipe.time <= 25
-  );
-  const snackPool = recipes.filter(recipe =>
-    recipe.category === "snack" || recipe.tags.includes("snack")
-  );
-
-  getWeekDates().forEach((date, index) => {
-    const dateKey = toDateKey(date);
-    const usedToday = new Set();
-    const breakfast = pickRecipe(breakfastPool, index, usedToday);
-    if (breakfast) usedToday.add(breakfast.id);
-
-    const lunch = pickRecipe(lunchPool.length ? lunchPool : mainPool, index, usedToday, [], 2);
-    if (lunch) usedToday.add(lunch.id);
-
-    const lunchThemes = lunch ? getMealThemes(lunch) : [];
-    const dinner = pickRecipe(mainPool, index, usedToday, lunchThemes, 9);
-    if (dinner) usedToday.add(dinner.id);
-
-    const snack = pickRecipe(snackPool, index, usedToday, [], 4);
-
-    if (breakfast) mealPlan[makeSlotKey(dateKey, "Breakfast")] = breakfast.id;
-    if (lunch) mealPlan[makeSlotKey(dateKey, "Lunch")] = lunch.id;
-    if (dinner) mealPlan[makeSlotKey(dateKey, "Dinner")] = dinner.id;
-    if (snack) mealPlan[makeSlotKey(dateKey, "Snack")] = snack.id;
-  });
-
-  selectedSlot = null;
-  if (!await savePlan()) return;
-  renderPlanner();
-  showToast("Week organized with sensible meals");
-}
-
-async function clearWeek() {
-  getWeekDates().forEach(date => {
-    const dateKey = toDateKey(date);
-    mealSlots.forEach(slot => {
-      delete mealPlan[makeSlotKey(dateKey, slot)];
-    });
-  });
-  selectedSlot = null;
-  if (!await savePlan()) return;
-  renderPlanner();
-  showToast("Week cleared");
-}
-
-function openRecipe(recipe) {
-  dialogContent.innerHTML = `
-    <header class="dialog-cover palette-2">
-      <div>
-        <p class="eyebrow">${labels[recipe.category] || recipe.category}</p>
-        <h2 id="recipe-dialog-title">${escapeHtml(recipe.title)}</h2>
-        <p>${escapeHtml(recipe.description)}</p>
-      </div>
-      <div class="dialog-cover-emoji">${escapeHtml(recipe.emoji)}</div>
-    </header>
-
-    <div class="dialog-body">
-      <aside>
-        <div class="dialog-stats">
-          <div>
-            <strong>${recipe.time}</strong>
-            <span>minutes</span>
-          </div>
-          <div class="nutrition-only">
-            <strong>${recipe.calories ?? "-"}</strong>
-            <span>kcal</span>
-          </div>
-          <div class="nutrition-only">
-            <strong>${recipe.protein ?? "-"}</strong>
-            <span>g protein</span>
-          </div>
-          <div class="nutrition-only">
-            <strong>${recipe.carbs ?? "-"}</strong>
-            <span>g carbs</span>
-          </div>
-          <div class="nutrition-only">
-            <strong>${recipe.fat ?? "-"}</strong>
-            <span>g fat</span>
-          </div>
-          <div class="nutrition-only">
-            <strong>${recipe.fiber ?? "-"}</strong>
-            <span>g fiber</span>
-          </div>
-        </div>
-
-        <h3>Ingredients <small>${recipe.servings == null ? "Yield not specified" : `${recipe.servings} serving${recipe.servings > 1 ? "s" : ""}`}</small></h3>
-        <ul>
-          ${recipe.ingredients.map(item => `<li>${escapeHtml(item)}</li>`).join("")}
-        </ul>
-        ${recipe.note ? `<div class="recipe-note">${escapeHtml(recipe.note)}</div>` : ""}
-      </aside>
-
-      <section>
-        <p class="eyebrow">Method</p>
-        <h3>How to make it</h3>
-        <ol class="dialog-steps">
-          ${recipe.steps.map(item => `<li>${escapeHtml(item)}</li>`).join("")}
-        </ol>
-      </section>
-    </div>
-  `;
-
-  dialog.showModal();
-  document.body.classList.add("dialog-open");
-}
-
-function getPlannedRecipesForWeek() {
-  return getWeekDates().flatMap(date => {
-    const dateKey = toDateKey(date);
-
-    return mealSlots
-      .map(slot => getRecipeById(mealPlan[makeSlotKey(dateKey, slot)]))
-      .filter(Boolean);
-  });
-}
-
-function getPlannedRecipesForDay(date) {
-  const dateKey = toDateKey(date);
-
-  return mealSlots
-    .map(slot => getRecipeById(mealPlan[makeSlotKey(dateKey, slot)]))
-    .filter(Boolean);
-}
-
-function sumMacro(plannedRecipes, key) {
-  return plannedRecipes.reduce((total, recipe) => {
-    const value = recipe[key];
-    return typeof value === "number" ? total + value : total;
-  }, 0);
-}
-
-function formatDailyMacro(value, suffix = "") {
-  return value ? `${value}${suffix}` : "-";
-}
-
-function renderDailyMacro(date) {
-  const plannedRecipes = getPlannedRecipesForDay(date);
-  const plannedCount = plannedRecipes.length;
-  const calories = sumMacro(plannedRecipes, "calories");
-  const protein = sumMacro(plannedRecipes, "protein");
-  const carbs = sumMacro(plannedRecipes, "carbs");
-  const fat = sumMacro(plannedRecipes, "fat");
-
-  return `
-    <article class="daily-summary ${plannedCount ? "" : "empty"}">
-      <div>
-        <strong>${dayFormatter.format(date)}</strong>
-        <span>${dateFormatter.format(date)} · ${plannedCount || "no"} meal${plannedCount === 1 ? "" : "s"}</span>
-      </div>
-      <dl>
-        <div><dt>kcal</dt><dd>${formatDailyMacro(calories)}</dd></div>
-        <div><dt>protein</dt><dd>${formatDailyMacro(protein, "g")}</dd></div>
-        <div><dt>carbs</dt><dd>${formatDailyMacro(carbs, "g")}</dd></div>
-        <div><dt>fat</dt><dd>${formatDailyMacro(fat, "g")}</dd></div>
-      </dl>
-    </article>
-  `;
-}
-
-function uniqueIngredients(plannedRecipes) {
-  const seen = new Set();
-
-  return plannedRecipes.flatMap(recipe => recipe.ingredients).filter(item => {
-    const normalized = item
-      .toLowerCase()
-      .replace(/^[\d\s./–-]+(g|ml|tsp|tbsp|small|large|medium)?\s+/i, "")
-      .trim();
-
-    if (seen.has(normalized)) return false;
-    seen.add(normalized);
-    return true;
-  });
-}
-
-function renderWeeklySummary() {
-  const plannedRecipes = getPlannedRecipesForWeek();
-  const plannedCount = plannedRecipes.length;
-
-  plannedMealCount.textContent = `${plannedCount} meal${plannedCount === 1 ? "" : "s"} planned`;
-  weeklySummary.innerHTML = getWeekDates().map(renderDailyMacro).join("");
-
-  const ingredients = uniqueIngredients(plannedRecipes);
-  const week = toDateKey(currentWeekStart);
-  const manual = window.AnnaKitchen.list('grocery').filter(r => r.data.week === week && r.data.manual);
-  ingredients.push(...manual.map(r => r.data.text));
-  shoppingList.replaceChildren(
-    ...(ingredients.length
-      ? ingredients.map(item => {
-          const listItem = document.createElement("li");
-          const custom = manual.find(r => r.data.text === item);
-          const id = custom?.id || `${week}|${item}`.slice(0,240);
-          const saved = window.AnnaKitchen.get('grocery', id);
-          const label = document.createElement('label');
-          const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.checked = Boolean(saved?.checked);
-          checkbox.addEventListener('change', async () => {
-            try {await window.AnnaKitchen.set('grocery', id, {text:item, week, manual:Boolean(custom), checked:checkbox.checked});}
-            catch(e) {checkbox.checked = !checkbox.checked; showToast(window.AnnaKitchen.errorMessage(e));}
-          });
-          label.append(checkbox, document.createTextNode(item)); listItem.append(label);
-          if (custom) {
-            const remove = document.createElement('button'); remove.textContent = 'Remove'; remove.className = 'clear-button';
-            remove.onclick = async () => {try {await window.AnnaKitchen.remove('grocery', id);} catch(e) {showToast(window.AnnaKitchen.errorMessage(e));}};
-            listItem.append(remove);
-          }
-          return listItem;
+  const dates = () => Array.from({ length: 7 }, (_, i) => addDays(week, i));
+  const slotKey = (date, slot) => `${date}|${slot}`;
+  function meals() {
+    return dates().flatMap((date) =>
+      slots
+        .map((slot) => {
+          const key = slotKey(dateKey(date), slot),
+            data = K.get("meal", key),
+            recipe = recipeById(data?.recipe_id);
+          return recipe
+            ? {
+                key,
+                recipe,
+                servings: data.servings || recipe.servings || 1,
+                date,
+                slot,
+              }
+            : null;
         })
-      : [Object.assign(document.createElement("li"), {
-          className: "shopping-empty",
-          textContent: "Plan meals to build a shopping list."
-        })])
-  );
-}
-
-async function copyShoppingList() {
-  const ingredients = [...uniqueIngredients(getPlannedRecipesForWeek()), ...window.AnnaKitchen.list('grocery').filter(r => r.data.manual && r.data.week === toDateKey(currentWeekStart)).map(r => r.data.text)];
-
-  if (!ingredients.length) {
-    showToast("Plan a few meals first");
-    return;
+        .filter(Boolean),
+    );
+  }
+  function remember() {
+    undo = {
+      week: dateKey(week),
+      entries: K.list("meal").filter((r) =>
+        dates().some((d) => r.id.startsWith(dateKey(d) + "|")),
+      ),
+    };
+    $("#undo-plan").hidden = false;
+  }
+  async function perform(fn, message) {
+    try {
+      await fn();
+      if (message) K.notify(message);
+      return true;
+    } catch (error) {
+      K.notify(K.errorMessage(error));
+      return false;
+    }
+  }
+  function render() {
+    incoming = incomingConsumed ? null : recipeById(incomingId);
+    ensureIncoming();
+    const weekDates = dates();
+    $("#planner-week-title").textContent =
+      `${shortDate.format(week)} – ${shortDate.format(weekDates[6])}`;
+    $("#planner-week-subtitle").textContent = incoming
+      ? `Choose a slot for ${incoming.title}.`
+      : "A little room for good food. Choose any meal to get started.";
+    $("#planner-save-status").textContent = K.status;
+    $("#calendar-grid").replaceChildren(...weekDates.map(renderDay));
+    $("#undo-plan").hidden = !undo || undo.week !== dateKey(week);
+    renderSummary();
+    refreshTemplates();
+  }
+  function renderDay(date) {
+    const key = dateKey(date),
+      section = document.createElement("section");
+    section.className =
+      "calendar-day" + (key === dateKey(new Date()) ? " is-today" : "");
+    section.innerHTML = `<div class="day-header"><span class="day-name">${dayName.format(date)}</span><span class="day-date">${date.getDate()}</span></div><div class="day-meals"></div>`;
+    for (const slot of slots) {
+      const id = slotKey(key, slot),
+        data = K.get("meal", id),
+        r = recipeById(data?.recipe_id),
+        cell = document.createElement("div");
+      cell.className = "meal-slot" + (r ? " has-meal" : "");
+      const choice = document.createElement("button");
+      choice.className = "meal-choice";
+      choice.id = `meal-${key}-${slot}`;
+      choice.type = "button";
+      choice.setAttribute(
+        "aria-label",
+        `${slot} on ${key}: ${r ? r.title + ". Change recipe" : "Add a recipe"}`,
+      );
+      choice.innerHTML = `<span class="slot-label">${slot}</span>${r ? `<span class="slot-meal"><strong>${escape(r.title)}</strong><span>${r.time} min</span></span>` : '<span class="slot-empty"><span aria-hidden="true">+</span>Add meal</span>'}`;
+      choice.onclick = () => selectSlot(key, slot);
+      cell.append(choice);
+      if (r) {
+        const remove = document.createElement("button");
+        remove.className = "slot-remove";
+        remove.type = "button";
+        remove.textContent = "×";
+        remove.setAttribute(
+          "aria-label",
+          `Remove ${r.title} from ${slot} on ${key}`,
+        );
+        remove.onclick = () =>
+          perform(async () => {
+            remember();
+            await K.remove("meal", id);
+          }, "Meal removed");
+        cell.append(remove);
+        const label = document.createElement("label");
+        label.className = "slot-servings";
+        label.innerHTML = `Servings <input type="number" min="1" max="48" step="1" value="${data.servings || r.servings || 1}" aria-label="Servings for ${escape(r.title)} on ${key} at ${slot}">`;
+        label.querySelector("input").onchange = (e) => {
+          const value = Number(e.target.value);
+          if (!Number.isInteger(value) || value < 1 || value > 48) {
+            e.target.value = data.servings || r.servings || 1;
+            return;
+          }
+          perform(async () => {
+            remember();
+            await K.set("meal", id, { ...data, servings: value });
+          });
+        };
+        cell.append(label);
+      } else if (data?.recipe_id) {
+        const missing = document.createElement("p");
+        missing.className = "form-hint";
+        missing.textContent =
+          "Previous recipe unavailable. Choose a replacement.";
+        cell.append(missing);
+      }
+      section.querySelector(".day-meals").append(cell);
+    }
+    return section;
+  }
+  async function selectSlot(date, slot) {
+    selected = { date, slot };
+    if (incoming) {
+      if (await assign(incoming.id, incomingServings)) {
+        incomingConsumed = true;
+        incoming = null;
+        $("#incoming-meal")?.remove();
+        history.replaceState(null, "", location.pathname);
+        render();
+      }
+      return;
+    }
+    $("#planner-search").value = "";
+    renderPicker();
+    $("#recipe-picker-dialog").showModal();
+    document.body.classList.add("dialog-open");
+    $("#planner-search").focus();
+  }
+  async function assign(id, servings) {
+    if (!selected) return;
+    const target = { ...selected };
+    return await perform(async () => {
+      remember();
+      await K.set("meal", slotKey(target.date, target.slot), {
+        recipe_id: id,
+        servings: servings || recipeById(id)?.servings || 1,
+      });
+      $("#recipe-picker-dialog").close();
+      selected = null;
+    }, "A good meal, planned.");
+  }
+  function renderPicker() {
+    $("#picker-title").textContent = selected
+      ? `A little something for ${selected.slot.toLowerCase()}.`
+      : "Choose a recipe";
+    $("#picker-helper").textContent = selected
+      ? fullDate.format(new Date(selected.date + "T12:00:00"))
+      : "Pick a recipe for your week.";
+    const words = $("#planner-search").value.trim().toLowerCase().split(/\s+/);
+    const matches = recipes.filter((r) =>
+      words.every((word) =>
+        [r.title, r.description, ...r.tags, ...r.ingredients]
+          .join(" ")
+          .toLowerCase()
+          .includes(word),
+      ),
+    );
+    $("#planner-recipe-list").replaceChildren(
+      ...matches.map((r) => {
+        const item = document.createElement("article");
+        item.className = "picker-recipe";
+        item.innerHTML = `<span class="picker-emoji" aria-hidden="true">✳</span><div><h3><button class="picker-preview">${escape(r.title)}</button></h3><p>${escape(r.description)}</p><span class="picker-meta"><span>${r.time} min</span><span>${r.category}</span><span class="nutrition-only">${r.protein == null ? "Protein not recorded" : r.protein + " g protein"}</span></span></div><button class="recipe-add-button" aria-label="Add ${escape(r.title)}">Add +</button>`;
+        item.querySelector(".picker-preview").onclick = () => K.openRecipe(r);
+        item.querySelector(".recipe-add-button").onclick = async (e) => {
+          e.currentTarget.disabled = true;
+          await assign(r.id);
+          if (e.currentTarget) e.currentTarget.disabled = false;
+        };
+        return item;
+      }),
+    );
+    if (!matches.length)
+      $("#planner-recipe-list").innerHTML =
+        '<p class="picker-empty">Nothing in the recipe box just yet. Try another ingredient.</p>';
+  }
+  function groceryItems() {
+    const items = K.groceryEntries(meals());
+    const manual = K.list("grocery").filter(
+      (r) => r.data.manual && r.data.week === dateKey(week),
+    );
+    return [
+      ...items,
+      ...manual.map((r) => ({
+        key: r.id,
+        text: r.data.text,
+        category: "A little extra",
+        manual: true,
+        id: r.id,
+      })),
+    ];
+  }
+  function groceryId(item) {
+    if (item.manual) return item.id;
+    let hash = 2166136261;
+    for (const c of item.key + "|" + item.text) {
+      hash ^= c.charCodeAt(0);
+      hash = Math.imul(hash, 16777619);
+    }
+    return `${dateKey(week)}|item-${(hash >>> 0).toString(16)}`;
+  }
+  function renderSummary() {
+    const planned = meals();
+    $("#planned-meal-count").textContent = `${planned.length} meals planned`;
+    $("#weekly-summary").innerHTML = dates()
+      .map((date) => {
+        const daily = planned.filter((m) => dateKey(m.date) === dateKey(date));
+        const macro = (key) =>
+          !daily.length || daily.some((m) => m.recipe[key] == null)
+            ? "—"
+            : Math.round(
+                daily.reduce((n, m) => n + m.recipe[key] * m.servings, 0) * 10,
+              ) / 10;
+        return `<article class="daily-summary"><div><strong>${dayName.format(date)}</strong><span>${shortDate.format(date)} · ${daily.length} meals</span></div><dl>${[
+          ["calories", "kcal"],
+          ["protein", "protein"],
+          ["carbs", "carbs"],
+          ["fat", "fat"],
+        ]
+          .map(
+            ([key, label]) =>
+              `<div><dt>${label}</dt><dd>${macro(key)}${key !== "calories" && macro(key) !== "—" ? "g" : ""}</dd></div>`,
+          )
+          .join("")}</dl></article>`;
+      })
+      .join("");
+    const list = $("#shopping-list"),
+      items = groceryItems();
+    list.innerHTML = "";
+    let category = "";
+    for (const item of items) {
+      if (item.category !== category) {
+        category = item.category;
+        const heading = document.createElement("li");
+        heading.className = "shopping-category";
+        heading.textContent = category;
+        list.append(heading);
+      }
+      const li = document.createElement("li"),
+        id = groceryId(item),
+        data = K.get("grocery", id);
+      li.innerHTML = `<label><input type="checkbox" ${data?.checked ? "checked" : ""}><span>${escape(item.text)}</span></label>`;
+      li.querySelector("input").onchange = async (e) => {
+        const checked = e.target.checked;
+        e.target.disabled = true;
+        await perform(() =>
+          K.set("grocery", id, {
+            text: item.text,
+            week: dateKey(week),
+            manual: !!item.manual,
+            checked,
+          }),
+        );
+        renderSummary();
+      };
+      if (item.manual) {
+        const remove = document.createElement("button");
+        remove.className = "clear-button";
+        remove.textContent = "Remove";
+        remove.onclick = () => perform(() => K.remove("grocery", id));
+        li.append(remove);
+      }
+      list.append(li);
+    }
+    if (!items.length)
+      list.innerHTML =
+        '<li class="shopping-empty">A good week starts with one meal. Add a recipe above and your shopping list will appear here.</li>';
+  }
+  $("#previous-week").onclick = () => {
+    week = addDays(week, -7);
+    render();
+  };
+  $("#next-week").onclick = () => {
+    week = addDays(week, 7);
+    render();
+  };
+  $("#today-week").onclick = () => {
+    week = startOfWeek(new Date());
+    render();
+  };
+  $("#planner-search").oninput = renderPicker;
+  $("#copy-shopping-list").onclick = async () => {
+    const items = groceryItems();
+    if (!items.length) {
+      K.notify("Plan a few meals first");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(
+        items.map((i) => "- " + i.text).join("\n"),
+      );
+      K.notify("Shopping list copied");
+    } catch {
+      K.notify(
+        "Your browser could not copy the list. Select the text to copy it.",
+      );
+    }
+  };
+  $("#organize-week").onclick = () =>
+    perform(async () => {
+      remember();
+      const changes = [],
+        used = new Set(meals().map((m) => m.recipe.id));
+      dates().forEach((date, i) =>
+        slots.forEach((slot, j) => {
+          const key = slotKey(dateKey(date), slot);
+          if (K.get("meal", key)) return;
+          const pool = recipes.filter((r) =>
+            slot === "Breakfast"
+              ? r.category === "breakfast"
+              : slot === "Snack"
+                ? ["snack", "sweet"].includes(r.category)
+                : r.category === "main",
+          );
+          const available = pool.filter((r) => !used.has(r.id));
+          const source = available.length ? available : pool;
+          const r = source[(i + j) % source.length];
+          if (r) {
+            used.add(r.id);
+            changes.push({
+              kind: "meal",
+              id: key,
+              data: { recipe_id: r.id, servings: 1 },
+            });
+          }
+        }),
+      );
+      if (changes.length) await batch(changes);
+    }, "Empty slots filled. A week to look forward to.");
+  $("#clear-week").onclick = () =>
+    perform(async () => {
+      remember();
+      const changes = K.list("meal")
+        .filter((r) => dates().some((d) => r.id.startsWith(dateKey(d) + "|")))
+        .map((r) => ({ kind: "meal", id: r.id, data: {}, deleted: true }));
+      if (changes.length) await batch(changes);
+    }, "Week cleared. Undo is available.");
+  $("#undo-plan").onclick = () =>
+    perform(async () => {
+      if (!undo || undo.week !== dateKey(week)) return;
+      const old = new Map(undo.entries.map((r) => [r.id, r.data])),
+        keys = new Set([
+          ...old.keys(),
+          ...K.list("meal")
+            .filter((r) =>
+              dates().some((d) => r.id.startsWith(dateKey(d) + "|")),
+            )
+            .map((r) => r.id),
+        ]);
+      await batch(
+        [...keys].map((id) => ({
+          kind: "meal",
+          id,
+          data: old.get(id) || {},
+          deleted: !old.has(id),
+        })),
+      );
+      undo = null;
+      render();
+    }, "Last change undone");
+  function templates() {
+    return K.get("profile", "meal-templates")?.plans || {};
+  }
+  function refreshTemplates() {
+    const select = $("#plan-template");
+    if (!select) return;
+    const value = select.value;
+    select.innerHTML =
+      '<option value="">Choose a saved week…</option>' +
+      Object.keys(templates())
+        .map(
+          (name) => `<option value="${escape(name)}">${escape(name)}</option>`,
+        )
+        .join("");
+    select.value = value;
+  }
+  $("#save-template").onclick = () => {
+    if (!meals().length) {
+      K.notify("Add a meal before saving this week");
+      return;
+    }
+    let modal = $("#template-dialog");
+    if (!modal) {
+      modal = document.createElement("dialog");
+      modal.id = "template-dialog";
+      modal.style.maxWidth = "460px";
+      document.body.append(modal);
+    }
+    modal.innerHTML =
+      '<form class="account-panel"><p class="eyebrow">GOOD WEEKS ARE WORTH REPEATING</p><h2>Keep this week.</h2><label class="form-hint" for="template-name">Give your plan a name</label><input id="template-name" required maxlength="60" placeholder="My easy week"><div class="editor-footer" style="margin-top:20px"><button class="primary-button">Save week</button><button class="text-button" type="button">Cancel</button></div></form>';
+    modal.querySelector("[type=button]").onclick = () => modal.close();
+    modal.querySelector("form").onsubmit = async (e) => {
+      e.preventDefault();
+      const name = modal.querySelector("input").value.trim();
+      if (!name) return;
+      const all = templates();
+      if (Object.hasOwn(all, name)) {
+        K.notify("Choose a new name for this plan");
+        return;
+      }
+      const entries = meals().map((m) => ({
+        day: dates().findIndex((d) => dateKey(d) === dateKey(m.date)),
+        slot: m.slot,
+        id: m.recipe.id,
+        servings: m.servings,
+      }));
+      Object.defineProperty(all, name, {
+        value: entries,
+        enumerable: true,
+        writable: true,
+        configurable: true,
+      });
+      await perform(async () => {
+        await K.set("profile", "meal-templates", { plans: all });
+        modal.close();
+      }, "Week saved for another day");
+    };
+    modal.showModal();
+  };
+  $("#reuse-template").onclick = () =>
+    perform(async () => {
+      const name = $("#plan-template").value,
+        template = templates()[name];
+      if (!template) {
+        K.notify("Choose a saved week first");
+        return;
+      }
+      remember();
+      const changes = template
+        .filter(
+          (e) =>
+            Number.isInteger(e.day) &&
+            e.day >= 0 &&
+            e.day < 7 &&
+            slots.includes(e.slot) &&
+            recipeById(e.id),
+        )
+        .map((e) => ({
+          kind: "meal",
+          id: slotKey(dateKey(addDays(week, e.day)), e.slot),
+          data: { recipe_id: e.id, servings: e.servings },
+        }))
+        .filter((c) => !K.get("meal", c.id));
+      if (changes.length) await batch(changes);
+      K.notify(
+        changes.length
+          ? `Added ${changes.length} meals to empty slots`
+          : "Your planned meals are already in those slots",
+      );
+    });
+  const picker = $("#recipe-picker-dialog");
+  $(".picker-close").onclick = () => picker.close();
+  picker.addEventListener("click", (e) => {
+    if (e.target !== picker) return;
+    const b = picker.getBoundingClientRect();
+    if (
+      e.clientX < b.left ||
+      e.clientX > b.right ||
+      e.clientY < b.top ||
+      e.clientY > b.bottom
+    )
+      picker.close();
+  });
+  picker.addEventListener("close", () => {
+    if (!document.querySelector("dialog[open]"))
+      document.body.classList.remove("dialog-open");
+    if (selected) {
+      $(`#meal-${selected.date}-${selected.slot}`)?.focus();
+      selected = null;
+    }
+  });
+  const recipeDialog = $("#recipe-dialog");
+  $("#dialog-close").onclick = () => recipeDialog.close();
+  recipeDialog.addEventListener("click", (e) => {
+    if (e.target === recipeDialog) recipeDialog.close();
+  });
+  const groceryForm = document.createElement("form");
+  groceryForm.className = "grocery-form";
+  groceryForm.innerHTML =
+    '<label class="visually-hidden" for="grocery-extra">Add to your grocery list</label><input id="grocery-extra" maxlength="180" required placeholder="Anything else to pick up?"><button class="planner-tool-button">Add</button>';
+  $("#shopping-list").after(groceryForm);
+  groceryForm.onsubmit = async (e) => {
+    e.preventDefault();
+    const input = $("#grocery-extra"),
+      text = input.value.trim();
+    if (!text) return;
+    const button = groceryForm.querySelector("button");
+    button.disabled = true;
+    await perform(async () => {
+      await K.set("grocery", crypto.randomUUID(), {
+        text,
+        week: dateKey(week),
+        manual: true,
+        checked: false,
+      });
+      groceryForm.reset();
+    });
+    button.disabled = false;
+  };
+  function ensureIncoming() {
+    if (!incoming) {
+      $("#incoming-meal")?.remove();
+      return;
+    }
+    let banner = $("#incoming-meal");
+    if (!banner) {
+      banner = document.createElement("div");
+      banner.id = "incoming-meal";
+      banner.className = "recipe-note";
+      $(".planner-shell").prepend(banner);
+    }
+    banner.innerHTML = `<strong>Let’s make a little plan</strong>Choose a slot below for ${escape(incoming.title)} · ${incomingServings} servings. <button class="text-button" id="cancel-incoming">Cancel</button>`;
+    banner.querySelector("button").onclick = () => {
+      incomingConsumed = true;
+      incoming = null;
+      banner.remove();
+      history.replaceState(null, "", location.pathname);
+      render();
+    };
   }
 
-  const text = ingredients.map(item => `- ${item}`).join("\n");
-
-  try {
-    await navigator.clipboard.writeText(text);
-    showToast("Shopping list copied");
-  } catch {
-    showToast("Could not copy list in this browser");
+  function linked() {
+    if (location.hash.startsWith("#recipe=")) {
+      try {
+        const r = recipeById(decodeURIComponent(location.hash.slice(8)));
+        if (r) K.openRecipe(r);
+      } catch {}
+    }
   }
-}
-
-function closeDialog() {
-  dialog.close();
-  document.body.classList.remove("dialog-open");
-}
-
-previousWeekButton.addEventListener("click", () => setWeek(-1));
-nextWeekButton.addEventListener("click", () => setWeek(1));
-todayWeekButton.addEventListener("click", () => {
-  currentWeekStart = startOfWeek(new Date());
-  selectedSlot = null;
-  renderPlanner();
-});
-organizeWeekButton.addEventListener("click", organizeWeek);
-clearWeekButton.addEventListener("click", clearWeek);
-plannerSearch.addEventListener("input", renderRecipePicker);
-copyShoppingListButton.addEventListener("click", copyShoppingList);
-dialog.addEventListener("close", () => document.body.classList.remove("dialog-open"));
-dialogClose.addEventListener("click", closeDialog);
-dialog.addEventListener("click", event => {
-  if (event.target === dialog) closeDialog();
-});
-
-document.querySelector(".picker-close").addEventListener("click", () => recipePicker.close());
-recipePicker.addEventListener("click", event => {
-  if (event.target !== recipePicker) return;
-  const bounds = recipePicker.getBoundingClientRect();
-  if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) recipePicker.close();
-});
-recipePicker.addEventListener("close", () => {
-  const previousSlot = selectedSlot;
-  selectedSlot = null;
-  renderPlanner();
-  if (previousSlot) document.getElementById(`meal-${previousSlot.dateKey}-${previousSlot.slot}`)?.focus();
-});
-updateSaveStatus(savedPlanAt);
-renderPlanner();
-
-window.addEventListener('kitchen:change', restorePlan);
-let plannerOwner = window.AnnaKitchen.user?.id;
-window.addEventListener('kitchen:change', () => {
-  if (plannerOwner !== window.AnnaKitchen.user?.id) {
-    dialog.close(); dialogContent.replaceChildren(); recipePicker.close();
-    plannerOwner = window.AnnaKitchen.user?.id;
-  }
-});
-const groceryForm = document.createElement('form');
-groceryForm.className = 'grocery-form';
-groceryForm.innerHTML = '<label class="visually-hidden" for="grocery-extra">Add to your grocery list</label><input id="grocery-extra" maxlength="180" required placeholder="Anything else to pick up?"><button class="planner-tool-button">Add</button>';
-shoppingList.after(groceryForm);
-groceryForm.addEventListener('submit', async event => {
-  event.preventDefault(); const input = groceryForm.querySelector('input');
-  const button = groceryForm.querySelector('button'); button.disabled = true;
-  try {await window.AnnaKitchen.set('grocery', crypto.randomUUID(), {text:input.value.trim(),week:toDateKey(currentWeekStart),manual:true,checked:false}); groceryForm.reset();}
-  catch(e) {showToast(window.AnnaKitchen.errorMessage(e));}
-  finally {button.disabled = false;}
-});
+  window.addEventListener("hashchange", linked);
+  window.addEventListener("kitchen:change", () => {
+    if (owner !== K.user?.id) {
+      owner = K.user?.id;
+      undo = null;
+      picker.close();
+      recipeDialog.close();
+    }
+    render();
+  });
+  render();
+  linked();
+})();

@@ -1,74 +1,140 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="referrer" content="same-origin">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#f4efe7">
-  <title>Meal Planner | Anna's Kitchen</title>
-  <link rel="stylesheet" href="style.css?v=combined-kitchen-20261027">
-  <link rel="stylesheet" href="refinements.css?v=combined-kitchen-20261027">
-  <link rel="stylesheet" href="cookbook.css?v=20261112">
-</head>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="referrer" content="same-origin" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f6f3eb" />
+    <meta
+      name="description"
+      content="A personal cookbook for everyday appetite. Find a recipe, save a favourite, and make a little plan."
+    />
+    <title>Meal Planner | Anna's Kitchen</title>
+    <link rel="stylesheet" href="style.css?v=redesign-20261113a" />
 
-<body>
-  <a class="skip-link" href="#main-content">Skip to content</a>
-  <header class="site-header">
-    <a class="logo" href="index.html">
-      <span class="logo-title">Anna's Kitchen <span class="logo-spark">✣</span></span>
-      <span class="logo-subtitle">Recipes that fuel your life</span>
-    </a>
+    <link rel="stylesheet" href="cookbook.css?v=20261112" />
+    <link rel="stylesheet" href="cookbook-refinements.css?v=redesign-20261113a" />
+  </head>
 
-    <nav class="navigation" aria-label="Primary navigation">
-      <a href="index.html" data-view="home">Home</a>
-      <a href="index.html?view=recipes" data-view="recipes">All recipes</a>
-      <a href="index.html?view=favourites" data-view="favourites" id="show-favourites-nav">Favourites <span class="nav-count" data-favourite-count>0</span></a>
-      <a href="cookbook.html">My cookbook</a>
-      <a class="active" aria-current="page" href="planner.html">Meal planner</a>
-      <a href="about.html">About</a>
-    </nav>
-    <div class="header-actions">
-      <button class="icon-button" type="button" aria-label="Toggle dark mode">☾</button>
-      <button class="account-button" id="open-account" type="button">Log in</button>
-    </div>
-  </header>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <header class="site-header">
+      <a class="logo" href="index.html">
+        <span class="logo-title"
+          >anna’s kitchen<span class="logo-spark">✳</span></span
+        >
+        <span class="logo-subtitle">A little collection. A lot of love.</span>
+      </a>
 
-  <main id="main-content" class="planner-page">
-    <section class="planner-hero">
-      <div>
-        <p class="eyebrow">Meal Planner</p>
-        <h1>A week of good food.</h1>
+      <nav class="navigation" aria-label="Primary navigation">
+        <a href="index.html" data-view="home">Home</a>
+        <a href="index.html?view=recipes" data-view="recipes">All recipes</a>
+        <a
+          href="index.html?view=favourites"
+          data-view="favourites"
+          id="show-favourites-nav"
+          >Favourites <span class="nav-count" data-favourite-count>0</span></a
+        >
+        <a href="cookbook.html">My cookbook</a>
+        <a class="active" aria-current="page" href="planner.html"
+          >Meal planner</a
+        >
+        <a href="about.html">About</a>
+      </nav>
+      <div class="header-actions">
+        <button class="icon-button" type="button" aria-label="Toggle dark mode">
+          ☾
+        </button>
+        <button class="account-button" id="open-account" type="button">
+          Log in
+        </button>
       </div>
-      <p>
-        A little planning, one less thing to think about.
-        Choose a meal below to find something you’ll love.
-      </p>
-    </section>
+    </header>
 
-    <section class="planner-shell" aria-label="Weekly meal planner">
-      <div class="planner-board">
-        <div class="planner-toolbar">
-          <div>
-            <h2 class="planner-week-title" id="planner-week-title">This week</h2>
-            <p id="planner-week-subtitle">Choose any meal to add a recipe.</p>
-            <p class="planner-save-status" id="planner-save-status">Saved on this device.</p>
-          </div>
-          <div class="planner-actions">
-            <div class="week-actions">
-              <button class="planner-tool-button" id="previous-week" aria-label="Previous week" type="button">←</button>
-              <button class="planner-tool-button" id="today-week" type="button">This week</button>
-              <button class="planner-tool-button" id="next-week" aria-label="Next week" type="button">→</button>
-            </div>
-            <button class="planner-tool-button primary" id="organize-week" type="button">Fill the week</button>
-            <button class="planner-tool-button" id="clear-week" type="button">Clear week</button>
-          </div>
+    <main id="main-content" class="planner-page">
+      <section class="planner-hero">
+        <div>
+          <p class="eyebrow">Meal Planner</p>
+          <h1>A week of good food.</h1>
         </div>
+        <p>
+          A little planning, one less thing to think about. Choose a meal below
+          to find something you’ll love.
+        </p>
+      </section>
 
-        <div class="calendar-grid" id="calendar-grid"></div>
+      <section class="planner-shell" aria-label="Weekly meal planner">
+        <div class="planner-board">
+          <div class="planner-toolbar">
+            <div>
+              <h2 class="planner-week-title" id="planner-week-title">
+                This week
+              </h2>
+              <p id="planner-week-subtitle">Choose any meal to add a recipe.</p>
+              <p class="planner-save-status" id="planner-save-status">
+                Saved on this device.
+              </p>
+            </div>
+            <div class="planner-actions">
+              <div class="week-actions">
+                <button
+                  class="planner-tool-button"
+                  id="previous-week"
+                  aria-label="Previous week"
+                  type="button"
+                >
+                  ←
+                </button>
+                <button
+                  class="planner-tool-button"
+                  id="today-week"
+                  type="button"
+                >
+                  This week
+                </button>
+                <button
+                  class="planner-tool-button"
+                  id="next-week"
+                  aria-label="Next week"
+                  type="button"
+                >
+                  →
+                </button>
+              </div>
+              <button
+                class="planner-tool-button primary"
+                id="organize-week"
+                type="button"
+              >
+                Fill empty slots
+              </button>
+              <button class="planner-tool-button" id="clear-week" type="button">
+                Clear week</button
+              ><button
+                class="planner-tool-button"
+                id="undo-plan"
+                type="button"
+                hidden
+              >
+                Undo last change
+              </button>
+            </div>
+          </div>
+
+          <div class="calendar-grid" id="calendar-grid"></div>
+        </div>
+      </section>
+      <div class="plan-template-tools">
+        <button class="planner-tool-button" id="save-template">
+          Save this week</button
+        ><select id="plan-template" aria-label="Saved meal plans">
+          <option value="">Choose a saved week…</option></select
+        ><button class="planner-tool-button" id="reuse-template">
+          Reuse in empty slots ↗</button
+        ><button class="planner-tool-button" data-nutrition-toggle>
+          Nutrition off
+        </button>
       </div>
-
-
-    </section>
       <section class="planner-summary" aria-label="Weekly plan summary">
         <div class="summary-panel nutrition-only">
           <div class="summary-heading">
@@ -79,6 +145,10 @@
             <span id="planned-meal-count">0 meals planned</span>
           </div>
           <div class="summary-stats" id="weekly-summary"></div>
+          <p class="form-hint">
+            Totals use recorded per-serving values × planned servings. A dash
+            means at least one meal has missing data. Values may be estimates.
+          </p>
         </div>
 
         <div class="summary-panel">
@@ -87,48 +157,90 @@
               <p class="eyebrow">Groceries</p>
               <h2>Shopping list</h2>
             </div>
-            <button class="planner-tool-button" id="copy-shopping-list" type="button">Copy list</button>
+            <button
+              class="planner-tool-button"
+              id="copy-shopping-list"
+              type="button"
+            >
+              Copy list
+            </button>
           </div>
+          <p class="form-hint">
+            For your planned servings. Exact ingredient names with compatible
+            units are combined. Alternatives and ambiguous quantities stay
+            separate.
+          </p>
           <ul class="shopping-list" id="shopping-list"></ul>
         </div>
       </section>
-  </main>
+    </main>
 
-      <dialog class="recipe-picker" id="recipe-picker-dialog" aria-labelledby="picker-title">
-        <button class="picker-close" type="button" aria-label="Close recipe picker">×</button>
-        <div class="picker-header">
-          <h2 id="picker-title">Pick a meal slot</h2>
-          <p id="picker-helper">Then choose a recipe to place in the calendar.</p>
-          <label class="picker-search">
-            <span class="visually-hidden">Search recipes for planner</span>
-            <input id="planner-search" type="search" placeholder="Search recipes..." autocomplete="off">
-          </label>
-        </div>
+    <dialog
+      class="recipe-picker"
+      id="recipe-picker-dialog"
+      aria-labelledby="picker-title"
+    >
+      <button
+        class="picker-close"
+        type="button"
+        aria-label="Close recipe picker"
+      >
+        ×
+      </button>
+      <div class="picker-header">
+        <h2 id="picker-title">Pick a meal slot</h2>
+        <p id="picker-helper">Then choose a recipe to place in the calendar.</p>
+        <label class="picker-search">
+          <span class="visually-hidden">Search recipes for planner</span>
+          <input
+            id="planner-search"
+            type="search"
+            placeholder="Search recipes..."
+            autocomplete="off"
+          />
+        </label>
+      </div>
 
-        <div class="picker-list" id="planner-recipe-list"></div>
-      </dialog>
+      <div class="picker-list" id="planner-recipe-list"></div>
+    </dialog>
 
-  <dialog id="recipe-dialog" aria-labelledby="recipe-dialog-title">
-    <button class="dialog-close" id="dialog-close" aria-label="Close recipe">×</button>
-    <div id="dialog-content"></div>
-  </dialog>
+    <footer class="site-footer">
+      <a class="footer-wordmark" href="index.html">anna’s kitchen ✳</a>
+      <p>A little planning. A lot to look forward to.</p>
+      <a class="text-button" href="index.html?view=recipes"
+        >Back to the recipe box ↗</a
+      >
+    </footer>
+    <dialog id="recipe-dialog" aria-labelledby="recipe-dialog-title">
+      <button class="dialog-close" id="dialog-close" aria-label="Close recipe">
+        ×
+      </button>
+      <div id="dialog-content"></div>
+    </dialog>
 
-  <dialog id="account-dialog">
-    <button class="dialog-close" id="account-dialog-close" aria-label="Close My Kitchen">×</button>
-    <div id="account-content"></div>
-  </dialog>
+    <dialog id="account-dialog" aria-label="Your account">
+      <button
+        class="dialog-close"
+        id="account-dialog-close"
+        aria-label="Close My Kitchen"
+      >
+        ×
+      </button>
+      <div id="account-content"></div>
+    </dialog>
 
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="vendor/appwrite-29.2.0.js"></script>
-  <script src="appwrite-config.js"></script>
-  <script src="appwrite-backend.js?v=20261113"></script>
-  <script src="kitchen-data.js?v=20261113"></script>
-  <script src="theme.js?v=combined-kitchen-20261027"></script>
-  <script src="nutrition.js?v=combined-kitchen-20261027"></script>
-  <script src="recipes.js?v=recipe-amounts-20261027"></script>
-  <script src="custom-recipes.js?v=20261112"></script>
-  <script src="planner.js?v=20261112"></script>
-  <script src="account.js?v=20261113"></script>
-</body>
+    <script src="vendor/appwrite-29.2.0.js"></script>
+    <script src="appwrite-config.js"></script>
+    <script src="appwrite-backend.js?v=20261113"></script>
+    <script src="kitchen-data.js?v=20261113"></script>
+    <script src="theme.js?v=redesign-20261113a"></script>
+    <script src="nutrition.js?v=combined-kitchen-20261027"></script>
+    <script src="recipes.js?v=recipe-amounts-20261027"></script>
+    <script src="custom-recipes.js?v=redesign-20261113a"></script>
+    <script src="kitchen.js?v=redesign-20261113a"></script>
+    <script src="planner.js?v=redesign-20261113a"></script>
+    <script src="account.js?v=20261113"></script>
+  </body>
 </html>

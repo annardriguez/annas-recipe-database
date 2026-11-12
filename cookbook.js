@@ -22,7 +22,7 @@
     const history = K.list('history').filter(r => r.data.recipe_id === id).sort((a,b) => (b.data.cooked_on || '').localeCompare(a.data.cooked_on || ''));
     const last = history[0]?.data.cooked_on;
     return `<article class="memory-card">
-      <button class="memory-art" data-edit="${escape(id)}" aria-label="Open ${escape(recipe.title)}"><span>${escape(recipe.emoji)}</span>${entry.photo ? `<img data-photo="${escape(entry.photo)}" alt="Your ${escape(recipe.title)}" hidden>` : ''}<span class="memory-stamp">${escape(entry.status || (recipe.isCustom ? 'from my kitchen' : 'want to try'))}</span></button>
+      <button class="memory-art" data-edit="${escape(id)}" aria-label="Open ${escape(recipe.title)}">${K.art(recipe)}${entry.photo ? `<img data-photo="${escape(entry.photo)}" alt="Your ${escape(recipe.title)}" hidden>` : ''}<span class="memory-stamp">${escape(entry.status || (recipe.isCustom ? 'from my kitchen' : 'want to try'))}</span></button>
       <div class="memory-copy"><p class="eyebrow">${recipe.isCustom ? 'An original creation' : 'A keeper from the library'} · ${escape(recipe.time)} min</p><h3><button data-edit="${escape(id)}">${escape(recipe.title)}</button></h3>
       <p>${escape(entry.notes || recipe.description)}</p>
       <div class="memory-meta"><span>${entry.rating ? '★'.repeat(Math.min(5, Math.max(0, Number(entry.rating)))) : 'Waiting for your first taste'}</span><span>${last ? `Last cooked ${date(last)}` : 'A new chapter'}</span></div>
@@ -99,7 +99,7 @@
     saveForm(editor.querySelector('#entry-form'), async values => {
       const file = values.get('photo'); if (file?.size) photo = await K.upload(file);
       if (values.get('remove_photo') && !file?.size) photo = null;
-      const data = {status:values.get('status'),rating:Number(values.get('rating')),notes:values.get('notes'),substitutions:values.get('substitutions'),collection_ids:values.getAll('collections'),photo:photo || null};
+      const data = {...entry,status:values.get('status'),rating:Number(values.get('rating')),notes:values.get('notes'),substitutions:values.get('substitutions'),collection_ids:values.getAll('collections'),photo:photo || null};
       const changes = [{kind:'entry',id,data,deleted:false}], versions = [version];
       if (values.get('log')) {
         if (!values.get('cooked_on')) throw new Error('Choose the date you cooked this recipe.');
@@ -161,7 +161,7 @@
     root.querySelector('#collection-filter')?.addEventListener('change', event => {collection=event.target.value; renderResults(); bindCards(root); hydratePhotos();});
     const form = root.querySelector('#profile-form');
     if (form) {const version=K.version('profile','me'); form.onsubmit=async event => {event.preventDefault(); try {await K.set('profile','me',{display_name:new FormData(form).get('display_name').trim()},version); toast('Profile saved.');} catch(e) {toast(K.errorMessage(e));}};}
-    bindCards(root); bindCollections(root);
+    bindCards(root); bindCollections(root); K.hydratePhotos();
   }
   function bindCards(scope) {
     scope.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>openEntry(b.dataset.edit));

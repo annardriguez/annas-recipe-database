@@ -1,223 +1,345 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="referrer" content="same-origin">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#f4efe7">
-  <title>Anna's Kitchen</title>
-  <link rel="stylesheet" href="style.css?v=combined-kitchen-20261027">
-  <link rel="stylesheet" href="refinements.css?v=combined-kitchen-20261027">
-  <link rel="stylesheet" href="cookbook.css?v=20261112">
-</head>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="referrer" content="same-origin" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f6f3eb" />
+    <meta
+      name="description"
+      content="A personal cookbook for everyday appetite. Find a recipe, save a favourite, and make a little plan."
+    />
+    <title>Anna's Kitchen</title>
+    <link rel="stylesheet" href="style.css?v=redesign-20261113a" />
 
-<body>
-  <a class="skip-link" href="#main-content">Skip to content</a>
-  <header class="site-header">
-    <a class="logo" href="index.html">
-      <span class="logo-title">Anna's Kitchen <span class="logo-spark">✣</span></span>
-      <span class="logo-subtitle">Recipes that fuel your life</span>
-    </a>
+    <link rel="stylesheet" href="cookbook.css?v=20261112" />
+    <link rel="stylesheet" href="cookbook-refinements.css?v=redesign-20261113a" />
+  </head>
 
-    <nav class="navigation" aria-label="Primary navigation">
-      <a href="index.html" data-view="home">Home</a>
-      <a href="index.html?view=recipes" data-view="recipes">All recipes</a>
-      <a href="index.html?view=favourites" data-view="favourites" id="show-favourites-nav">Favourites <span class="nav-count" id="favourite-count" data-favourite-count>0</span></a>
-      <a href="cookbook.html">My cookbook</a>
-      <a href="planner.html">Meal planner</a>
-      <a href="about.html">About</a>
-    </nav>
-    <div class="header-actions">
-      <button class="icon-button" type="button" aria-label="Toggle dark mode">☾</button>
-      <button class="account-button" id="open-account" type="button">Log in</button>
-    </div>
-  </header>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <header class="site-header">
+      <a class="logo" href="index.html">
+        <span class="logo-title"
+          >anna’s kitchen<span class="logo-spark">✳</span></span
+        >
+        <span class="logo-subtitle">A little collection. A lot of love.</span>
+      </a>
 
-  <main id="main-content">
-    <section class="hero" id="discover">
-      <div class="hero-copy">
-        <p class="eyebrow">A little collection, a lot of love</p>
-        <h1>Good food.<br><em>Better days.</em> <span>♡</span></h1>
-        <p class="hero-text">Your favourites, your next obsession, and the answer to “what’s for dinner?” All in one happy place.</p>
-        <a class="hero-browse" href="index.html?view=recipes">Find something delicious <span aria-hidden="true">↗</span></a>
+      <nav class="navigation" aria-label="Primary navigation">
+        <a href="index.html" data-view="home">Home</a>
+        <a href="index.html?view=recipes" data-view="recipes">All recipes</a>
+        <a
+          href="index.html?view=favourites"
+          data-view="favourites"
+          id="show-favourites-nav"
+          >Favourites
+          <span class="nav-count" id="favourite-count" data-favourite-count
+            >0</span
+          ></a
+        >
+        <a href="cookbook.html">My cookbook</a>
+        <a href="planner.html">Meal planner</a>
+        <a href="about.html">About</a>
+      </nav>
+      <div class="header-actions">
+        <button class="icon-button" type="button" aria-label="Toggle dark mode">
+          ☾
+        </button>
+        <button class="account-button" id="open-account" type="button">
+          Log in
+        </button>
       </div>
-      <button class="featured-card" id="featured-card" type="button" aria-label="Open featured recipe">
+    </header>
 
-      </button>
-      <div class="library-stats" aria-label="Recipe library statistics">
+    <main id="main-content">
+      <section class="hero" id="discover">
+        <div class="hero-copy">
+          <p class="eyebrow">
+            <span class="little-line"></span> THE EVERYDAY COOKBOOK
+          </p>
+          <h1>A little inspiration.<br />A very <em>good dinner.</em></h1>
+          <p class="hero-text">
+            For the things you love to cook.<br />And the days you have no idea.
+          </p>
+          <a class="hero-browse" href="#recipes"
+            >Find your next favourite <span aria-hidden="true">↗</span></a
+          >
+          <div class="hero-footnote">
+            <span class="hand-star" aria-hidden="true">✳</span
+            ><span
+              >Good food, on your terms.<br />No perfect kitchens
+              required.</span
+            >
+          </div>
+        </div>
+        <button
+          class="featured-card"
+          id="featured-card"
+          type="button"
+          aria-label="Open featured recipe"
+        ></button>
+      </section>
+      <section
+        class="library-stats"
+        id="library-stats"
+        aria-label="Recipe library statistics"
+      >
+        <p>A recipe for <em>every kind of day.</em></p>
         <div>
-          <span class="stat-icon">▣</span>
-          <strong id="total-recipes">0</strong>
-          <span>Recipes</span>
+          <strong id="total-recipes">72</strong><span>kitchen favourites</span>
         </div>
         <div>
-          <span class="stat-icon leaf">☘</span>
-          <strong id="vegetarian-recipes">0</strong>
-          <span>Vegetarian</span>
+          <strong id="vegetarian-recipes">0</strong
+          ><span>vegetarian ideas</span>
         </div>
         <div>
-          <span class="stat-icon clock">◷</span>
-          <strong id="quick-recipes">0</strong>
-          <span>15 min or less</span>
+          <strong id="quick-recipes">0</strong><span>ready in 15 minutes</span>
         </div>
         <div class="nutrition-only">
-          <span class="stat-icon dumbbell">↔</span>
-          <strong id="protein-recipes">0</strong>
-          <span>High Protein</span>
+          <strong id="protein-recipes">0</strong
+          ><span>high-protein recipes</span>
         </div>
-      </div>
-    </section>
+      </section>
+      <section class="seasonal-section section" id="seasonal-section">
+        <div class="seasonal-title">
+          <p class="eyebrow" id="season-label">IN SEASON</p>
+          <h2 id="season-title">A little comfort<br />for colder days.</h2>
+          <p id="season-description">
+            Bowls to curl up with. Something warm from the oven. A good reason
+            to stay in.
+          </p>
+          <button class="text-button" id="season-browse">
+            Explore cosy recipes ↗
+          </button>
+        </div>
+        <div class="seasonal-recipes" id="seasonal-recipes"></div>
+      </section>
+      <section
+        class="collection-strip section"
+        id="collection-strip"
+        aria-label="Recipe collections"
+      >
+        <div class="strip-heading">
+          <p class="eyebrow">FIND YOUR MOOD</p>
+          <span>Small collections, big possibilities.</span>
+        </div>
+        <div class="collection-tiles" id="collection-tiles"></div>
+      </section>
+      <section
+        class="collection-heading section"
+        aria-label="Recipe collection"
+      >
+        <div>
+          <p class="eyebrow" id="collection-eyebrow">FROM THE RECIPE BOX</p>
+          <h2 id="collection-title">What are we cooking today?</h2>
+          <p
+            class="collection-description"
+            id="collection-description"
+            hidden
+          ></p>
+        </div>
+        <a href="planner.html"
+          >Make a little plan <span aria-hidden="true">↗</span></a
+        >
+      </section>
+      <section
+        class="control-panel section"
+        aria-label="Search and filter recipes"
+      >
+        <div class="search-row">
+          <label class="search-box">
+            <span class="search-icon">⌕</span>
+            <span class="visually-hidden">Search recipes</span>
+            <input
+              id="recipe-search"
+              type="search"
+              placeholder="Search by ingredient, recipe, or keyword..."
+              autocomplete="off"
+            />
+            <kbd>⌘ K</kbd>
+          </label>
 
-    <section class="collection-heading section" aria-label="Recipe collection">
-      <div><p class="eyebrow" id="collection-eyebrow">The recipe collection</p><h2 id="collection-title">What are you craving?</h2><p class="collection-description" id="collection-description" hidden></p></div>
-      <a href="planner.html">Make a little plan <span aria-hidden="true">↗</span></a>
-    </section>
-    <section class="control-panel section" aria-label="Search and filter recipes">
-      <div class="search-row">
-        <label class="search-box">
-          <span class="search-icon">⌕</span>
-          <span class="visually-hidden">Search recipes</span>
-          <input
-            id="recipe-search"
-            type="search"
-            placeholder="Search by ingredient, recipe, or keyword..."
-            autocomplete="off"
+          <label class="sort-box">
+            <span>Sort by:</span>
+            <select id="sort-select" aria-label="Sort recipes">
+              <option value="default">Anna’s order</option>
+              <option value="time">Fastest first</option>
+              <option value="protein">Most protein</option>
+              <option value="calories">Lowest calories</option>
+              <option value="az">A-Z</option>
+            </select>
+          </label>
+
+          <button class="primary-button" id="random-recipe" type="button">
+            Surprise me ↗
+          </button>
+          <button
+            class="primary-button secondary"
+            id="open-custom-recipe"
+            type="button"
           >
-          <kbd>⌘ K</kbd>
-        </label>
+            + Add recipe
+          </button>
+        </div>
 
-        <label class="sort-box">
-          <span>Sort by:</span>
-          <select id="sort-select" aria-label="Sort recipes">
-            <option value="default">Anna’s order</option>
-            <option value="time">Fastest first</option>
-            <option value="protein">Most protein</option>
-            <option value="calories">Lowest calories</option>
-            <option value="az">A-Z</option>
-          </select>
-        </label>
+        <details class="advanced-filters" id="advanced-filters">
+          <summary>
+            Refine your search <span aria-hidden="true">＋</span>
+          </summary>
+          <div class="advanced-grid">
+            <label
+              >Meal type<select id="meal-filter">
+                <option value="">Any meal</option>
+                <option value="main">Main meal</option>
+                <option value="breakfast">Breakfast</option>
+                <option value="snack">Snack</option>
+                <option value="sweet">Sweet</option>
+                <option value="side">Side</option>
+                <option value="lunch">Lunch</option>
+              </select></label
+            >
+            <label
+              >Ready in<select id="time-filter">
+                <option value="">Any time</option>
+                <option value="15">15 minutes</option>
+                <option value="30">30 minutes</option>
+                <option value="45">45 minutes</option>
+                <option value="60">60 minutes</option>
+              </select></label
+            >
+            <label
+              >Dietary preference<select id="diet-filter">
+                <option value="">Any preference</option>
+                <option value="vegetarian">Tagged vegetarian</option>
+                <option value="vegan">Tagged vegan</option>
+              </select></label
+            >
+            <label
+              >Collection<select id="collection-filter">
+                <option value="">All collections</option>
+              </select></label
+            >
+            <label class="nutrition-only"
+              >Maximum kcal / serving<input
+                id="calorie-filter"
+                type="number"
+                min="0"
+                placeholder="e.g. 600"
+            /></label>
+            <label class="nutrition-only"
+              >Minimum protein (g)<input
+                id="protein-filter"
+                type="number"
+                min="0"
+                placeholder="e.g. 25"
+            /></label>
+            <label class="wide-filter"
+              >Ingredients on hand<input
+                id="pantry-filter"
+                placeholder="e.g. tofu, rice (matches every ingredient)"
+            /></label>
+            <label class="check-filter"
+              ><input id="prep-filter" type="checkbox" /> Meal prep
+              recipes</label
+            >
+          </div>
+          <p class="filter-note">
+            Dietary filters use recipe tags. Nutrition filters use recorded
+            values, which may be estimates. Check ingredients for your needs.
+          </p>
+          <button class="text-button" id="save-targets" type="button">
+            Remember nutrition targets
+          </button>
+        </details>
+        <div class="filter-toolbar">
+          <div class="filter-scroll" id="quick-filters"></div>
+          <button id="clear-filters" class="clear-button">Reset</button>
+        </div>
+      </section>
 
-        <button class="primary-button" id="random-recipe" type="button">
-          ◈ Surprise me!
+      <section class="section recipe-section" id="recipes">
+        <div class="section-heading">
+          <p id="active-summary">Showing the whole kitchen.</p>
+          <p
+            id="recipe-count"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          ></p>
+        </div>
+
+        <div class="recipe-grid" id="recipe-grid"></div>
+
+        <div class="empty-state" id="empty-message" hidden>
+          <span aria-hidden="true">♡</span>
+          <h3 id="empty-title">No recipes found.</h3>
+          <p id="empty-description">
+            Try another ingredient or clear your filters.
+          </p>
+          <button class="primary-button" id="empty-reset" type="button">
+            Clear filters
+          </button>
+          <a class="empty-browse" href="index.html?view=recipes" hidden
+            >Browse all recipes →</a
+          >
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <a class="footer-wordmark" href="index.html">anna’s kitchen ✳</a>
+      <p>
+        A little less “what’s for dinner?”<br />A little more joy in the
+        everyday.
+      </p>
+      <div class="footer-tools">
+        <button class="text-button" id="export-kitchen">
+          Back up my kitchen ↗</button
+        ><label class="text-button import-label" role="button" tabindex="0"
+          >Import backup<input
+            id="import-kitchen"
+            type="file"
+            accept="application/json"
+            hidden /></label
+        ><button class="text-button" data-nutrition-toggle>
+          Nutrition off
         </button>
-        <button class="primary-button secondary" id="open-custom-recipe" type="button">+ Add recipe</button>
       </div>
+    </footer>
 
-      <div class="filter-toolbar">
-        <div class="filter-scroll" id="quick-filters"></div>
-        <button id="clear-filters" class="clear-button">Reset</button>
-      </div>
-    </section>
+    <dialog id="recipe-dialog" aria-labelledby="recipe-dialog-title">
+      <button class="dialog-close" id="dialog-close" aria-label="Close recipe">
+        ×
+      </button>
+      <div id="dialog-content"></div>
+    </dialog>
 
-    <section class="section recipe-section" id="recipes">
-      <div class="section-heading">
-        <p id="active-summary">Showing the whole kitchen.</p>
-        <p id="recipe-count" role="status" aria-live="polite" aria-atomic="true"></p>
-      </div>
+    <dialog id="account-dialog" aria-label="Your account">
+      <button
+        class="dialog-close"
+        id="account-dialog-close"
+        aria-label="Close My Kitchen"
+      >
+        ×
+      </button>
+      <div id="account-content"></div>
+    </dialog>
 
-      <div class="recipe-grid" id="recipe-grid"></div>
+    <dialog id="custom-recipe-dialog" aria-labelledby="editor-title"></dialog>
 
-      <div class="empty-state" id="empty-message" hidden>
-        <span aria-hidden="true">♡</span>
-        <h3 id="empty-title">No recipes found.</h3>
-        <p id="empty-description">Try another ingredient or clear your filters.</p>
-        <button class="primary-button" id="empty-reset" type="button">Clear filters</button>
-        <a class="empty-browse" href="index.html?view=recipes" hidden>Browse all recipes →</a>
-      </div>
-    </section>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  </main>
-
-  <footer class="site-footer">
-    <p>Made for hungry, tired and aggressively indecisive moments.</p>
-  </footer>
-
-  <dialog id="recipe-dialog" aria-labelledby="recipe-dialog-title">
-    <button class="dialog-close" id="dialog-close" aria-label="Close recipe">×</button>
-    <div id="dialog-content"></div>
-  </dialog>
-
-  <dialog id="account-dialog">
-    <button class="dialog-close" id="account-dialog-close" aria-label="Close My Kitchen">×</button>
-    <div id="account-content"></div>
-  </dialog>
-
-  <dialog id="custom-recipe-dialog">
-    <button class="dialog-close" id="custom-recipe-close" aria-label="Close add recipe">×</button>
-    <form class="custom-recipe-form" id="custom-recipe-form">
-      <p class="eyebrow">Add recipe</p>
-      <h2>Save your own recipe</h2>
-      <div class="custom-form-grid">
-        <label>
-          <span>Recipe name</span>
-          <input name="title" required placeholder="Creamy pesto chicken">
-        </label>
-        <label>
-          <span>Emoji</span>
-          <input name="emoji" maxlength="4" placeholder="🍝">
-        </label>
-        <label class="full">
-          <span>Description</span>
-          <input name="description" placeholder="A fast dinner I actually make.">
-        </label>
-        <label>
-          <span>Category</span>
-          <select name="category">
-            <option value="main">Main meal</option>
-            <option value="breakfast">Breakfast</option>
-            <option value="snack">Snack</option>
-            <option value="sweet">Sweet</option>
-            <option value="side">Side</option>
-          </select>
-        </label>
-        <label>
-          <span>Time</span>
-          <input name="time" type="number" min="1" placeholder="20">
-        </label>
-        <label class="nutrition-only">
-          <span>Calories</span>
-          <input name="calories" type="number" min="0" placeholder="520">
-        </label>
-        <label class="nutrition-only">
-          <span>Protein</span>
-          <input name="protein" type="number" min="0" placeholder="35">
-        </label>
-        <label class="nutrition-only">
-          <span>Carbs</span>
-          <input name="carbs" type="number" min="0" placeholder="60">
-        </label>
-        <label class="nutrition-only">
-          <span>Fat</span>
-          <input name="fat" type="number" min="0" placeholder="18">
-        </label>
-        <label class="full">
-          <span>Tags</span>
-          <input name="tags" placeholder="quick, pasta, high protein">
-        </label>
-        <label class="full">
-          <span>Ingredients</span>
-          <textarea name="ingredients" rows="4" placeholder="One per line or comma separated"></textarea>
-        </label>
-        <label class="full">
-          <span>Method</span>
-          <textarea name="steps" rows="4" placeholder="One step per line"></textarea>
-        </label>
-      </div>
-      <button class="primary-button" type="submit">Save recipe</button>
-    </form>
-  </dialog>
-
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
-
-  <script src="vendor/appwrite-29.2.0.js"></script>
-  <script src="appwrite-config.js"></script>
-  <script src="appwrite-backend.js?v=20261113"></script>
-  <script src="kitchen-data.js?v=20261113"></script>
-  <script src="theme.js?v=combined-kitchen-20261027"></script>
-  <script src="nutrition.js?v=combined-kitchen-20261027"></script>
-  <script src="recipes.js?v=recipe-amounts-20261027"></script>
-  <script src="custom-recipes.js?v=20261112"></script>
-  <script src="script.js?v=20261112"></script>
-  <script src="account.js?v=20261113"></script>
-</body>
+    <script src="vendor/appwrite-29.2.0.js"></script>
+    <script src="appwrite-config.js"></script>
+    <script src="appwrite-backend.js?v=20261113"></script>
+    <script src="kitchen-data.js?v=20261113"></script>
+    <script src="theme.js?v=redesign-20261113a"></script>
+    <script src="nutrition.js?v=combined-kitchen-20261027"></script>
+    <script src="recipes.js?v=recipe-amounts-20261027"></script>
+    <script src="custom-recipes.js?v=redesign-20261113a"></script>
+    <script src="kitchen.js?v=redesign-20261113a"></script>
+    <script src="script.js?v=redesign-20261113a"></script>
+    <script src="account.js?v=20261113"></script>
+  </body>
 </html>
