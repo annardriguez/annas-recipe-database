@@ -32,3 +32,9 @@ build/
 tmp/
 temp/
 *.tmp
+
+# Generated browser verification artifacts
+tests/*.png
+
+# Supabase CLI cache
+supabase/.temp/

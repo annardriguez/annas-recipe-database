@@ -1,0 +1,17 @@
+{
+  "name": "annas-kitchen",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/*.test.cjs",
+    "test:browser": "node tests/browser.cjs",
+    "serve": "python3 -m http.server 4173 --bind 127.0.0.1"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.3.14",
+    "node-appwrite": "31.2.0",
+    "playwright": "1.56.1"
+  },
+  "dependencies": {
+    "appwrite": "29.2.0"
+  }
+}

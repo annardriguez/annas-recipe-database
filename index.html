@@ -2,11 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="referrer" content="same-origin">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#f4efe7">
   <title>Anna's Kitchen</title>
   <link rel="stylesheet" href="style.css?v=combined-kitchen-20261027">
   <link rel="stylesheet" href="refinements.css?v=combined-kitchen-20261027">
+  <link rel="stylesheet" href="cookbook.css?v=20261112">
 </head>
 
 <body>
@@ -21,6 +23,7 @@
       <a href="index.html" data-view="home">Home</a>
       <a href="index.html?view=recipes" data-view="recipes">All recipes</a>
       <a href="index.html?view=favourites" data-view="favourites" id="show-favourites-nav">Favourites <span class="nav-count" id="favourite-count" data-favourite-count>0</span></a>
+      <a href="cookbook.html">My cookbook</a>
       <a href="planner.html">Meal planner</a>
       <a href="about.html">About</a>
     </nav>
@@ -206,12 +209,15 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-config.js"></script>
+  <script src="vendor/appwrite-29.2.0.js"></script>
+  <script src="appwrite-config.js"></script>
+  <script src="appwrite-backend.js?v=20261113"></script>
+  <script src="kitchen-data.js?v=20261113"></script>
   <script src="theme.js?v=combined-kitchen-20261027"></script>
   <script src="nutrition.js?v=combined-kitchen-20261027"></script>
   <script src="recipes.js?v=recipe-amounts-20261027"></script>
-  <script src="custom-recipes.js?v=recipe-amounts-20261027"></script>
-  <script src="script.js?v=screenshot-recipes-20261027"></script>
+  <script src="custom-recipes.js?v=20261112"></script>
+  <script src="script.js?v=20261112"></script>
+  <script src="account.js?v=20261113"></script>
 </body>
 </html>

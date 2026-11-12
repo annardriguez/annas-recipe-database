@@ -1,3 +1,11 @@
+CURRENT BACKEND — APPWRITE (13 NOVEMBER 2026)
+The website now uses its own Appwrite project for email accounts, private recipes,
+photos, notes, history, collections, meal plans and grocery lists.
+Current setup and verification: SETUP.md
+Backend architecture and deployment: appwrite/README.md
+Guest source data and all 72 public recipes are preserved.
+The older Supabase sections below are retained as historical implementation notes.
+
 ANNA'S RECIPE DATABASE V3
 
 DESIGN CHANGES
@@ -57,3 +65,26 @@ SUPABASE LOGIN STATUS
 - Row Level Security enabled for per-user saved recipes
 - Site URL set to: https://annardriguez.github.io/annas-recipe-database/
 - Upload/push the updated files to GitHub, then test My Kitchen > Log in.
+
+NOVEMBER 2026 — PERSONAL COOKBOOK AND ACCOUNTS
+- cookbook.html: private/guest cookbook, original recipes, notes, photos,
+  substitutions, ratings, collections and a cooking journal.
+- profile.html: display name, account email, recipe counts, saved recipes,
+  collections, cooking history, password recovery and logout.
+- kitchen-data.js: shared Supabase data boundary for all pages; account records
+  stay separate from guest browser storage. No automatic guest imports.
+- Meal plans and grocery lists use the same account data layer.
+- SQL migration: supabase/migrations/20261112224216_personal_kitchen.sql
+- Setup, data model, verification results and hosted acceptance checklist:
+  SETUP.md
+
+IMPORTANT: The configured Supabase project was INACTIVE on 12 November 2026.
+The new migration has NOT been applied and these changes have NOT been deployed.
+Restore the existing project, follow SETUP.md, then run the hosted journey.
+Local automated checks: npm test; npm run serve; npm run test:browser.
+
+APPWRITE TRANSITION — 13 NOVEMBER 2026
+The pages now use appwrite-config.js, appwrite-backend.js and the pinned SDK in
+vendor/. The new Appwrite project is independent of the two active Supabase apps.
+See SETUP.md for current rollout status and appwrite/README.md for backend details.
+Older Supabase instructions above are historical; they are not the active setup.

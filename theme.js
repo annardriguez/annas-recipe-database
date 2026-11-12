@@ -20,9 +20,7 @@ const savedTheme = localStorage.getItem("annaKitchenTheme") || "light";
 applyTheme(savedTheme);
 
 function updateSharedFavouriteCounts() {
-  const savedRecipeIds = JSON.parse(
-    localStorage.getItem("annaRecipeFavourites") || "[]"
-  );
+  const savedRecipeIds = window.AnnaKitchen?.list('favourite') || [];
 
   document.querySelectorAll("[data-favourite-count]").forEach(item => {
     item.textContent = savedRecipeIds.length;
@@ -41,8 +39,4 @@ themeButtons.forEach(button => {
   });
 });
 
-// Keep saved counts correct on pages without the recipe library script.
-document.querySelectorAll("[data-favourite-count]").forEach(element => {
-  try { element.textContent = JSON.parse(localStorage.getItem("annaRecipeFavourites") || "[]").length; }
-  catch { element.textContent = "0"; }
-});
+window.addEventListener('kitchen:change', updateSharedFavouriteCounts);

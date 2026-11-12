@@ -34,10 +34,10 @@ let currentWeekStart = startOfWeek(new Date());
 let selectedSlot = null;
 let toastTimer;
 
-const mealPlan = JSON.parse(localStorage.getItem("annaMealPlan") || "{}");
-const savedPlanAt = localStorage.getItem("annaMealPlanSavedAt");
+const mealPlan = Object.fromEntries(window.AnnaKitchen.list("meal").map(r => [r.id,r.data.recipe_id]));
+const savedPlanAt = null;
 const savedRecipeIds = new Set(
-  JSON.parse(localStorage.getItem("annaRecipeFavourites") || "[]")
+  window.AnnaKitchen.list("favourite").map(r => r.id)
 );
 
 const labels = {
@@ -109,25 +109,23 @@ function hasSavedMeals() {
   return Object.keys(mealPlan).length > 0;
 }
 
-function updateSaveStatus(savedAt = localStorage.getItem("annaMealPlanSavedAt")) {
-  if (!saveStatus) return;
-
-  if (!hasSavedMeals()) {
-    saveStatus.textContent =
-      "This planner saves on this device when you add meals.";
-    return;
-  }
-
-  const savedTime = formatSavedTime(savedAt);
-  saveStatus.textContent = savedTime
-    ? `Saved on this device · last updated ${savedTime}`
-    : "Saved on this device.";
+function updateSaveStatus() {
+  saveStatus.textContent = window.AnnaKitchen.status;
 }
-
-function savePlan(savedAt = new Date().toISOString()) {
-  localStorage.setItem("annaMealPlan", JSON.stringify(mealPlan));
-  localStorage.setItem("annaMealPlanSavedAt", savedAt);
-  updateSaveStatus(savedAt);
+async function savePlan() {
+  const K = window.AnnaKitchen;
+  const previous = Object.fromEntries(K.list('meal').map(r => [r.id,r.data.recipe_id]));
+  const keys = new Set([...Object.keys(previous), ...Object.keys(mealPlan)]);
+  const changes = [...keys].filter(id => previous[id] !== mealPlan[id]).map(id => ({
+    kind:'meal', id, data:mealPlan[id] ? {recipe_id:mealPlan[id]} : {}, deleted:!mealPlan[id]
+  }));
+  try { if (changes.length) await K.batch(changes); return true; }
+  catch(e) { showToast(K.errorMessage(e)); restorePlan(); return false; }
+}
+function restorePlan() {
+  Object.keys(mealPlan).forEach(key => delete mealPlan[key]);
+  window.AnnaKitchen.list('meal').forEach(r => mealPlan[r.id] = r.data.recipe_id);
+  updateSaveStatus(); renderPlanner();
 }
 
 function showToast(message) {
@@ -159,22 +157,22 @@ function selectSlot(dateKey, slot) {
   plannerSearch.focus();
 }
 
-function assignRecipe(recipeId) {
+async function assignRecipe(recipeId) {
   if (!selectedSlot) {
     showToast("Pick a calendar slot first");
     return;
   }
 
   mealPlan[makeSlotKey(selectedSlot.dateKey, selectedSlot.slot)] = recipeId;
-  savePlan();
+  if (!await savePlan()) return;
   renderPlanner();
   recipePicker.close();
   showToast("Meal added to the planner");
 }
 
-function removeMeal(dateKey, slot) {
+async function removeMeal(dateKey, slot) {
   delete mealPlan[makeSlotKey(dateKey, slot)];
-  savePlan();
+  if (!await savePlan()) return;
   renderPlanner();
   showToast("Meal removed");
 }
@@ -352,7 +350,7 @@ function pickRecipe(pool, index, usedIds, avoidThemes = [], offset = 0) {
   return bestMatch || noRepeat[0] || ordered[0];
 }
 
-function organizeWeek() {
+async function organizeWeek() {
   const breakfastPool = recipes.filter(recipe => recipe.category === "breakfast");
   const mainPool = recipes.filter(recipe => recipe.category === "main");
   const lunchPool = mainPool.filter(recipe =>
@@ -387,12 +385,12 @@ function organizeWeek() {
   });
 
   selectedSlot = null;
-  savePlan();
+  if (!await savePlan()) return;
   renderPlanner();
   showToast("Week organized with sensible meals");
 }
 
-function clearWeek() {
+async function clearWeek() {
   getWeekDates().forEach(date => {
     const dateKey = toDateKey(date);
     mealSlots.forEach(slot => {
@@ -400,7 +398,7 @@ function clearWeek() {
     });
   });
   selectedSlot = null;
-  savePlan();
+  if (!await savePlan()) return;
   renderPlanner();
   showToast("Week cleared");
 }
@@ -541,12 +539,29 @@ function renderWeeklySummary() {
   plannedMealCount.textContent = `${plannedCount} meal${plannedCount === 1 ? "" : "s"} planned`;
   weeklySummary.innerHTML = getWeekDates().map(renderDailyMacro).join("");
 
-  const ingredients = uniqueIngredients(plannedRecipes).slice(0, 28);
+  const ingredients = uniqueIngredients(plannedRecipes);
+  const week = toDateKey(currentWeekStart);
+  const manual = window.AnnaKitchen.list('grocery').filter(r => r.data.week === week && r.data.manual);
+  ingredients.push(...manual.map(r => r.data.text));
   shoppingList.replaceChildren(
     ...(ingredients.length
       ? ingredients.map(item => {
           const listItem = document.createElement("li");
-          listItem.textContent = item;
+          const custom = manual.find(r => r.data.text === item);
+          const id = custom?.id || `${week}|${item}`.slice(0,240);
+          const saved = window.AnnaKitchen.get('grocery', id);
+          const label = document.createElement('label');
+          const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.checked = Boolean(saved?.checked);
+          checkbox.addEventListener('change', async () => {
+            try {await window.AnnaKitchen.set('grocery', id, {text:item, week, manual:Boolean(custom), checked:checkbox.checked});}
+            catch(e) {checkbox.checked = !checkbox.checked; showToast(window.AnnaKitchen.errorMessage(e));}
+          });
+          label.append(checkbox, document.createTextNode(item)); listItem.append(label);
+          if (custom) {
+            const remove = document.createElement('button'); remove.textContent = 'Remove'; remove.className = 'clear-button';
+            remove.onclick = async () => {try {await window.AnnaKitchen.remove('grocery', id);} catch(e) {showToast(window.AnnaKitchen.errorMessage(e));}};
+            listItem.append(remove);
+          }
           return listItem;
         })
       : [Object.assign(document.createElement("li"), {
@@ -557,7 +572,7 @@ function renderWeeklySummary() {
 }
 
 async function copyShoppingList() {
-  const ingredients = uniqueIngredients(getPlannedRecipesForWeek());
+  const ingredients = [...uniqueIngredients(getPlannedRecipesForWeek()), ...window.AnnaKitchen.list('grocery').filter(r => r.data.manual && r.data.week === toDateKey(currentWeekStart)).map(r => r.data.text)];
 
   if (!ingredients.length) {
     showToast("Plan a few meals first");
@@ -610,3 +625,23 @@ recipePicker.addEventListener("close", () => {
 });
 updateSaveStatus(savedPlanAt);
 renderPlanner();
+
+window.addEventListener('kitchen:change', restorePlan);
+let plannerOwner = window.AnnaKitchen.user?.id;
+window.addEventListener('kitchen:change', () => {
+  if (plannerOwner !== window.AnnaKitchen.user?.id) {
+    dialog.close(); dialogContent.replaceChildren(); recipePicker.close();
+    plannerOwner = window.AnnaKitchen.user?.id;
+  }
+});
+const groceryForm = document.createElement('form');
+groceryForm.className = 'grocery-form';
+groceryForm.innerHTML = '<label class="visually-hidden" for="grocery-extra">Add to your grocery list</label><input id="grocery-extra" maxlength="180" required placeholder="Anything else to pick up?"><button class="planner-tool-button">Add</button>';
+shoppingList.after(groceryForm);
+groceryForm.addEventListener('submit', async event => {
+  event.preventDefault(); const input = groceryForm.querySelector('input');
+  const button = groceryForm.querySelector('button'); button.disabled = true;
+  try {await window.AnnaKitchen.set('grocery', crypto.randomUUID(), {text:input.value.trim(),week:toDateKey(currentWeekStart),manual:true,checked:false}); groceryForm.reset();}
+  catch(e) {showToast(window.AnnaKitchen.errorMessage(e));}
+  finally {button.disabled = false;}
+});

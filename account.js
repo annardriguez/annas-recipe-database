@@ -1,202 +1,67 @@
-const accountButton = document.querySelector("#open-account");
-const accountDialog = document.querySelector("#account-dialog");
-const accountDialogClose = document.querySelector("#account-dialog-close");
-const accountContent = document.querySelector("#account-content");
-
-const accountSavedRecipeIds = new Set(
-  JSON.parse(localStorage.getItem("annaRecipeFavourites") || "[]")
-);
-
-let accountSupabaseClient = null;
-let accountCurrentUser = null;
-let accountCloudSyncReady = false;
-
-function accountEscapeHtml(value) {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-function accountIsSupabaseConfigured() {
-  const config = window.ANNA_SUPABASE_CONFIG || {};
-
-  return Boolean(
-    window.supabase?.createClient &&
-    config.url &&
-    config.anonKey &&
-    !config.url.includes("PASTE_") &&
-    !config.anonKey.includes("PASTE_")
-  );
-}
-
-function accountUpdateButton() {
-  if (!accountButton) return;
-  accountButton.textContent = accountCurrentUser ? "My Kitchen" : "Log in";
-}
-
-function accountSaveLocalFavourites() {
-  localStorage.setItem(
-    "annaRecipeFavourites",
-    JSON.stringify([...accountSavedRecipeIds])
-  );
-  document.querySelectorAll("[data-favourite-count]").forEach(item => {
-    item.textContent = accountSavedRecipeIds.size;
-  });
-}
-
-async function accountSyncRemoteFavourites() {
-  if (!accountSupabaseClient || !accountCurrentUser) return;
-
-  const { data, error } = await accountSupabaseClient
-    .from("recipe_favourites")
-    .select("recipe_id")
-    .eq("user_id", accountCurrentUser.id);
-
-  if (error) {
-    accountCloudSyncReady = false;
-    accountShowToast("Could not sync saved recipes");
-    return;
-  }
-
-  const remoteIds = new Set((data || []).map(item => item.recipe_id));
-  const mergedIds = new Set([...remoteIds, ...accountSavedRecipeIds]);
-
-  if (mergedIds.size > remoteIds.size) {
-    const rows = [...mergedIds].map(recipeId => ({
-      user_id: accountCurrentUser.id,
-      recipe_id: recipeId
-    }));
-
-    await accountSupabaseClient
-      .from("recipe_favourites")
-      .upsert(rows, { onConflict: "user_id,recipe_id" });
-  }
-
-  accountSavedRecipeIds.clear();
-  mergedIds.forEach(id => accountSavedRecipeIds.add(id));
-  accountCloudSyncReady = true;
-  accountSaveLocalFavourites();
-  accountUpdateButton();
-}
-
-async function accountInitSupabaseAuth() {
-  if (!accountIsSupabaseConfigured()) {
-    accountUpdateButton();
-    return;
-  }
-
-  const config = window.ANNA_SUPABASE_CONFIG;
-  accountSupabaseClient = window.supabase.createClient(config.url, config.anonKey);
-
-  const { data } = await accountSupabaseClient.auth.getSession();
-  accountCurrentUser = data.session?.user || null;
-  if (accountCurrentUser) await accountSyncRemoteFavourites();
-
-  accountSupabaseClient.auth.onAuthStateChange(async (_event, session) => {
-    accountCurrentUser = session?.user || null;
-    accountCloudSyncReady = Boolean(accountCurrentUser);
-
-    if (accountCurrentUser) {
-      await accountSyncRemoteFavourites();
-      accountShowToast("Logged in and synced");
-    }
-
-    accountUpdateButton();
-    if (accountDialog?.open) accountRenderDialog();
-  });
-
-  accountUpdateButton();
-}
-
-function accountShowToast(message) {
-  const toast = document.querySelector("#toast");
-  if (!toast) return;
-
-  toast.textContent = message;
-  toast.classList.add("show");
-  setTimeout(() => toast.classList.remove("show"), 2200);
-}
-
-function accountRenderDialog() {
-  const configured = accountIsSupabaseConfigured();
-  const syncText = !configured
-    ? "Supabase setup needed"
-    : accountCurrentUser
-      ? accountCloudSyncReady ? "Cloud sync on" : "Cloud sync checking"
-      : "Ready when you are";
-
-  accountContent.innerHTML = `
-    <div class="account-panel">
-      <p class="eyebrow">My Kitchen</p>
-      <h2>${accountCurrentUser ? "Cloud sync is on" : "Sync your favorites"}</h2>
-      ${accountCurrentUser ? `<p class="account-email">${accountEscapeHtml(accountCurrentUser.email || "Signed in")}</p>` : ""}
-      <p class="account-status ${accountCurrentUser ? "synced" : ""}">${syncText}</p>
-
-      ${accountCurrentUser ? `
-        <p class="account-helper">Your favorites are saved in the cloud and will be there when you sign in on another device.</p>
-      ` : `
-        <form class="account-form" id="account-form">
-          <label>
-            <span>Email</span>
-            <input id="profile-email" type="email" placeholder="anna@example.com" autocomplete="email" ${configured ? "" : "disabled"}>
-          </label>
-          <button class="primary-button" type="submit" ${configured ? "" : "disabled"}>Send sign-in link</button>
-        </form>
-        <p class="account-helper">${configured ? "Enter your email and I will send a secure sign-in link. No password needed." : "Cloud sync is almost ready. Supabase still needs its public config."}</p>
-      `}
-
-      <div class="account-actions">
-        <button class="planner-tool-button" data-nutrition-toggle type="button">Nutrition off</button>
-        <a class="planner-tool-button" href="index.html?view=favourites">Open favorites</a>
-        ${accountCurrentUser ? `<button class="planner-tool-button" id="sign-out-profile" type="button">Log out</button>` : ""}
-      </div>
-    </div>
-  `;
-
-  window.AnnaNutrition?.apply(window.AnnaNutrition.isVisible());
-
-  accountContent.querySelector("#account-form")?.addEventListener("submit", async event => {
-    event.preventDefault();
-    const email = accountContent.querySelector("#profile-email").value.trim();
-    if (!email) return;
-
-    const { error } = await accountSupabaseClient.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: window.location.href.split("#")[0] }
+(() => {
+  const K = window.AnnaKitchen;
+  const dialog = document.querySelector('#account-dialog');
+  const content = document.querySelector('#account-content');
+  const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  let mode = 'login', renderedUser;
+  const redirect = new URL('profile.html', location.href).href.split('?')[0].split('#')[0];
+  function message(text) { const box = document.querySelector('#account-message'); if (box) box.textContent = text; }
+  function render() {
+    if (!content) return;
+    renderedUser = `${K.user?.id || ''}:${K.user?.emailVerified}`;
+    content.innerHTML = `<div class="account-panel"><p class="eyebrow">Your very own kitchen</p><h2>${K.user ? 'Welcome back.' : mode === 'signup' ? 'Pull up a chair.' : mode === 'recovery' ? 'A fresh start.' : 'Make yourself at home.'}</h2>
+      <p class="account-helper">${K.user ? escape(K.user.email) : 'Your recipes, little discoveries, and dinner plans. Together, wherever you cook.'}</p>
+      <p role="status" class="kitchen-sync">${escape(K.status)}</p>
+      ${K.client?.notice ? `<p class="account-helper">${escape(K.client.notice)}</p>` : ''}
+      ${K.user && K.user.emailVerified === false ? '<p class="account-helper">Please verify your email to enable your private kitchen.</p><button class="planner-tool-button" id="account-verify">Resend verification</button><button class="planner-tool-button" id="account-refresh">I have verified my email</button>' : ''}
+      ${K.user && mode !== 'recovery' ? `<div class="account-actions"><a class="primary-button" href="cookbook.html">My cookbook ↗</a><a class="planner-tool-button" href="profile.html">Profile & settings</a><button class="planner-tool-button" id="account-logout">Log out</button></div>` : `
+      <form id="account-form" class="account-form">
+        ${mode !== 'recovery' ? '<label>Email address<input name="email" type="email" autocomplete="email" required placeholder="you@example.com"></label>' : ''}
+        ${mode === 'signup' ? '<label>Display name<input name="name" autocomplete="nickname" maxlength="80" required></label>' : ''}
+        ${['login','signup','recovery'].includes(mode) ? `<label>${mode === 'recovery' ? 'New password' : 'Password'}<input name="password" type="password" autocomplete="${mode === 'login' ? 'current-password' : 'new-password'}" minlength="8" required></label>` : ''}
+        <button type="submit" class="primary-button" ${K.client ? '' : 'disabled'}>${{login:'Log in',signup:'Create account',magic:'Send sign-in link',reset:'Send reset link',recovery:'Save new password'}[mode]}</button>
+      </form>
+      <div class="account-actions">${[['login','Log in'],['signup','Create account'],['magic','Email me a login link'],['reset','Forgot password?']].filter(([m]) => m !== mode).map(([m,label]) => `<button class="planner-tool-button" data-auth-mode="${m}">${label}</button>`).join('')}</div>`}
+      <p id="account-message" role="status" aria-live="polite"></p></div>`;
+    content.querySelectorAll('[data-auth-mode]').forEach(button => button.onclick = () => {mode = button.dataset.authMode; render();});
+    content.querySelector('#account-verify')?.addEventListener('click', async () => {const {error}=await K.client.auth.resendVerification(); message(error?K.errorMessage(error):'Check your email for the verification link.');});
+    content.querySelector('#account-refresh')?.addEventListener('click', async () => {try{await K.refresh();render();}catch(e){message(K.errorMessage(e));}});
+    content.querySelector('#account-logout')?.addEventListener('click', async () => {try {await K.signOut(); render();} catch(e) {message(K.errorMessage(e));}});
+    content.querySelector('#account-form')?.addEventListener('submit', async event => {
+      event.preventDefault();
+      const form = event.currentTarget, button = form.querySelector('button');
+      const values = Object.fromEntries(new FormData(form)); button.disabled = true;
+      try {
+        let result;
+        if (mode === 'login') result = await K.client.auth.signInWithPassword({email:values.email,password:values.password});
+        if (mode === 'signup') result = await K.client.auth.signUp({email:values.email,password:values.password,options:{data:{display_name:values.name},emailRedirectTo:redirect}});
+        if (mode === 'magic') result = await K.client.auth.signInWithOtp({email:values.email,options:{emailRedirectTo:redirect,shouldCreateUser:false}});
+        if (mode === 'reset') result = await K.client.auth.resetPasswordForEmail(values.email,{redirectTo:redirect});
+        if (mode === 'recovery') result = await K.client.auth.updateUser({password:values.password});
+        if (result.error) throw result.error;
+        if (mode === 'recovery') {K.finishRecovery(); mode = 'login'; render(); message('Password updated.');}
+        else if (mode === 'signup' && !result.data.session) message('Check your email to verify your account, then log in.');
+        else if (mode === 'magic' || mode === 'reset') message('If an account exists for that email, a secure link is on its way.');
+        else message('Opening your kitchen…');
+      } catch(e) {message(K.errorMessage(e));} finally {button.disabled = false;}
     });
-
-    accountShowToast(error ? "Could not send login link" : "Check your email for the login link");
-  });
-
-  accountContent.querySelector("#sign-out-profile")?.addEventListener("click", async () => {
-    await accountSupabaseClient.auth.signOut();
-    accountCurrentUser = null;
-    accountCloudSyncReady = false;
-    accountUpdateButton();
-    accountRenderDialog();
-    accountShowToast("Logged out");
-  });
-}
-
-function accountOpenDialog() {
-  accountRenderDialog();
-  accountDialog.showModal();
-  document.body.classList.add("dialog-open");
-}
-
-accountButton?.addEventListener("click", accountOpenDialog);
-accountDialogClose?.addEventListener("click", () => {
-  accountDialog.close();
-  document.body.classList.remove("dialog-open");
-});
-accountDialog?.addEventListener("click", event => {
-  if (event.target === accountDialog) {
-    accountDialog.close();
-    document.body.classList.remove("dialog-open");
   }
-});
-
-accountInitSupabaseAuth();
+  function open() {render(); if (!dialog.open) dialog.showModal();}
+  document.querySelector('#open-account')?.addEventListener('click', open);
+  document.querySelector('#account-dialog-close')?.addEventListener('click', () => dialog.close());
+  dialog?.addEventListener('click', event => {if (event.target === dialog) dialog.close();});
+  window.addEventListener('kitchen:recovery', () => {mode = 'recovery'; open();});
+  window.addEventListener('kitchen:change', () => {
+    const button = document.querySelector('#open-account');
+    if (button) button.textContent = K.user ? 'My kitchen' : 'Log in';
+    document.querySelectorAll('[data-favourite-count]').forEach(el => el.textContent = K.list('favourite').length);
+    // Avoid replacing an in-progress sign-up/reset form on token refresh.
+    if (dialog?.open && renderedUser !== `${K.user?.id || ''}:${K.user?.emailVerified}`) render();
+    else if (dialog?.open) content.querySelector('.kitchen-sync').textContent = K.status;
+  });
+  window.AnnaAccount = {open};
+  const initialButton = document.querySelector('#open-account');
+  if (initialButton) initialButton.textContent = K.user ? 'My kitchen' : 'Log in';
+  // Auth can finish while later static scripts are still downloading.
+  if (K.passwordRecovery) {mode = 'recovery'; open();}
+})();

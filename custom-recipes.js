@@ -1,16 +1,8 @@
+(() => {
 const CUSTOM_RECIPE_STORAGE_KEY = "annaCustomRecipes";
 
 function parseCustomRecipeList() {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(CUSTOM_RECIPE_STORAGE_KEY) || "[]");
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveCustomRecipeList(customRecipes) {
-  localStorage.setItem(CUSTOM_RECIPE_STORAGE_KEY, JSON.stringify(customRecipes));
+  return window.AnnaKitchen.list('recipe').map(row => row.data);
 }
 
 function splitRecipeLines(value) {
@@ -63,27 +55,23 @@ function refreshRecipeList(customRecipes = getCustomRecipes()) {
   recipes.push(...customRecipes);
 }
 
-function addCustomRecipe(recipe) {
+async function addCustomRecipe(recipe) {
   const normalized = normalizeCustomRecipe(recipe);
   if (!normalized.title) throw new Error("Recipe title is required");
-
-  const customRecipes = getCustomRecipes();
-  customRecipes.unshift(normalized);
-  saveCustomRecipeList(customRecipes);
-  refreshRecipeList(customRecipes);
+  await window.AnnaKitchen.set('recipe', normalized.id, normalized);
+  refreshRecipeList();
   return normalized;
 }
 
-function removeCustomRecipe(recipeId) {
-  const customRecipes = getCustomRecipes().filter(recipe => recipe.id !== recipeId);
-  saveCustomRecipeList(customRecipes);
-  refreshRecipeList(customRecipes);
+async function removeCustomRecipe(recipeId) {
+  const K = window.AnnaKitchen;
+  const changes = ['recipe', 'favourite', 'entry'].map(kind => ({kind, id: recipeId, data:{}, deleted:true}));
+  await K.batch(changes);
+  refreshRecipeList();
 }
 
 refreshRecipeList();
+window.addEventListener('kitchen:change', () => refreshRecipeList());
+window.AnnaCustomRecipes = { add: addCustomRecipe, list: getCustomRecipes, remove: removeCustomRecipe, normalize: normalizeCustomRecipe };
 
-window.AnnaCustomRecipes = {
-  add: addCustomRecipe,
-  list: getCustomRecipes,
-  remove: removeCustomRecipe
-};
+})();
