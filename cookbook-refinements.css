@@ -26,8 +26,8 @@
   font-size: 12px;
 }
 .journal-tabs button.active {
-  border-color: var(--accent);
-  color: var(--accent);
+  border-color: var(--accent-text);
+  color: var(--accent-text);
 }
 .memory-grid {
   gap: 30px 25px;
@@ -130,7 +130,7 @@
 }
 .profile-stats strong {
   font-family: var(--serif);
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .collection-shelf {
   border-radius: 2px;
@@ -140,7 +140,7 @@
   color: var(--green);
 }
 .history-date {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .history-card {
   border-color: var(--line);

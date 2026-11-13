@@ -8,6 +8,7 @@
   --line: #d9dace;
   --accent: #a53423;
   --accent-dark: #862c1e;
+  --accent-text: var(--accent);
   --button-accent: var(--accent);
   --button-accent-hover: var(--accent-dark);
   --on-accent: var(--paper);
@@ -39,10 +40,11 @@ body.dark-theme {
   --paper-soft: #27272c;
   --card: #222226;
   --line: #414148;
-  --accent: #e96565;
-  --accent-dark: #f17b78;
-  --button-accent: #8e2632;
-  --button-accent-hover: #aa303a;
+  --accent: #b25867;
+  --accent-dark: #c16b78;
+  --accent-text: #c4b7bb;
+  --button-accent: #762332;
+  --button-accent-hover: #8b2d3d;
   --on-accent: #fff5f3;
   --green: #b2b8ac;
   --butter: #303034;
@@ -145,7 +147,7 @@ em {
   letter-spacing: 2px;
   font-weight: 700;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--accent-text);
   margin-bottom: 22px;
 }
 .section {
@@ -198,7 +200,7 @@ em {
 .logo-spark {
   font: 33px var(--serif);
   margin-left: 7px;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .logo-subtitle {
   display: block;
@@ -224,7 +226,7 @@ em {
 }
 .navigation a:hover,
 .navigation a.active {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .navigation a.active:after {
   content: "";
@@ -380,7 +382,7 @@ em {
   font-size: 9px;
   text-transform: uppercase;
   letter-spacing: 1.6px;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .featured-info h2 {
   font-size: 34px;
@@ -452,7 +454,7 @@ em {
   min-height: 44px;
   text-align: left;
   font-size: 12px;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .text-button:hover {
   text-decoration: underline;
@@ -551,7 +553,7 @@ em {
 }
 .collection-heading > a {
   font-size: 11px;
-  color: var(--accent);
+  color: var(--accent-text);
   padding-bottom: 6px;
 }
 .collection-description {
@@ -653,7 +655,7 @@ em {
   background: none;
   border: 0;
   font-size: 11px;
-  color: var(--accent);
+  color: var(--accent-text);
   min-height: 44px;
 }
 .advanced-filters {
@@ -743,7 +745,7 @@ em {
   transform: scale(1.04);
 }
 .recipe-card:hover h3 {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .card-save {
   position: absolute;
@@ -758,7 +760,7 @@ em {
   z-index: 2;
 }
 .card-save.saved {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .image-badges {
   position: absolute;
@@ -840,7 +842,7 @@ em {
 }
 .empty-state > span {
   font-size: 45px;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .empty-state h3 {
   font-size: 38px;
@@ -852,7 +854,7 @@ em {
 .empty-browse {
   display: inline-block;
   padding: 15px;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .site-footer {
   border-top: 1px solid var(--line);
@@ -984,7 +986,7 @@ dialog::backdrop {
   min-height: 42px;
 }
 .recipe-actions .saved {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .recipe-summary {
   display: grid;
@@ -1106,7 +1108,7 @@ dialog::backdrop {
   position: absolute;
   left: 0;
   top: 0;
-  color: var(--accent);
+  color: var(--accent-text);
   font: 25px var(--serif);
 }
 .nutrition-block {
@@ -1345,7 +1347,7 @@ dialog::backdrop {
   align-items: center;
 }
 .danger-button {
-  color: var(--accent);
+  color: var(--accent-text);
   border: 0;
   background: none;
   padding: 12px;
@@ -1454,7 +1456,7 @@ dialog::backdrop {
   font: 32px var(--serif);
 }
 .is-today .day-date {
-  color: var(--accent);
+  color: var(--accent-text);
   text-decoration: underline;
   text-underline-offset: 5px;
 }
@@ -1619,7 +1621,7 @@ dialog::backdrop {
 }
 .shopping-list .shopping-category {
   font-size: 9px;
-  color: var(--accent);
+  color: var(--accent-text);
   letter-spacing: 1.4px;
   text-transform: uppercase;
   padding-top: 23px;
@@ -1742,7 +1744,7 @@ dialog::backdrop {
 }
 .about-card > span {
   font: 30px var(--serif);
-  color: var(--accent);
+  color: var(--accent-text);
   display: block;
   margin-bottom: 25px;
 }
@@ -2246,8 +2248,8 @@ dialog::backdrop {
     border-bottom: 2px solid transparent;
   }
   .recipe-tabs button.active {
-    border-color: var(--accent);
-    color: var(--accent);
+    border-color: var(--accent-text);
+    color: var(--accent-text);
   }
   .recipe-detail-body {
     display: block;
