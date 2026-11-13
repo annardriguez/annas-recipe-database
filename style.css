@@ -29,16 +29,18 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 body.dark-theme {
-  --ink: #ececde;
-  --muted: #b7b9a6;
-  --paper: #20271f;
-  --paper-soft: #2c352a;
-  --card: #273024;
-  --line: #465040;
-  --accent: #f0a18b;
-  --accent-dark: #ffbfa9;
-  --green: #c0cb98;
-  --butter: #4e5233;
+  color-scheme: dark;
+  --ink: #f0e9e0;
+  --muted: #b8ada3;
+  --paper: #1e1c1a;
+  --paper-soft: #292623;
+  --card: #24211f;
+  --line: #47403a;
+  --accent: #d8a28a;
+  --accent-dark: #e8b69e;
+  --green: #aeb5a0;
+  --butter: #393127;
+  --shadow: 0 20px 70px #00000055;
 }
 body.dialog-open {
   overflow: hidden;

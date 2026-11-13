@@ -4,7 +4,8 @@ const themeMeta = document.querySelector('meta[name="theme-color"]');
 function applyTheme(theme) {
   const isDark = theme === "dark";
   document.body.classList.toggle("dark-theme", isDark);
-  themeMeta?.setAttribute("content", isDark ? "#20271f" : "#f6f3eb");
+  document.documentElement.style.colorScheme = isDark ? "dark" : "light";
+  themeMeta?.setAttribute("content", isDark ? "#1e1c1a" : "#f6f3eb");
 
   themeButtons.forEach(button => {
     button.textContent = isDark ? "☀" : "☾";
