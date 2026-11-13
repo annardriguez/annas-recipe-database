@@ -8,6 +8,9 @@
   --line: #d9dace;
   --accent: #a53423;
   --accent-dark: #862c1e;
+  --button-accent: var(--accent);
+  --button-accent-hover: var(--accent-dark);
+  --on-accent: var(--paper);
   --green: #56613a;
   --butter: #ebe5ac;
   --shadow: 0 20px 70px #292b2320;
@@ -30,16 +33,19 @@ body {
 }
 body.dark-theme {
   color-scheme: dark;
-  --ink: #f0e9e0;
-  --muted: #b8ada3;
-  --paper: #1e1c1a;
-  --paper-soft: #292623;
-  --card: #24211f;
-  --line: #47403a;
-  --accent: #d8a28a;
-  --accent-dark: #e8b69e;
-  --green: #aeb5a0;
-  --butter: #393127;
+  --ink: #eeeef0;
+  --muted: #aeafb5;
+  --paper: #1b1b1e;
+  --paper-soft: #27272c;
+  --card: #222226;
+  --line: #414148;
+  --accent: #d9828b;
+  --accent-dark: #e59aa1;
+  --button-accent: #8c303f;
+  --button-accent-hover: #a33b4b;
+  --on-accent: #fff2f5;
+  --green: #b2b8ac;
+  --butter: #303034;
   --shadow: 0 20px 70px #00000055;
 }
 body.dialog-open {
@@ -297,10 +303,10 @@ em {
   align-items: center;
   justify-content: center;
   gap: 24px;
-  border: 1px solid var(--accent);
+  border: 1px solid var(--button-accent);
   border-radius: 3px;
-  background: var(--accent);
-  color: var(--paper);
+  background: var(--button-accent);
+  color: var(--on-accent);
   padding: 14px 22px;
   font-size: 12px;
   font-weight: 500;
@@ -308,7 +314,7 @@ em {
 }
 .hero-browse:hover,
 .primary-button:hover {
-  background: var(--accent-dark);
+  background: var(--button-accent-hover);
 }
 .primary-button.secondary {
   background: transparent;

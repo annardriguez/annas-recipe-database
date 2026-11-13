@@ -5,7 +5,7 @@ function applyTheme(theme) {
   const isDark = theme === "dark";
   document.body.classList.toggle("dark-theme", isDark);
   document.documentElement.style.colorScheme = isDark ? "dark" : "light";
-  themeMeta?.setAttribute("content", isDark ? "#1e1c1a" : "#f6f3eb");
+  themeMeta?.setAttribute("content", isDark ? "#1b1b1e" : "#f6f3eb");
 
   themeButtons.forEach(button => {
     button.textContent = isDark ? "☀" : "☾";
