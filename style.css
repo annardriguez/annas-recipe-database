@@ -39,11 +39,11 @@ body.dark-theme {
   --paper-soft: #27272c;
   --card: #222226;
   --line: #414148;
-  --accent: #d9828b;
-  --accent-dark: #e59aa1;
-  --button-accent: #8c303f;
-  --button-accent-hover: #a33b4b;
-  --on-accent: #fff2f5;
+  --accent: #e96565;
+  --accent-dark: #f17b78;
+  --button-accent: #8e2632;
+  --button-accent-hover: #aa303a;
+  --on-accent: #fff5f3;
   --green: #b2b8ac;
   --butter: #303034;
   --shadow: 0 20px 70px #00000055;
