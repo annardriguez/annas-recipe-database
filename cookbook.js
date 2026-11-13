@@ -36,7 +36,7 @@
     const focusId = root.contains(document.activeElement) ? document.activeElement.id : null;
     const selection = focusId && document.activeElement.selectionStart;
     const changedOwner = owner !== K.user?.id;
-    if (changedOwner) {dialog.close(); editor.replaceChildren(); owner = K.user?.id; filter = 'all'; collection = '';}
+    if (changedOwner) {dialog.close(); editor.replaceChildren(); owner = K.user?.id; filter = new URLSearchParams(location.search).get('tab')==='history' ? 'history' : 'all'; collection = '';}
     const draftName = !changedOwner ? root.querySelector('[name="display_name"]')?.value : undefined;
     const profile = K.get('profile','me') || {};
     const name = profile.display_name || K.user?.user_metadata?.display_name || 'your kitchen';

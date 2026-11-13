@@ -7,13 +7,24 @@
     const account = new Account(sdk), functions = new Functions(sdk), storage = new Storage(sdk);
     const subscribers = new Set(), photos = new Map();
     let currentUser = null, recovery, notice = '', started;
+    const locked = () => localStorage.getItem('annaKitchenSignedOut') === '1';
+    const authFlow = new URLSearchParams(location.search).has('secret');
+    function unlock() {
+      localStorage.setItem('annaKitchenAuthRevision',crypto.randomUUID());
+      localStorage.removeItem('annaKitchenSignedOut');
+    }
+    async function pendingLogout() {
+      if(localStorage.getItem('annaKitchenPendingLogout')!=='1')return;
+      try {await account.deleteSession({sessionId:'current'});} catch(error) {if(error.code!==401)throw error;}
+      localStorage.removeItem('annaKitchenPendingLogout');
+    }
     const userShape = user => user ? {id:user.$id,email:user.email,emailVerified:user.emailVerification,user_metadata:{display_name:user.name}} : null;
     const session = () => currentUser ? {user:currentUser} : null;
     function revokePhotos() {for(const url of photos.values()) URL.revokeObjectURL(url); photos.clear();}
     function changed(event,user) {if(currentUser?.id!==user?.id)revokePhotos(); currentUser=user; subscribers.forEach(fn=>fn(event,session()));}
     const result = async fn => {try{return {data:await fn(),error:null};}catch(error){return {data:null,error};}};
     async function readUser() {
-      try {return userShape(await account.get());} catch(e) {if(e.code===401)return null; throw e;}
+      try {if(locked())return null;return userShape(await account.get());} catch(e) {if(e.code===401 || e.code===403)return null; throw e;}
     }
     function redirect(url,flow) {const target=new URL(url); target.searchParams.set('flow',flow);return target.href;}
     async function start() {
@@ -23,7 +34,7 @@
         const clean = new URL(location.href); ['userId','secret','expire','flow'].forEach(key=>clean.searchParams.delete(key));
         history.replaceState(null,'',clean.pathname+clean.search+clean.hash);
         if (flow==='verify') {await account.updateVerification({userId,secret}); notice='Your email is verified. You can now log in and sync your kitchen.';}
-        if (flow==='magic') await account.updateMagicURLSession({userId,secret});
+        if (flow==='magic') {await pendingLogout();await account.updateMagicURLSession({userId,secret});unlock();}
         if (flow==='recovery') recovery={userId,secret};
       }
       changed(recovery?'PASSWORD_RECOVERY':'INITIAL_SESSION',await readUser());
@@ -48,16 +59,17 @@
     const auth = {
       onAuthStateChange(fn) {subscribers.add(fn);return {data:{subscription:{unsubscribe:()=>subscribers.delete(fn)}}};},
       getSession:()=>result(async()=>{
+        if(locked() && !authFlow){await pendingLogout().catch(()=>{});return {session:null};}
         if(!started)started=start();
         try {await started;} catch(error) {started=null; throw error;}
         const user=await readUser();
         if(currentUser?.id!==user?.id || currentUser?.emailVerified!==user?.emailVerified)changed(user?'SIGNED_IN':'SIGNED_OUT',user);
         return {session:session()};
       }),
-      signInWithPassword:({email,password})=>result(async()=>{await account.createEmailPasswordSession({email,password});changed('SIGNED_IN',await readUser());return {session:session()};}),
+      signInWithPassword:({email,password})=>result(async()=>{await pendingLogout();await account.createEmailPasswordSession({email,password});unlock();changed('SIGNED_IN',await readUser());return {session:session()};}),
       signUp:({email,password,options})=>result(async()=>{
         await account.create({userId:ID.unique(),email,password,name:options.data.display_name});
-        await account.createEmailPasswordSession({email,password});
+        await pendingLogout();await account.createEmailPasswordSession({email,password});unlock();
         changed('SIGNED_IN',await readUser());
         try {await account.createVerification({url:redirect(options.emailRedirectTo,'verify')});}
         catch(e) {notice='Your account was created, but the verification email could not be sent. Use Resend verification.';throw e;}
@@ -67,11 +79,20 @@
       resetPasswordForEmail:(email,{redirectTo})=>result(()=>account.createRecovery({email,url:redirect(redirectTo,'recovery')})),
       resendVerification:()=>result(()=>account.createVerification({url:redirect(new URL('profile.html',location.href).href,'verify')})),
       updateUser:({password})=>result(async()=>{if(!recovery)throw new Error('Open a fresh password reset link from your email.');const data=await account.updateRecovery({...recovery,password});recovery=null;return data;}),
-      signOut:()=>result(async()=>{await account.deleteSession({sessionId:'current'});changed('SIGNED_OUT',null);return {};})
+      signOut:()=>result(async()=>{
+        // Local logout succeeds offline. A retained server cookie is revoked before a later login.
+        localStorage.setItem('annaKitchenSignedOut','1');
+        localStorage.setItem('annaKitchenPendingLogout','1');
+        localStorage.setItem('annaKitchenAuthRevision',crypto.randomUUID());
+        changed('SIGNED_OUT',null);
+        await window.AnnaOffline?.clear().catch(()=>{});
+        await pendingLogout().catch(()=>{});
+        return {};
+      })
     };
     // Keep the established account/data API stable while replacing its implementation.
     return {
-      auth, get notice(){return notice;},
+      auth, get allowOfflineIdentity(){return !authFlow && !locked();}, get notice(){return notice;},
       from:()=>({select(){return this;},eq(){return this;},order(){return this;},range:(start,end)=>result(()=>execution({action:'list',offset:start,limit:end-start+1}))}),
       rpc:(name,args)=>result(async()=>{
         if(name==='save_kitchen_records')return execution({action:'save',changes:args.changes});
