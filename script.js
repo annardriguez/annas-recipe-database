@@ -659,6 +659,7 @@ function renderSeason() {
 }
 renderSeason();
 function openLinkedRecipe() {
+  if (!AnnaKitchen.ready) return;
   if (!location.hash.startsWith("#recipe=")) return;
   let id;
   try {

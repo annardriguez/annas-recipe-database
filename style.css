@@ -2520,3 +2520,48 @@ dialog::backdrop {
     display: block !important;
   }
 }
+
+/* An explicit touch action also commits numeric edits in mobile Safari. */
+.slot-servings {
+  flex-wrap: wrap;
+}
+.slot-servings-apply {
+  flex: 1 0 100%;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--card);
+  padding: 8px;
+  min-height: 40px;
+  font-size: 10px;
+}
+@media (max-width: 760px) {
+  .slot-servings input {
+    font-size: 16px;
+    min-height: 40px;
+  }
+  .personal-notes textarea,
+  .personal-notes input,
+  .personal-notes select,
+  .custom-form-grid input,
+  .custom-form-grid textarea,
+  .custom-form-grid select,
+  .planner-page input,
+  .planner-page select,
+  .picker-search input,
+  .account-form input {
+    font-size: 16px;
+  }
+}
+
+/* Meal actions contribute to the slot height instead of overflowing the next row. */
+.meal-slot {
+  display: flex;
+  flex-direction: column;
+}
+.meal-choice {
+  flex: 1;
+  height: auto;
+}
+.slot-servings {
+  flex-shrink: 0;
+}

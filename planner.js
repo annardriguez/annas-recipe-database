@@ -136,20 +136,60 @@
             await K.remove("meal", id);
           }, "Meal removed");
         cell.append(remove);
-        const label = document.createElement("label");
+        const label = document.createElement("div");
         label.className = "slot-servings";
         label.innerHTML = `Servings <input type="number" min="1" max="48" step="1" value="${data.servings || r.servings || 1}" aria-label="Servings for ${escape(r.title)} on ${key} at ${slot}">`;
-        label.querySelector("input").onchange = (e) => {
-          const value = Number(e.target.value);
+        const input = label.querySelector("input");
+        input.inputMode = "numeric";
+        const apply = document.createElement("button");
+        apply.type = "button";
+        apply.className = "slot-servings-apply";
+        apply.textContent = "Update servings";
+        apply.hidden = true;
+        apply.setAttribute(
+          "aria-label",
+          `Update servings for ${r.title} on ${key} at ${slot}`,
+        );
+        label.append(apply);
+        let saving = false;
+        const updateServings = async () => {
+          const value = Number(input.value);
           if (!Number.isInteger(value) || value < 1 || value > 48) {
-            e.target.value = data.servings || r.servings || 1;
+            input.setAttribute("aria-invalid", "true");
+            K.notify("Choose a whole number of servings from 1 to 48.");
             return;
           }
-          perform(async () => {
+          const currentMeal = K.get("meal", id);
+          if (!currentMeal || currentMeal.recipe_id !== r.id) {
+            render();
+            return;
+          }
+          if (saving || value === (currentMeal.servings || r.servings || 1)) {
+            apply.hidden = true;
+            return;
+          }
+          saving = true;
+          apply.disabled = true;
+          await perform(async () => {
             remember();
-            await K.set("meal", id, { ...data, servings: value });
+            await K.set("meal", id, { ...currentMeal, servings: value });
           });
+          saving = false;
+          apply.disabled = false;
         };
+        input.oninput = () => {
+          input.removeAttribute("aria-invalid");
+          apply.hidden =
+            Number(input.value) === (data.servings || r.servings || 1);
+        };
+        input.onchange = updateServings;
+        input.onkeydown = (event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            updateServings();
+          }
+        };
+        apply.onclick = updateServings;
         cell.append(label);
       } else if (data?.recipe_id) {
         const missing = document.createElement("p");
@@ -573,6 +613,7 @@
   }
 
   function linked() {
+    if (!K.ready) return;
     if (location.hash.startsWith("#recipe=")) {
       try {
         const r = recipeById(decodeURIComponent(location.hash.slice(8)));
@@ -589,6 +630,7 @@
       recipeDialog.close();
     }
     render();
+    if (!recipeDialog.open) linked();
   });
   render();
   linked();

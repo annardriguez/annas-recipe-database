@@ -346,7 +346,10 @@
     releaseWake();
     if (location.hash.startsWith("#recipe="))
       history.replaceState(null, "", location.pathname + location.search);
-    document.body.classList.remove("dialog-open");
+    document.body.classList.toggle(
+      "dialog-open",
+      Boolean(document.querySelector("dialog[open]")),
+    );
   });
   function openRecipe(recipe, options = {}) {
     current = {
