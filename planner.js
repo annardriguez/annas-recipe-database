@@ -93,6 +93,16 @@
       ? `Choose a slot for ${incoming.title}.`
       : "A little room for good food. Choose any meal to get started.";
     $("#planner-save-status").textContent = K.status;
+    $("#calendar-grid").setAttribute("aria-busy", String(!K.ready));
+    for (const id of [
+      "organize-week",
+      "clear-week",
+      "save-template",
+      "reuse-template",
+    ])
+      $("#" + id).disabled = !K.ready;
+    const extra = $(".grocery-form button");
+    if (extra) extra.disabled = !K.ready;
     $("#calendar-grid").replaceChildren(...weekDates.map(renderDay));
     $("#undo-plan").hidden = !undo || undo.week !== dateKey(week);
     renderSummary();
@@ -114,6 +124,7 @@
       choice.className = "meal-choice";
       choice.id = `meal-${key}-${slot}`;
       choice.type = "button";
+      choice.disabled = !K.ready;
       choice.setAttribute(
         "aria-label",
         `${slot} on ${key}: ${r ? r.title + ". Change recipe" : "Add a recipe"}`,
@@ -203,6 +214,10 @@
     return section;
   }
   async function selectSlot(date, slot) {
+    if (!K.ready) {
+      K.notify("Your kitchen is loading. Please try again in a moment.");
+      return;
+    }
     selected = { date, slot };
     if (incoming) {
       if (await assign(incoming.id, incomingServings)) {

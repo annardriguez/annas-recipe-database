@@ -167,6 +167,7 @@ async function run(engineName, deviceName) {
     await tap(page.locator("#less-servings"));
     await tap(page.locator("#less-servings"));
     await tap(page.locator("#plan-recipe"));
+    await page.waitForURL(/\/planner\.html(?:\?|$)/);
     await ready();
     await page.locator("#incoming-meal").waitFor();
     assert.match(
@@ -175,7 +176,14 @@ async function run(engineName, deviceName) {
     );
     await tap(page.locator(".meal-choice").first());
     await page.waitForFunction(
-      () => window.AnnaKitchen.list("meal").length === 1,
+      () =>
+        window.AnnaKitchen.list("meal").length === 1 ||
+        document.querySelector("#toast")?.textContent,
+    );
+    assert.equal(
+      await page.evaluate(() => window.AnnaKitchen.list("meal").length),
+      1,
+      await page.locator("#toast").textContent(),
     );
     assert.equal(await page.locator(".has-meal").count(), 1);
     assert.match(
@@ -341,6 +349,21 @@ async function run(engineName, deviceName) {
         "All 72 recipe deep links render their complete ingredients and method at 390px",
       );
     }
+    await context.route("**/v1/account", async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      await route.continue();
+    });
+    await page.goto(
+      base + "planner.html?add=korean-beef-fried-rice&servings=2",
+      { waitUntil: "domcontentloaded" },
+    );
+    assert.equal(await page.evaluate(() => window.AnnaKitchen.ready), false);
+    assert.equal(await page.locator(".meal-choice").first().isEnabled(), false);
+    await ready();
+    assert.equal(await page.locator(".meal-choice").first().isEnabled(), true);
+    checks.push(
+      "Planner blocks premature taps while the kitchen is loading on a delayed connection",
+    );
     assert.deepEqual(errors, []);
     assert.deepEqual(failedAssets, []);
     const result = {
@@ -379,7 +402,11 @@ async function run(engineName, deviceName) {
 }
 (async () => {
   for (const engine of engines)
-    for (const device of ["iPhone 13", "iPhone SE"]) await run(engine, device);
+    for (const device of process.env.ANNA_TEST_DEVICES?.split(",") || [
+      "iPhone 13",
+      "iPhone SE",
+    ])
+      await run(engine, device);
 })()
   .catch((error) => {
     console.error(error.stack);
