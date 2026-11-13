@@ -416,7 +416,7 @@
         Object.keys(lists)
           .filter((k) => lists[k].includes(r.id))
           .join(", ") || "No collections yet",
-      )}</p><button class="text-button" id="remove-from-collection">Remove from selected collection</button><br><button class="small-button save-note" id="save-note">Save my notes</button><p class="form-hint">Your kitchen saves on this device as a guest, or privately to your account when signed in.</p></div></section></div>
+      )}</p><button class="text-button" id="remove-from-collection">Remove from selected collection</button><br><button class="small-button save-note" id="save-note">Save my notes</button><button class="text-button" id="open-cooking-diary">${current.finished ? "Record this cook ↗" : "Cooking diary ↗"}</button><p class="form-hint">Your kitchen saves on this device as a guest, or privately to your account when signed in.</p></div></section></div>
       <section class="related-section"><p class="eyebrow">ANOTHER DAY, ANOTHER GOOD DINNER</p><h3>You might also like</h3><div class="related-list">${recipes
         .filter((x) => x.id !== r.id && x.category === r.category)
         .sort(
@@ -449,6 +449,7 @@
         }
       }
     };
+    root.querySelector('#open-cooking-diary').onclick = () => K.journal.openEntry(r.id,{log:Boolean(current.finished)});
     root.querySelector("#less-servings").onclick = () => {
       current.servings--;
       renderRecipe();
@@ -624,8 +625,9 @@
         cooking = false;
         releaseWake();
         current.tab = "method";
+        current.finished = true;
         renderRecipe();
-        notify("Made with love. Enjoy every bite.");
+        notify("Made with love. Use Record this cook to keep a diary memory.");
       }
     };
     content.querySelector("#exit-cooking").onclick = () => {
@@ -690,7 +692,12 @@
     editorPhoto = "",
     photoCaption = "",
     photoBusy = false;
-  const editor = document.querySelector("#custom-recipe-dialog");
+  let editor = document.querySelector("#custom-recipe-dialog");
+  if (!editor) {
+    editor = document.createElement('dialog');
+    editor.id = 'custom-recipe-dialog';
+    document.body.append(editor);
+  }
   if (editor) {
     editor.setAttribute("aria-labelledby", "editor-title");
     editor.innerHTML = `<button class="dialog-close" id="custom-recipe-close" type="button" aria-label="Close recipe editor">×</button><form class="custom-recipe-form" id="custom-recipe-form"><p class="eyebrow">YOUR PERSONAL COOKBOOK</p><h2 id="editor-title">Something worth keeping.</h2><div class="custom-form-grid">
@@ -714,6 +721,23 @@
       .join(
         "",
       )}</div><div class="editor-footer"><button class="primary-button" type="submit">Save recipe ↗</button><button class="text-button" id="cancel-editor" type="button">Cancel</button><button class="danger-button" id="delete-recipe" type="button" hidden>Delete this recipe</button></div><p class="form-hint" id="editor-status" role="status">Saved on this device as a guest, or privately to your signed-in account.</p></form>`;
+    editor.querySelector('#custom-recipe-close').onclick = () => editor.close();
+    editor.addEventListener('click', event => {if(event.target === editor)editor.close();});
+    editor.querySelector('form').addEventListener('submit', async event => {
+      event.preventDefault();
+      const submit = editor.querySelector('[type=submit]');
+      submit.disabled = true;
+      const status = editor.querySelector('#editor-status');
+      status.textContent = 'Saving your recipe…';
+      try {
+        const recipe = await saveEditor();
+        if (!recipe) {status.textContent = 'Check the recipe fields before saving.'; return;}
+        editor.close();
+        notify('Recipe saved');
+        window.dispatchEvent(new CustomEvent('kitchen:recipe-saved',{detail:recipe}));
+      } catch(error) {status.textContent = 'Not saved: ' + K.errorMessage(error); notify(K.errorMessage(error));}
+      finally {submit.disabled = false;}
+    });
     editor.querySelector("[name=photo]").onchange = async (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -790,7 +814,7 @@
     editingVersion = recipe
       ? K.version(recipe.isCustom ? "recipe" : "entry", recipe.id)
       : 0;
-    editingPhotoPath = recipe?.photo || null;
+    editingPhotoPath = recipe?.photo || K.get("entry",recipe?.id)?.photo || null;
     editorPhoto = recipe?.image || "";
     photoCaption = recipe?.imageCaption || "";
     const form = editor.querySelector("form");
@@ -808,6 +832,13 @@
       }
     }
     updatePhoto();
+    editor.querySelector('#editor-status').textContent = K.user ? 'Save privately to your account.' : 'Save on this device, or sign in to sync.';
+    if (editingPhotoPath) {
+      const path = editingPhotoPath, owner = K.user?.id;
+      K.photoUrl(path).then(url => {
+        if (url && editor.open && editingPhotoPath === path && K.user?.id === owner) {editorPhoto = url; updatePhoto();}
+      }).catch(() => {});
+    }
     const del = editor.querySelector("#delete-recipe");
     del.hidden = !recipe?.isCustom;
     del.dataset.confirm = "";

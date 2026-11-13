@@ -403,7 +403,7 @@ function openRecipe(recipe) {
 
 function closeDialog() {
   dialog.close();
-  document.body.classList.remove("dialog-open");
+  document.body.classList.toggle("dialog-open", Boolean(document.querySelector("dialog[open]")));
 }
 
 function setFeaturedRecipe() {
@@ -420,33 +420,8 @@ randomRecipeButton.addEventListener("click", () => {
 });
 
 customRecipeButton?.addEventListener("click", () => AnnaKitchen.openEditor());
-customRecipeClose?.addEventListener("click", () => {
-  customRecipeDialog.close();
-  document.body.classList.remove("dialog-open");
-});
-customRecipeDialog?.addEventListener("click", (event) => {
-  if (event.target === customRecipeDialog) {
-    customRecipeDialog.close();
-    document.body.classList.remove("dialog-open");
-  }
-});
-customRecipeForm?.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const submit = customRecipeForm.querySelector('[type="submit"]');
-  submit.disabled = true;
-  let recipe;
-  try {
-    recipe = await AnnaKitchen.saveEditor();
-    if (!recipe) return;
-  } catch (e) {
-    showToast(window.AnnaKitchen.errorMessage(e));
-    return;
-  } finally {
-    submit.disabled = false;
-  }
-
-  customRecipeDialog.close();
-  document.body.classList.remove("dialog-open");
+window.addEventListener('kitchen:recipe-saved', event => {
+  const recipe = event.detail;
   searchInput.value = recipe.title;
   activeFilter = "all";
   resetAdvanced();

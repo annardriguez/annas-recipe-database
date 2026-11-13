@@ -1,0 +1,83 @@
+// Isolated guest integration checks; production account data is never written by this script.
+const {chromium,webkit}=require('playwright');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const {PNG}=require('pngjs');
+(async()=>{
+ const engine=process.env.ANNA_TEST_ENGINE==='webkit'?webkit:chromium;
+ const browser=await engine.launch();
+ for(const width of [390,1440])for(const theme of ['light','dark']){
+  const ctx=await browser.newContext({viewport:{width,height:width===390?844:1000}});
+  await ctx.addInitScript(t=>localStorage.setItem('annaKitchenTheme',t),theme);
+  const page=await ctx.newPage();await page.goto('http://127.0.0.1:4173/');await page.waitForFunction(()=>window.AnnaKitchen?.ready);
+  await page.evaluate(()=>document.fonts.ready);await page.locator('#featured-card img').evaluate(img=>img.complete?true:new Promise(resolve=>{img.onload=img.onerror=resolve}));
+  const after=await page.screenshot({path:`tests/unified-home-${width}-${theme}.png`,animations:'disabled'});
+  if(process.env.ANNA_COMPARE_BASELINE==='1') {
+    const a=PNG.sync.read(after),b=PNG.sync.read(fs.readFileSync(`/tmp/anna-home-before-${width}-${theme}.png`));
+    assert.equal(a.width,b.width);assert.equal(a.height,b.height);
+    let maximum=0;for(let i=0;i<a.data.length;i++)maximum=Math.max(maximum,Math.abs(a.data[i]-b.data[i]));
+    assert.ok(maximum<=8,`Homepage changed at ${width}px/${theme} (max channel delta ${maximum})`);
+  }
+  assert.equal(await page.locator('nav.navigation').count(),1);await ctx.close();
+ }
+ const ctx=await browser.newContext({viewport:{width:390,height:844}});
+ await ctx.addInitScript(()=>localStorage.setItem('annaShowNutrition','true'));
+ const page=await ctx.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ page.on('dialog',d=>d.accept());
+ const base='http://127.0.0.1:4173/';
+ const ready=()=>page.waitForFunction(()=>window.AnnaKitchen?.ready);
+ await page.goto(base+'cookbook.html');await ready();
+ await page.getByRole('button',{name:'+ An original recipe',exact:true}).click();
+ const form=page.locator('#custom-recipe-form');
+ await form.locator('[name=title]').fill('Unified recipe fixture');
+ await form.locator('[name=time]').fill('25');await form.locator('[name=servings]').fill('2');
+ await form.locator('[name=prepTime]').fill('10');await form.locator('[name=cookTime]').fill('15');
+ await form.locator('[name=calories]').fill('400');await form.locator('[name=protein]').fill('20');
+ await form.locator('[name=ingredients]').fill('200 g pasta\n100 ml cream, optional');
+ await form.locator('[name=steps]').fill('Boil the pasta.\nMix and serve.');
+ await form.locator('[name=photo]').setInputFiles(path.resolve('assets/tomato-orzo.jpg'));
+ await page.waitForFunction(()=>!document.querySelector('#custom-recipe-form [type=submit]').disabled);
+ await form.locator('[type=submit]').click();await page.locator('#custom-recipe-dialog').waitFor({state:'hidden'});
+ const id=await page.evaluate(()=>window.AnnaKitchen.list('recipe')[0].id);
+ await page.getByRole('button',{name:'Original creations',exact:true}).click();
+ await page.getByRole('button',{name:'Open recipe & journal ↗',exact:true}).click();
+ await page.locator('#entry-form [name=notes]').fill('Archive note survives recipe editing.');
+ await page.locator('#entry-form [name=substitutions]').fill('Oat cream.');
+ await page.getByRole('button',{name:'Save to my cookbook',exact:true}).click();await page.locator('#journal-dialog').waitFor({state:'hidden'});
+ await page.goto(base+'index.html#recipe='+id);await ready();
+ await page.locator('#recipe-dialog').waitFor({state:'visible'});
+ assert.equal(await page.locator('#personal-note').inputValue(),'Archive note survives recipe editing.');
+ await page.locator('.recipe-tabs [data-tab=method]').click();
+ await page.locator('#start-cooking').click();await page.locator('#next-step').click();await page.locator('#next-step').click();
+ await page.getByRole('button',{name:'Record this cook ↗',exact:true}).click();
+ assert.equal(await page.locator('#entry-form [name=log]').isChecked(),true);
+ await page.locator('#entry-form [name=rating]').selectOption('5');
+ await page.getByRole('button',{name:'Save to my cookbook',exact:true}).click();await page.locator('#journal-dialog').waitFor({state:'hidden'});
+ assert.equal(await page.evaluate(()=>window.AnnaKitchen.list('history').length),1);
+ assert.ok(await page.evaluate(()=>document.body.classList.contains('dialog-open')),'Recipe underneath the diary must retain its scroll lock');
+ await page.locator('#dialog-close').click();
+ await page.goto(base+'cookbook.html');await ready();
+ await page.getByRole('button',{name:'Original creations',exact:true}).click();
+ await page.getByRole('button',{name:'Open recipe & journal ↗',exact:true}).click();await page.getByRole('button',{name:'Edit original recipe',exact:true}).click();
+ assert.equal(await form.locator('[name=servings]').inputValue(),'2');assert.equal(await form.locator('[name=protein]').inputValue(),'20');
+ await form.locator('[name=title]').fill('Unified recipe revised');await form.locator('[type=submit]').click();await page.locator('#custom-recipe-dialog').waitFor({state:'hidden'});
+ const data=await page.evaluate(id=>({recipe:window.AnnaKitchen.get('recipe',id),entry:window.AnnaKitchen.get('entry',id),history:window.AnnaKitchen.list('history')}),id);
+ assert.equal(data.recipe.servings,2);assert.equal(data.recipe.protein,20);assert.ok(data.recipe.image?.startsWith('data:image/jpeg'));
+ assert.equal(data.entry.notes,'Archive note survives recipe editing.');assert.equal(data.history.length,1);
+ // A source recipe override and a new diary entry must share one record without losing either.
+ await page.goto(base+'index.html#recipe=korean-beef-fried-rice');await ready();await page.locator('#recipe-dialog').waitFor({state:'visible'});
+ await page.locator('#edit-recipe').click();await form.locator('[name=title]').fill('My private source-recipe edit');await form.locator('[type=submit]').click();await page.locator('#custom-recipe-dialog').waitFor({state:'hidden'});
+ await page.goto(base+'index.html#recipe=korean-beef-fried-rice');await ready();await page.locator('#recipe-dialog').waitFor({state:'visible'});
+ await page.locator('.recipe-tabs [data-tab=method]').click();
+ await page.getByRole('button',{name:'Cooking diary ↗',exact:true}).click();await page.locator('#entry-form [name=notes]').fill('Notes on the same edited recipe.');await page.locator('#entry-form [name=log]').check();
+ await page.getByRole('button',{name:'Save to my cookbook',exact:true}).click();await page.locator('#journal-dialog').waitFor({state:'hidden'});
+ assert.equal(await page.evaluate(()=>window.AnnaKitchen.get('entry','korean-beef-fried-rice').recipeEdit.title),'My private source-recipe edit');
+ await page.goto(base+'cookbook.html?tab=history');await ready();assert.equal(await page.locator('.history-card').count(),2);
+ await page.goto(base+'planner.html');await ready();await page.locator('.meal-choice').first().click();
+ const before=await page.locator('.picker-preview').count();assert.ok(before>0);await page.locator('.picker-preview').first().click();
+ await page.locator('.recipe-tabs [data-tab=method]').click();
+ await page.getByRole('button',{name:'Cooking diary ↗',exact:true}).click();assert.equal(await page.locator('#entry-form').count(),1);
+ assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));assert.deepEqual(errors,[]);
+ await browser.close();console.log('PASS: shared editor, diary from library/cooking/planner, archive notes and nutrition/photo preservation, source-edit preservation, modal scroll lock, one navigation, mobile layout'+(process.env.ANNA_COMPARE_BASELINE==='1'?', matching homepage screenshots at 390/1440 in light/dark themes (minor rasterization tolerance).':'.'));
+})().catch(e=>{console.error(e);process.exit(1)});

@@ -8,8 +8,10 @@ const ENDPOINT='https://fra.cloud.appwrite.io/v1', PROJECT='6af647a70013af378363
 async function run(){
  const credentialsPath=process.env.ANNA_APPWRITE_TEST_CREDENTIALS;if(!credentialsPath)throw Error('Set ANNA_APPWRITE_TEST_CREDENTIALS to an owner-readable test credentials file.');
  const credentials=JSON.parse(fs.readFileSync(credentialsPath,'utf8'));
+ const suppliedCookies=[...(credentials.cookies || [])];
  const checks=[],runId=`test-${randomUUID()}`,client=()=>new Client().setEndpoint(ENDPOINT).setProject(PROJECT);
  async function login(){
+  if(suppliedCookies.length)return client().setCookie(suppliedCookies.shift());
   const response=await fetch(`${ENDPOINT}/account/sessions/email`,{method:'POST',headers:{'X-Appwrite-Project':PROJECT,'Content-Type':'application/json',Origin:'http://127.0.0.1:4173'},body:JSON.stringify({email:credentials.email,password:credentials.password})});
   if(!response.ok)throw Error(`Login failed (${response.status})`);
   const cookie=response.headers.getSetCookie().map(v=>v.split(';')[0]).join('; ');
@@ -17,7 +19,7 @@ async function run(){
  }
  const a=await login(),b=await login();
  assert.equal((await new Account(a).get()).emailVerification,true);
- checks.push('Verified email and password login in two independent sessions');
+ checks.push('Verified email account authenticated in two independent sessions');
  const invoke=async(c,body)=>{
   const execution=await new Functions(c).createExecution({functionId:'kitchen-sync',body:JSON.stringify(body),async:false});
   let payload;try{payload=JSON.parse(execution.responseBody);}catch{throw Error(`Function failed (${execution.responseStatusCode}, ${execution.status})`);}
