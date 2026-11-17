@@ -237,3 +237,17 @@ body.dark-theme .grocery-form input {
     font-size: 34px;
   }
 }
+/* Folder controls reuse the cookbook's existing paper, type and button palette. */
+.folder-shortcuts { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 26px; }
+.folder-shortcuts button { max-width:100%; overflow-wrap:anywhere; text-align:left; }
+.folder-shortcuts button[aria-pressed="true"] { border-color:var(--accent-text); color:var(--accent-text); }
+.folder-shortcuts small { margin-left:6px; color:var(--muted); }
+.editor-folders { border:1px solid var(--line); margin:0; padding:16px; min-width:0; }
+.editor-folders legend { padding:0 6px; }
+.editor-folders .check-label { display:flex; flex-direction:row; align-items:center; gap:9px; margin:7px 0; }
+.editor-folders input[type="checkbox"] { width:auto; min-height:auto; }
+#recipe-import-dialog { max-width:min(560px,94vw); }
+#recipe-import-form { width:100%; }
+#recipe-import-form > label { display:grid; gap:6px; margin:14px 0; }
+#recipe-import-form input, #recipe-import-form select { width:100%; min-width:0; }
+@media(max-width:640px) { .journal-toolbar > .account-actions { width:100%; flex-wrap:wrap; } }

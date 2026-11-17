@@ -92,6 +92,7 @@
     };
     // Keep the established account/data API stable while replacing its implementation.
     return {
+      importRecipe:url=>result(()=>execution({action:'import-link',url})),
       auth, get allowOfflineIdentity(){return !authFlow && !locked();}, get notice(){return notice;},
       from:()=>({select(){return this;},eq(){return this;},order(){return this;},range:(start,end)=>result(()=>execution({action:'list',offset:start,limit:end-start+1}))}),
       rpc:(name,args)=>result(async()=>{

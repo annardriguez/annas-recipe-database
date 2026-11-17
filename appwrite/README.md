@@ -14,7 +14,7 @@ The private photo bucket has File Security enabled, permits only verified users 
 
 ## Deployment
 
-The function's source is `functions/kitchen-sync/main.js`. It uses pinned `node-appwrite@31.2.0` and a lockfile. Deploy an archive containing `main.js`, `package.json`, and `package-lock.json`, with entrypoint `main.js`, build command `npm ci --omit=dev`, runtime Node 22, and a 60-second execution timeout. The default database ID is in the source; `KITCHEN_DATABASE_ID` can override it.
+The function's source is `functions/kitchen-sync/main.js`. It uses pinned `node-appwrite@31.2.0` and a lockfile. Deploy an archive containing `main.js`, `recipe-import.js`, `safe-fetch.js`, `package.json`, and `package-lock.json`, with entrypoint `main.js`, build command `npm ci --omit=dev`, runtime Node 22, and a 60-second execution timeout. The default database ID is in the source; `KITCHEN_DATABASE_ID` can override it.
 
 The web client uses the pinned official `appwrite@29.2.0` SDK copied into `vendor/` with its license, plus `appwrite-config.js` (public identifiers only) and `appwrite-backend.js` (the adapter for the shared cookbook interface).
 
@@ -27,3 +27,5 @@ The previous Supabase setup files are retained for reference and recovery. This 
 `npm test` includes Appwrite handler tests for verified-user authorization, owner isolation, forbidden photo references, atomic rollback, version conflicts and repeat-safe imports. It also retains tests for the existing guest migration and data boundary, and a historical Supabase migration test.
 
 `npm run test:browser` exercises the real local guest UI with the Appwrite web SDK. It does not prove authenticated cross-device sync. Hosted test results and pending rollout steps belong in `SETUP.md`.
+
+Link importing and folder behaviour are documented in [LINK_IMPORT.md](../LINK_IMPORT.md). The importer reuses verified-user function access; it does not require additional execution scopes.

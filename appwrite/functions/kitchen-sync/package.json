@@ -1,1 +1,1 @@
-{"name":"anna-kitchen-sync","private":true,"type":"module","main":"main.js","dependencies":{"node-appwrite":"31.2.0"}}
+{"name":"anna-kitchen-sync","private":true,"type":"module","main":"main.js","dependencies":{"cheerio":"1.2.0","ipaddr.js":"2.5.0","node-appwrite":"31.2.0"}}

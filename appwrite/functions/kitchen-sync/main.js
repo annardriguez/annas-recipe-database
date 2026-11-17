@@ -1,4 +1,5 @@
 import {Client, Account, TablesDB, Query} from 'node-appwrite';
+import {importRecipe} from './recipe-import.js';
 import {createHash} from 'node:crypto';
 
 const DATABASE = process.env.KITCHEN_DATABASE_ID || '6af6480d001895013491';
@@ -9,7 +10,7 @@ const fail = (message, code = 400) => Object.assign(new Error(message), {code, s
 const rowId = (owner, kind, id) => createHash('sha256').update(JSON.stringify([owner,kind,id])).digest('hex').slice(0,36);
 const decode = row => ({user_id:row.owner,kind:row.kind,id:row.record_id,data:JSON.parse(row.payload),version:row.version,deleted:row.deleted,updated_at:row.$updatedAt});
 
-export function createHandler({authenticate, tables}) {
+export function createHandler({authenticate, tables, importLink = importRecipe}) {
   return async ({req,res,error}) => {
     let transaction;
     try {
@@ -18,6 +19,10 @@ export function createHandler({authenticate, tables}) {
       if (!user.emailVerification) throw fail('Verify your email to enable your private kitchen. Use Resend verification in your account.',403);
       const body = req.bodyJson;
       if (!body || typeof body !== 'object' || Array.isArray(body)) throw fail('Invalid request.');
+      if(body.action==='import-link') {
+        if(typeof body.url!=='string'||body.url.length>2048)throw fail('Paste a complete recipe website link.');
+        return res.json({data:await importLink(body.url)});
+      }
       const base = {databaseId:DATABASE, tableId:TABLE};
       if (body.action === 'list') {
         const offset = Number(body.offset || 0), limit = Number(body.limit || 500);

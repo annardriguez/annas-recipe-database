@@ -387,6 +387,9 @@
         ),
       );
   }
+  function sourceLink(recipe) {
+    try{const url=new URL(recipe.sourceUrl);if(!['http:','https:'].includes(url.protocol)||url.username||url.password)return '';return `<p class="form-hint"><a href="${html(url.href)}" target="_blank" rel="noopener noreferrer">View original recipe ↗</a>${recipe.sourceAuthor ? ` · ${html(recipe.sourceAuthor)}` : ''}</p>`;}catch{return '';}
+  }
   function renderRecipe() {
     const { recipe: r, servings, checked, options, tab } = current;
     const base = Number(r.servings) || null,
@@ -395,7 +398,7 @@
       lists = collections(),
       isSaved = saved(r.id);
     document.querySelector("#dialog-content").innerHTML = `
-      <header class="recipe-cover"><div class="recipe-cover-copy"><p class="eyebrow">THE RECIPE BOX / ${html(r.category)}</p><h2 id="recipe-dialog-title">${html(r.title)}</h2><p>${html(r.description)}</p>
+      <header class="recipe-cover"><div class="recipe-cover-copy"><p class="eyebrow">THE RECIPE BOX / ${html(r.category)}</p><h2 id="recipe-dialog-title">${html(r.title)}</h2><p>${html(r.description)}</p>${sourceLink(r)}
       <div class="recipe-actions"><button class="dialog-save ${isSaved ? "saved" : ""}" data-save-id="${html(r.id)}" aria-pressed="${isSaved}">${isSaved ? "♥ Saved to favourites" : "♡ Save recipe"}</button><button id="edit-recipe">Edit recipe</button><button id="plan-recipe">Add to plan ↗</button><button id="print-recipe">Print</button><button id="share-recipe">Copy link</button></div></div><div class="recipe-cover-image">${art(r, true)}</div></header>
       <div class="recipe-summary"><div><strong>${html(r.time)} minutes</strong>Total · as recorded</div><div><strong>${r.prepTime != null ? number(r.prepTime) + " min" : "Not recorded"}</strong>Preparation</div><div><strong>${r.cookTime != null ? number(r.cookTime) + " min" : "Not recorded"}</strong>Cooking</div><div><strong>${base ? `${servings} serving${servings === 1 ? "" : "s"}` : "Yield not recorded"}</strong>${base ? "Adjust below to suit your table" : "Original quantities shown"}</div></div>
       <nav class="recipe-tabs" aria-label="Recipe sections"><button class="${tab === "ingredients" ? "active" : ""}" data-tab="ingredients" aria-pressed="${tab === "ingredients"}">Ingredients</button><button class="${tab === "method" ? "active" : ""}" data-tab="method" aria-pressed="${tab === "method"}">Method & notes</button></nav>
@@ -692,6 +695,7 @@
     editorPhoto = "",
     photoCaption = "",
     photoBusy = false;
+  let editorDraft = null, importPhoto = null, editingEntryVersion = 0;
   let editor = document.querySelector("#custom-recipe-dialog");
   if (!editor) {
     editor = document.createElement('dialog');
@@ -706,7 +710,7 @@
     <label>Total time (minutes)<input name="time" type="number" required min="1" max="10080" placeholder="e.g. 30"></label><label>Preparation time (optional)<input name="prepTime" type="number" min="0" max="10080"></label><label>Cooking time (optional)<input name="cookTime" type="number" min="0" max="10080"></label>
     <label class="full">Recipe photo<input name="photo" type="file" accept="image/jpeg,image/png,image/webp"><span class="form-hint">JPEG, PNG or WebP, up to 8 MB. Saved with your recipe.</span><img class="photo-preview" id="photo-preview" alt="Your selected recipe photo" hidden><button class="text-button" id="remove-photo" type="button">Remove photo</button></label>
     <p class="editor-section">The good stuff.</p><label class="full">Ingredients<textarea name="ingredients" required rows="7" placeholder="200 g pasta\n1 tbsp olive oil\n2 garlic cloves, minced"></textarea><span class="form-hint">One ingredient per line, with its quantity. Commas stay in the ingredient. Amounts should be for the full batch.</span></label><label class="full">Method<textarea name="steps" required rows="7" placeholder="One clear instruction per line."></textarea></label>
-    <label class="full">Recipe tags<input name="tags" placeholder="vegetarian, meal prep, comfort food"><span class="form-hint">Separate tags with commas. Dietary filters use these tags.</span></label><label class="full">Source & recipe notes<textarea name="note" rows="3" placeholder="Source, tips, or any uncertainty about the quantities or nutrition."></textarea></label>
+    <label class="full">Recipe tags<input name="tags" placeholder="vegetarian, meal prep, comfort food"><span class="form-hint">Separate tags with commas. Dietary filters use these tags.</span></label><label class="full">Original recipe link<input name="sourceUrl" type="url" maxlength="2048" placeholder="https://…"></label><fieldset class="full editor-folders"><legend>Keep in folders</legend><div id="editor-folders"></div><label>New folder (optional)<input name="newFolder" maxlength="80" placeholder="Mum’s recipes, family favourites…"></label></fieldset><label class="full">Source & recipe notes<textarea name="note" rows="3" placeholder="Source, tips, or any uncertainty about the quantities or nutrition."></textarea></label>
     <p class="editor-section nutrition-only">Nutrition, if you have it.</p><p class="form-hint full nutrition-only">Values per serving. Leave unknown values blank. These will be displayed as recorded values, not verified calculations.</p>${[
       ["calories", "Calories (kcal)"],
       ["protein", "Protein (g)"],
@@ -741,6 +745,7 @@
     editor.querySelector("[name=photo]").onchange = async (e) => {
       const file = e.target.files[0];
       if (!file) return;
+      importPhoto = null;
       if (
         !["image/jpeg", "image/png", "image/webp"].includes(file.type) ||
         file.size > 8 * 1024 * 1024
@@ -781,6 +786,7 @@
     };
     editor.querySelector("#remove-photo").onclick = () => {
       editorPhoto = "";
+      importPhoto = null;
       editingPhotoPath = null;
       photoCaption = "";
       editor.querySelector("[name=photo]").value = "";
@@ -809,9 +815,12 @@
     if (editorPhoto) preview.src = editorPhoto;
     else preview.removeAttribute("src");
   }
-  function openEditor(recipe = null) {
-    editingId = recipe?.id || null;
-    editingVersion = recipe
+  function openEditor(recipe = null, options = {}) {
+    editorDraft = options.imported ? structuredClone(recipe) : null;
+    importPhoto = options.photo || null;
+    editingEntryVersion = recipe?.id ? K.version("entry",recipe.id) : 0;
+    editingId = options.imported ? null : recipe?.id || null;
+    editingVersion = recipe && !options.imported
       ? K.version(recipe.isCustom ? "recipe" : "entry", recipe.id)
       : 0;
     editingPhotoPath = recipe?.photo || K.get("entry",recipe?.id)?.photo || null;
@@ -819,7 +828,7 @@
     photoCaption = recipe?.imageCaption || "";
     const form = editor.querySelector("form");
     form.reset();
-    editor.querySelector("#editor-title").textContent = recipe
+    editor.querySelector("#editor-title").textContent = options.imported ? "A new find for your kitchen." : recipe
       ? "A little fine-tuning."
       : "Something worth keeping.";
     if (recipe) {
@@ -831,6 +840,9 @@
           : (value ?? "");
       }
     }
+    const memberships=K.get('entry',editingId)?.collection_ids || (options.folderId ? [options.folderId] : []);
+    editor.querySelector('#editor-folders').innerHTML=K.list('collection').map(c=>`<label class="check-label"><input type="checkbox" name="folderIds" value="${html(c.id)}" ${memberships.includes(c.id)?'checked':''}>${html(c.data.name)}</label>`).join('') || '<p class="form-hint">Create your first folder below.</p>';
+    form.elements.newFolder.value=options.newFolder || '';
     updatePhoto();
     editor.querySelector('#editor-status').textContent = K.user ? 'Save privately to your account.' : 'Save on this device, or sign in to sync.';
     if (editingPhotoPath) {
@@ -840,7 +852,7 @@
       }).catch(() => {});
     }
     const del = editor.querySelector("#delete-recipe");
-    del.hidden = !recipe?.isCustom;
+    del.hidden = options.imported || !recipe?.isCustom;
     del.dataset.confirm = "";
     del.textContent = "Delete this recipe";
     editor.showModal();
@@ -852,7 +864,7 @@
       data = Object.fromEntries(new FormData(form));
     const existing = recipes.find((r) => r.id === editingId);
     const r = {
-      ...existing,
+      ...(existing || editorDraft),
       title: data.title.trim(),
       description: data.description.trim(),
       category: data.category,
@@ -869,6 +881,7 @@
         .map((s) => s.trim().toLowerCase())
         .filter(Boolean),
       note: data.note.trim(),
+      sourceUrl: data.sourceUrl.trim(),
       image: K.user ? "" : editorPhoto,
       photo: editingPhotoPath,
       imageCaption: photoCaption,
@@ -890,29 +903,29 @@
       notify("Add a name, ingredients and at least one step");
       return null;
     }
-    if (existing && !existing.isCustom) {
-      await K.set(
-        "entry",
-        existing.id,
-        { ...K.get("entry", existing.id), recipeEdit: r },
-        editingVersion,
-      );
-      Object.assign(existing, r);
-      return existing;
+    if(r.sourceUrl){try{const url=new URL(r.sourceUrl);if(!['https:','http:'].includes(url.protocol)||url.username||url.password)throw new Error();r.sourceUrl=url.href;}catch{throw new Error('Use a complete http:// or https:// source link.');}}
+    const folders=K.list('collection'), ids=new Set(folders.map(c=>c.id));
+    const memberships=new FormData(form).getAll('folderIds');
+    if(memberships.some(id=>!ids.has(id)))throw new Error('A selected folder has changed. Reopen the editor and choose it again.');
+    const changes=[],versions=[];
+    const folderName=data.newFolder.trim();
+    if(folderName){let folder=folders.find(c=>c.data.name.toLocaleLowerCase()===folderName.toLocaleLowerCase());if(!folder){folder={id:crypto.randomUUID()};changes.push({kind:'collection',id:folder.id,data:{name:folderName},deleted:false});versions.push(0);}if(!memberships.includes(folder.id))memberships.push(folder.id);}
+    if(importPhoto && K.user && !editingPhotoPath){editingPhotoPath=await K.upload(importPhoto);r.photo=editingPhotoPath;}
+    const sourceEdit=existing && !existing.isCustom;
+    const id=existing?.id || 'custom-'+crypto.randomUUID();
+    const entry=K.get('entry',id) || {};
+    if(sourceEdit || editorDraft || memberships.length || JSON.stringify(entry.collection_ids || [])!==JSON.stringify(memberships)){
+      changes.push({kind:'entry',id,data:{...entry,...(sourceEdit?{recipeEdit:r}:{}),collection_ids:memberships},deleted:false});
+      versions.push(sourceEdit?editingVersion:editingEntryVersion);
     }
-    if (existing?.isCustom) {
-      const normalized = window.AnnaCustomRecipes.normalize({
-        ...r,
-        id: editingId,
-      });
-      await K.set("recipe", editingId, normalized, editingVersion);
-      return normalized;
-    }
-    return await window.AnnaCustomRecipes.add({
-      ...r,
-      id: editingId || undefined,
-    });
+    const normalized=sourceEdit?r:window.AnnaCustomRecipes.normalize({...r,id});
+    if(!sourceEdit){changes.push({kind:'recipe',id,data:normalized,deleted:false});versions.push(editingVersion);}
+    await K.batch(changes,versions);
+    importPhoto=null;
+    if(sourceEdit)Object.assign(existing,r);
+    return sourceEdit?existing:normalized;
   }
+
   // Conservative quantity consolidation: merge exact ingredient names and compatible units only.
   function groceryEntries(meals) {
     const grouped = new Map();
@@ -1040,6 +1053,7 @@
     ?.addEventListener("change", async (e) => {
       const file = e.target.files[0];
       if (!file) return;
+      importPhoto = null;
       try {
         if (!K.ready) throw Error("Wait until your kitchen finishes loading");
         if (file.size > 25 * 1024 * 1024) throw Error("File too large");

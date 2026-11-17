@@ -349,18 +349,23 @@ async function run(engineName, deviceName) {
         "All 72 recipe deep links render their complete ingredients and method at 390px",
       );
     }
-    await context.route("**/v1/account", async (route) => {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      await route.continue();
-    });
-    await page.goto(
-      base + "planner.html?add=korean-beef-fried-rice&servings=2",
-      { waitUntil: "domcontentloaded" },
-    );
-    assert.equal(await page.evaluate(() => window.AnnaKitchen.ready), false);
-    assert.equal(await page.locator(".meal-choice").first().isEnabled(), false);
-    await ready();
-    assert.equal(await page.locator(".meal-choice").first().isEnabled(), true);
+    // WebKit can forward a controlled page's requests outside Playwright routing.
+    // Use a fresh context without SWs for this loading-boundary check, and hold
+    // the response until assertions finish rather than depending on a 500ms race.
+    const slowContext=await browser.newContext({...device,timezoneId:'Europe/Amsterdam',locale:'en-GB',serviceWorkers:'block'});
+    const slowPage=await slowContext.newPage();slowPage.on('pageerror',error=>errors.push(error.message));
+    let releaseAccount;
+    const accountGate=new Promise(resolve=>releaseAccount=resolve);
+    await slowContext.route('**/v1/account',async route=>{await accountGate;await route.continue();});
+    try {
+      await slowPage.goto(base+'planner.html?add=korean-beef-fried-rice&servings=2',{waitUntil:'domcontentloaded'});
+      assert.equal(await slowPage.evaluate(()=>window.AnnaKitchen.ready),false);
+      assert.equal(await slowPage.locator('.meal-choice').first().isEnabled(),false);
+      releaseAccount();
+      await slowPage.waitForFunction(()=>window.AnnaKitchen.ready);
+      assert.equal(await slowPage.evaluate(()=>window.AnnaKitchen.user),null);
+      assert.equal(await slowPage.locator('.meal-choice').first().isEnabled(),true);
+    } finally {releaseAccount();await slowContext.close();}
     checks.push(
       "Planner blocks premature taps while the kitchen is loading on a delayed connection",
     );
