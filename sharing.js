@@ -39,7 +39,7 @@
   };
   async function loadCommunity(reset=false){
     if(communityBusy||!K.client?.publicRecipes||!navigator.onLine)return;
-    communityBusy=true;if(reset)communityOffset=0;
+    communityBusy=true;if(reset){communityOffset=0;communityStatus('Loading community recipes…');}
     try{const {data,error}=await K.client.publicRecipes(communityOffset);if(error)throw error;if(reset)community=[];for(const r of data.recipes){const i=community.findIndex(old=>old.id===r.id);if(i<0)community.push(r);else community[i]=r;}communityOffset+=6;communityMore=data.hasMore;models();window.dispatchEvent(new Event('kitchen:community'));communityStatus('');}
     catch{communityStatus('Community recipes could not load. Your own recipes are still available.');}
     finally{communityBusy=false;const button=document.querySelector('#community-more');if(button){button.hidden=!communityMore;button.disabled=false;}}
@@ -127,7 +127,7 @@
   onChange();
   if(location.pathname.endsWith('index.html')||location.pathname.endsWith('/') ){
     const isLibrary=new URLSearchParams(location.search).get('view')==='recipes';
-    if(isLibrary){const panel=document.createElement('div');panel.className='community-controls';panel.innerHTML=`<label>Recipe library<select id="recipe-origin"><option value="all">All recipes</option><option value="anna">Anna’s recipes</option><option value="community">Community</option><option value="mine">My recipes</option></select></label><p class="form-hint" id="community-status" role="status"></p><button type="button" class="clear-button" id="community-more">Load more community recipes</button>`;document.querySelector('.control-panel')?.prepend(panel);panel.querySelector('select').onchange=()=>window.dispatchEvent(new Event('kitchen:community'));panel.querySelector('button').onclick=()=>loadCommunity(false);void loadCommunity(true);setInterval(()=>{if(document.visibilityState==='visible'&&navigator.onLine)void loadCommunity(true);},60000);}
+    if(isLibrary){const panel=document.createElement('div');panel.className='community-controls';panel.innerHTML=`<label>Recipe library<select id="recipe-origin" aria-label="Recipe library"><option value="all">All recipes</option><option value="anna">Anna’s recipes</option><option value="community">Community</option><option value="mine">My recipes</option></select></label><p class="form-hint" id="community-status" role="status"></p><button type="button" class="clear-button" id="community-more">Load more community recipes</button>`;document.querySelector('.control-panel')?.prepend(panel);panel.querySelector('select').onchange=()=>window.dispatchEvent(new Event('kitchen:community'));panel.querySelector('button').onclick=()=>loadCommunity(false);void loadCommunity(true);setInterval(()=>{if(document.visibilityState==='visible'&&navigator.onLine)void loadCommunity(true);},60000);}
     if(location.hash.startsWith('#recipe=community-')){let opened=false;const check=()=>{if(!opened&&K.ready){opened=true;void K.openCommunity(decodeURIComponent(location.hash.slice(8)));}};window.addEventListener('kitchen:change',check);check();}
   }
   const sharedParams=new URLSearchParams(location.search);

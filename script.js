@@ -380,23 +380,24 @@ function renderRecipes() {
     activeFilter === "all" &&
     !searchInput.value &&
     sortSelect.value === "default" &&
-    !hasAdvanced();
+    !hasAdvanced() && (!document.querySelector('#recipe-origin') || document.querySelector('#recipe-origin').value==='all');
   recipeGrid.replaceChildren(
     ...visible.map((recipe, index) => createRecipeCard(recipe, index)),
   );
 
   const total = showingFavourites
     ? recipes.filter((recipe) => savedRecipeIds.has(recipe.id)).length
-    : recipes.length;
+    : recipes.filter(r=>!r.isShared).length;
   recipeCount.textContent = `${visible.length} of ${total} recipe${total === 1 ? "" : "s"}`;
   randomRecipeButton.disabled = visible.length === 0;
   const noSaved = showingFavourites && total === 0;
+  const noCommunity=document.querySelector('#recipe-origin')?.value==='community'&&!recipes.some(r=>r.isCommunity);
   document.querySelector("#empty-title").textContent = noSaved
     ? "Keep your favourites close."
-    : "No recipes found.";
+    : noCommunity ? "No community recipes yet." : "No recipes found.";
   document.querySelector("#empty-description").textContent = noSaved
     ? "Tap the heart on a recipe to save it here for another day."
-    : "Try another ingredient or clear your filters.";
+    : noCommunity ? "Publish a recipe from My cookbook to share it here." : "Try another ingredient or clear your filters.";
   document.querySelector("#empty-reset").hidden = noSaved;
   document.querySelector(".empty-browse").hidden = !noSaved;
   emptyMessage.hidden = visible.length !== 0;
@@ -429,6 +430,7 @@ randomRecipeButton.addEventListener("click", () => {
 customRecipeButton?.addEventListener("click", () => AnnaKitchen.openEditor());
 window.addEventListener('kitchen:recipe-saved', event => {
   const recipe = event.detail;
+  const origin=document.querySelector('#recipe-origin');if(origin)origin.value='mine';
   searchInput.value = recipe.title;
   activeFilter = "all";
   resetAdvanced();
@@ -443,6 +445,7 @@ window.addEventListener('kitchen:recipe-saved', event => {
 });
 
 clearFiltersButton.addEventListener("click", () => {
+  const origin=document.querySelector('#recipe-origin');if(origin)origin.value='all';
   activeFilter = "all";
   searchInput.value = "";
   sortSelect.value = "default";
