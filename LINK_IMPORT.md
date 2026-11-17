@@ -6,7 +6,7 @@ The original website link, author and website name are retained with the recipe.
 
 Folder buttons in the cookbook filter the saved recipes. The existing recipe editor now lets you choose multiple folders or create a folder while saving. Existing collection IDs and memberships are preserved. Rename/delete controls remain in **Manage folders**; deleting a folder keeps its recipes. Recipe content, folder membership and any newly created folder commit atomically, with the existing version/conflict checks. A failed save retains the editor and can reuse an imported private photo already uploaded for that draft.
 
-Link importing requires a verified signed-in account and an internet connection. Saved imports and private photos participate in the existing account sync, planner, cooking mode and offline download. These folders are still private to their owner. Shared family invitations and membership are a separate next step; naming a folder “Family” does not expose it to another account.
+Link importing requires a verified signed-in account and an internet connection. Saved imports and private photos participate in the existing account sync, planner, cooking mode and offline download. Personal folders stay private. To share with another account, use the explicit Shared cookbooks controls described in SHARING.md; naming a personal folder “Family” does not grant access.
 
 ## Website support and limits
 

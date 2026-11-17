@@ -6,12 +6,13 @@
   dialog.innerHTML=`<button class="dialog-close" type="button" aria-label="Close recipe importer">×</button><form class="account-panel" id="recipe-import-form"><p class="eyebrow">A FIND WORTH KEEPING</p><h2 id="import-title">Bring a recipe home.</h2><p>Paste a recipe website link. Review the ingredients and method before saving it to your kitchen.</p><label>Recipe website link<input name="url" type="url" required maxlength="2048" placeholder="https://…" autocomplete="off"></label><label>Folder<select name="folder"><option value="">Choose after importing</option></select></label><label>Or start a new folder<input name="newFolder" maxlength="80" placeholder="Mum’s recipes, family favourites…"></label><p class="form-hint">Works with recipe websites that publish readable recipe details. Video and social-media links may need the creator’s recipe website.</p><p id="import-status" class="form-hint" role="status"></p><div class="account-actions"><button type="submit" class="primary-button">Preview recipe ↗</button><button type="button" class="text-button" data-cancel>Cancel</button></div></form>`;
   document.body.append(dialog);
   const form=dialog.querySelector('form'),status=dialog.querySelector('#import-status'),submit=form.querySelector('[type=submit]');
-  let attempt=0,owner;
+  let attempt=0,owner,sharedBookId=null;
   function cancel(){attempt++;submit.disabled=false;dialog.close();}
   dialog.querySelector('.dialog-close').onclick=cancel;dialog.querySelector('[data-cancel]').onclick=cancel;
   dialog.addEventListener('click',event=>{if(event.target===dialog)cancel();});
   dialog.addEventListener('cancel',()=>{attempt++;submit.disabled=false;});
-  function openImport(){
+  function openImport(options={}){
+    sharedBookId=options.sharedBookId || null;
     form.reset();form.querySelector('[data-existing]')?.remove();status.textContent='';submit.disabled=false;attempt++;owner=K.user?.id;
     form.elements.folder.innerHTML='<option value="">Choose after importing</option>'+K.list('collection').map(c=>`<option value="${K.html(c.id)}">${K.html(c.data.name)}</option>`).join('');
     if(!K.user){status.textContent='Sign in to import website links. You can still add your own recipes manually.';submit.disabled=true;}
@@ -35,7 +36,7 @@
       if(generation!==attempt||!dialog.open||K.user?.id!==account)return;
       const recipe={...data.recipe};let photo=null;
       if(data.image){const bytes=Uint8Array.from(atob(data.image.base64),c=>c.charCodeAt(0));photo=new File([bytes],'imported-recipe.'+({'image/jpeg':'jpg','image/png':'png','image/webp':'webp'}[data.image.type]||'jpg'),{type:data.image.type});recipe.image=`data:${data.image.type};base64,${data.image.base64}`;recipe.imageCaption=recipe.sourceAuthor?`Recipe photo · ${recipe.sourceAuthor}`:'Photo from the original recipe';}
-      dialog.close();K.openEditor(recipe,{imported:true,photo,folderId,newFolder});
+      dialog.close();K.openEditor(recipe,{imported:true,photo,folderId,newFolder,shareBookId:sharedBookId});
       const editor=document.querySelector('#custom-recipe-dialog');
       editor.querySelector('#editor-status').textContent=['Review the imported recipe before saving. Nothing has been saved yet.',...(data.warnings||[])].join(' ');
     }catch(error){if(generation===attempt&&dialog.open)status.textContent=K.errorMessage(error);}

@@ -176,6 +176,7 @@
   });
   const collections = () => read("annaCollections", {});
   const metadata = (id) => read("annaRecipeNotes", {})[id] || {};
+  const noteSnapshot = id => {const value=metadata(id);return JSON.stringify({note:value.note||'',substitutions:value.substitutions||'',tags:value.tags||[]});};
   const number = (n) =>
     Number.isFinite(n) ? String(Math.round(n * 100) / 100) : "—";
   const fraction = (text) => {
@@ -340,7 +341,8 @@
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible" && cooking) requestWake();
   });
-  const recipeDialog = document.querySelector("#recipe-dialog");
+  let recipeDialog = document.querySelector("#recipe-dialog");
+  if(!recipeDialog){recipeDialog=document.createElement('dialog');recipeDialog.id='recipe-dialog';recipeDialog.setAttribute('aria-labelledby','recipe-dialog-title');recipeDialog.innerHTML='<button class="dialog-close" id="dialog-close" aria-label="Close recipe">×</button><div id="dialog-content"></div>';document.body.append(recipeDialog);recipeDialog.querySelector('button').onclick=()=>recipeDialog.close();recipeDialog.addEventListener('click',event=>{if(event.target===recipeDialog)recipeDialog.close();});}
   recipeDialog?.addEventListener("close", () => {
     cooking = false;
     releaseWake();
@@ -352,13 +354,16 @@
     );
   });
   function openRecipe(recipe, options = {}) {
+    if(recipe.isCommunity && options.publicVerified!==recipe.id)return K.openCommunity(recipe.id);
+    if(recipe.isShared && options.sharedVerified!==recipe.id)return K.openShared(recipe);
+    recipeDialog.dataset.sharedBookId=recipe.isShared?recipe.sharedBookId:'';
     current = {
       recipe,
       options,
       servings: Number(recipe.servings) || null,
       checked: new Set(),
       tab: "ingredients",
-      noteSnapshot: JSON.stringify(metadata(recipe.id)),
+      noteSnapshot: noteSnapshot(recipe.isCommunity||recipe.isShared?K.copyId(recipe):recipe.id),
     };
     cooking = false;
     releaseWake();
@@ -394,12 +399,13 @@
     const { recipe: r, servings, checked, options, tab } = current;
     const base = Number(r.servings) || null,
       ratio = base ? servings / base : 1;
-    const notes = current.draft || metadata(r.id),
+    const noteId=r.isCommunity||r.isShared?K.copyId(r):r.id;
+    const notes = current.draft || metadata(noteId),
       lists = collections(),
-      isSaved = saved(r.id);
+      isSaved = saved(r.id)||((r.isCommunity||r.isShared)&&Boolean(K.get('favourite',K.copyId(r))));
     document.querySelector("#dialog-content").innerHTML = `
-      <header class="recipe-cover"><div class="recipe-cover-copy"><p class="eyebrow">THE RECIPE BOX / ${html(r.category)}</p><h2 id="recipe-dialog-title">${html(r.title)}</h2><p>${html(r.description)}</p>${sourceLink(r)}
-      <div class="recipe-actions"><button class="dialog-save ${isSaved ? "saved" : ""}" data-save-id="${html(r.id)}" aria-pressed="${isSaved}">${isSaved ? "♥ Saved to favourites" : "♡ Save recipe"}</button><button id="edit-recipe">Edit recipe</button><button id="plan-recipe">Add to plan ↗</button><button id="print-recipe">Print</button><button id="share-recipe">Copy link</button></div></div><div class="recipe-cover-image">${art(r, true)}</div></header>
+      <header class="recipe-cover"><div class="recipe-cover-copy"><p class="eyebrow">THE RECIPE BOX / ${html(r.category)}</p><h2 id="recipe-dialog-title">${html(r.title)}</h2><p>${html(r.description)}</p>${r.isCommunity ? `<p class="form-hint">Community · Shared by ${html(r.publisherName)}</p>` : r.isShared ? `<p class="form-hint">Shared cookbook · Added by ${html(r.contributorName)}</p>` : ''}${sourceLink(r)}
+      <div class="recipe-actions"><button class="dialog-save ${isSaved ? "saved" : ""}" data-save-id="${html(r.id)}" aria-pressed="${isSaved}">${r.isCommunity||r.isShared ? (isSaved?"✓ Saved to your kitchen":"Save a private copy") : isSaved ? "♥ Saved to favourites" : "♡ Save recipe"}</button><button id="edit-recipe">${r.isCommunity || (r.isShared && r.contributorId!==K.user?.id) ? "Make a private edit" : r.isShared ? "Edit my contribution" : "Edit recipe"}</button><button id="plan-recipe">Add to plan ↗</button><button id="print-recipe">Print</button><button id="share-recipe">Copy link</button>${!r.isCommunity&&!r.isShared?'<button id="open-sharing">Share / publish ↗</button>':''}</div></div><div class="recipe-cover-image">${art(r, true)}</div></header>
       <div class="recipe-summary"><div><strong>${html(r.time)} minutes</strong>Total · as recorded</div><div><strong>${r.prepTime != null ? number(r.prepTime) + " min" : "Not recorded"}</strong>Preparation</div><div><strong>${r.cookTime != null ? number(r.cookTime) + " min" : "Not recorded"}</strong>Cooking</div><div><strong>${base ? `${servings} serving${servings === 1 ? "" : "s"}` : "Yield not recorded"}</strong>${base ? "Adjust below to suit your table" : "Original quantities shown"}</div></div>
       <nav class="recipe-tabs" aria-label="Recipe sections"><button class="${tab === "ingredients" ? "active" : ""}" data-tab="ingredients" aria-pressed="${tab === "ingredients"}">Ingredients</button><button class="${tab === "method" ? "active" : ""}" data-tab="method" aria-pressed="${tab === "method"}">Method & notes</button></nav>
       <div class="recipe-detail-body" data-tab="${tab}"><aside class="ingredients-pane"><div class="ingredient-heading"><h3>Ingredients</h3><div class="serving-control"><button id="less-servings" aria-label="Decrease servings" ${!base || servings <= 1 ? "disabled" : ""}>−</button><span aria-live="polite">${servings || "—"}</span><button id="more-servings" aria-label="Increase servings" ${!base || servings >= 48 ? "disabled" : ""}>+</button></div></div><p class="form-hint">${base ? `For ${servings} serving${servings === 1 ? "" : "s"}. Tick off as you go. ${ratio !== 1 ? "Quantities scaled from the original recipe; season to taste." : ""}` : "Serving size is missing. Add it in Edit recipe to scale quantities."}</p><ul class="ingredient-list">${ingredientMarkup(r, ratio, checked)}</ul>
@@ -411,13 +417,13 @@
       )
         .map(
           (name) =>
-            `<option value="${html(name)}" ${lists[name].includes(r.id) ? "selected" : ""}>${html(name)}</option>`,
+            `<option value="${html(name)}" ${lists[name].includes(noteId) ? "selected" : ""}>${html(name)}</option>`,
         )
         .join(
           "",
         )}</select><button class="text-button" id="new-collection">+ Create collection</button><button class="small-button" id="add-to-collection">Add to collection</button><p class="form-hint" id="collection-memberships">In: ${html(
         Object.keys(lists)
-          .filter((k) => lists[k].includes(r.id))
+          .filter((k) => lists[k].includes(noteId))
           .join(", ") || "No collections yet",
       )}</p><button class="text-button" id="remove-from-collection">Remove from selected collection</button><br><button class="small-button save-note" id="save-note">Save my notes</button><button class="text-button" id="open-cooking-diary">${current.finished ? "Record this cook ↗" : "Cooking diary ↗"}</button><p class="form-hint">Your kitchen saves on this device as a guest, or privately to your account when signed in.</p></div></section></div>
       <section class="related-section"><p class="eyebrow">ANOTHER DAY, ANOTHER GOOD DINNER</p><h3>You might also like</h3><div class="related-list">${recipes
@@ -434,7 +440,10 @@
         )
         .join("")}</div></section>`;
     const root = document.querySelector("#dialog-content");
+    root.querySelector('#open-sharing')?.addEventListener('click',()=>K.openSharing(r));
     root.querySelector(".dialog-save").onclick = async (event) => {
+      if(r.isCommunity||r.isShared){try{await K.saveCopy(r,{favourite:true});notify('Saved a separate copy to your kitchen.');}catch(error){notify(K.errorMessage(error));}return;}
+
       if (options.toggleFavourite)
         await options.toggleFavourite(r, event.currentTarget);
       else {
@@ -452,7 +461,7 @@
         }
       }
     };
-    root.querySelector('#open-cooking-diary').onclick = () => K.journal.openEntry(r.id,{log:Boolean(current.finished)});
+    root.querySelector('#open-cooking-diary').onclick = async () => {try{const own=r.isShared||r.isCommunity?await K.saveCopy(r):r;K.journal.openEntry(own.id,{log:Boolean(current.finished)});}catch(error){notify(K.errorMessage(error));}};
     root.querySelector("#less-servings").onclick = () => {
       current.servings--;
       renderRecipe();
@@ -482,7 +491,10 @@
       requestWake();
       recipeDialog.scrollTop = 0;
     };
-    root.querySelector("#edit-recipe").onclick = () => {
+    root.querySelector("#edit-recipe").onclick = async () => {
+      if(r.isShared && r.contributorId===K.user?.id){K.openSharedEditor(r);return;}
+      if(r.isCommunity||r.isShared){try{const copy=await K.saveCopy(r);recipeDialog.close();openEditor(copy);}catch(error){notify(K.errorMessage(error));}return;}
+
       if (!document.querySelector("#custom-recipe-dialog")) {
         location.href = `index.html?edit=${encodeURIComponent(r.id)}`;
         return;
@@ -490,12 +502,12 @@
       recipeDialog.close();
       openEditor(r);
     };
-    root.querySelector("#plan-recipe").onclick = () =>
-      (location.href = `planner.html?add=${encodeURIComponent(r.id)}&servings=${servings || base || 1}`);
+    root.querySelector("#plan-recipe").onclick = async () => {try{const own=r.isShared||r.isCommunity?await K.saveCopy(r):r;location.href=`planner.html?add=${encodeURIComponent(own.id)}&servings=${servings || base || 1}`;}catch(error){notify(K.errorMessage(error));}};
     root.querySelector("#print-recipe").onclick = () => window.print();
     root.querySelector("#share-recipe").onclick = async () => {
       try {
-        await navigator.clipboard.writeText(location.href);
+        let link=location.href;if(r.isShared){const url=new URL('cookbook.html',location.href);url.searchParams.set('sharedBook',r.sharedBookId);url.searchParams.set('sharedRecipe',r.id);link=url.href;}
+        await navigator.clipboard.writeText(link);
         notify("Recipe link copied");
       } catch {
         notify("Copy the recipe link from your address bar");
@@ -515,7 +527,7 @@
       };
     root.querySelector("#save-note").onclick = async () => {
       const all = {};
-      all[r.id] = {
+      all[noteId] = {
         note: root.querySelector("#personal-note").value,
         substitutions: root.querySelector("#personal-subs").value,
         tags: root
@@ -524,29 +536,30 @@
           .map((s) => s.trim())
           .filter(Boolean),
       };
-      if (JSON.stringify(metadata(r.id)) !== current.noteSnapshot) {
+      if (noteSnapshot(noteId) !== current.noteSnapshot) {
         notify(
           "These notes changed elsewhere. Copy your draft, then reopen the recipe to review the latest notes.",
         );
         return;
       }
-      const draft = all[r.id],
+      const draft = all[noteId],
         button = root.querySelector("#save-note");
       button.disabled = true;
       try {
+        if(r.isShared||r.isCommunity)await K.saveCopy(r);
         await K.set(
           "entry",
-          r.id,
+          noteId,
           {
-            ...K.get("entry", r.id),
+            ...K.get("entry", noteId),
             notes: draft.note,
             substitutions: draft.substitutions,
             tags: draft.tags,
           },
-          K.version("entry", r.id),
+          K.version("entry", noteId),
         );
         if (current?.recipe.id === r.id)
-          current.noteSnapshot = JSON.stringify(metadata(r.id));
+          current.noteSnapshot = noteSnapshot(noteId);
         notify("Kitchen notes saved");
       } catch (error) {
         notify(K.errorMessage(error));
@@ -554,16 +567,16 @@
         button.disabled = false;
       }
     };
-    root.querySelector("#new-collection").onclick = () =>
-      openCollectionDialog(r.id, () => renderRecipe());
+    root.querySelector("#new-collection").onclick = async () => {try{if(r.isCommunity||r.isShared)await K.saveCopy(r);openCollectionDialog(noteId,()=>renderRecipe());}catch(error){notify(K.errorMessage(error));}};
     root.querySelector("#add-to-collection").onclick = async () => {
       const name = root.querySelector("#recipe-collection").value;
       if (!name) {
         notify("Choose or create a collection first");
         return;
       }
+      try{if(r.isCommunity||r.isShared)await K.saveCopy(r);}catch(error){notify(K.errorMessage(error));return;}
       const lists = collections();
-      lists[name] = [...new Set([...(lists[name] || []), r.id])];
+      lists[name] = [...new Set([...(lists[name] || []), noteId])];
       if (await write("annaCollections", lists)) {
         notify(`Added to ${name}`);
         refreshCollections();
@@ -574,7 +587,7 @@
       const name = root.querySelector("#recipe-collection").value;
       if (!name) return;
       const lists = collections();
-      lists[name] = (lists[name] || []).filter((id) => id !== r.id);
+      lists[name] = (lists[name] || []).filter((id) => id !== noteId);
       if (await write("annaCollections", lists)) {
         notify("Removed from collection");
         refreshCollections();
@@ -695,7 +708,7 @@
     editorPhoto = "",
     photoCaption = "",
     photoBusy = false;
-  let editorDraft = null, importPhoto = null, editingEntryVersion = 0;
+  let editorDraft = null, importPhoto = null, editingEntryVersion = 0, editingShared = null, shareBookAfterSave = null;
   let editor = document.querySelector("#custom-recipe-dialog");
   if (!editor) {
     editor = document.createElement('dialog');
@@ -739,6 +752,7 @@
         editor.close();
         notify('Recipe saved');
         window.dispatchEvent(new CustomEvent('kitchen:recipe-saved',{detail:recipe}));
+        if(shareBookAfterSave){const target=shareBookAfterSave;shareBookAfterSave=null;K.openSharing(recipe,target);}
       } catch(error) {status.textContent = 'Not saved: ' + K.errorMessage(error); notify(K.errorMessage(error));}
       finally {submit.disabled = false;}
     });
@@ -757,7 +771,7 @@
       photoBusy = true;
       editor.querySelector("[type=submit]").disabled = true;
       try {
-        if (K.user) {
+        if (K.user && !editingShared) {
           editingPhotoPath = await K.upload(file);
           editorPhoto = await K.photoUrl(editingPhotoPath);
           photoCaption = "Your recipe photo";
@@ -773,6 +787,7 @@
         ctx.fillStyle = "#f6f3eb";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+        editingPhotoPath = null;
         editorPhoto = canvas.toDataURL("image/jpeg", 0.78);
         photoCaption = "Your recipe photo";
         bitmap.close();
@@ -816,6 +831,8 @@
     else preview.removeAttribute("src");
   }
   function openEditor(recipe = null, options = {}) {
+    editor.dataset.sharedBookId=options.sharedEntry?.bookId || '';
+    editingShared=options.sharedEntry || null;shareBookAfterSave=options.shareBookId || null;
     editorDraft = options.imported ? structuredClone(recipe) : null;
     importPhoto = options.photo || null;
     editingEntryVersion = recipe?.id ? K.version("entry",recipe.id) : 0;
@@ -840,6 +857,7 @@
           : (value ?? "");
       }
     }
+    editor.querySelector('.editor-folders').hidden=Boolean(editingShared);
     const memberships=K.get('entry',editingId)?.collection_ids || (options.folderId ? [options.folderId] : []);
     editor.querySelector('#editor-folders').innerHTML=K.list('collection').map(c=>`<label class="check-label"><input type="checkbox" name="folderIds" value="${html(c.id)}" ${memberships.includes(c.id)?'checked':''}>${html(c.data.name)}</label>`).join('') || '<p class="form-hint">Create your first folder below.</p>';
     form.elements.newFolder.value=options.newFolder || '';
@@ -852,7 +870,7 @@
       }).catch(() => {});
     }
     const del = editor.querySelector("#delete-recipe");
-    del.hidden = options.imported || !recipe?.isCustom;
+    del.hidden = Boolean(editingShared) || options.imported || !recipe?.isCustom;
     del.dataset.confirm = "";
     del.textContent = "Delete this recipe";
     editor.showModal();
@@ -864,7 +882,7 @@
       data = Object.fromEntries(new FormData(form));
     const existing = recipes.find((r) => r.id === editingId);
     const r = {
-      ...(existing || editorDraft),
+      ...(existing || editorDraft || editingShared?.recipe),
       title: data.title.trim(),
       description: data.description.trim(),
       category: data.category,
@@ -882,7 +900,7 @@
         .filter(Boolean),
       note: data.note.trim(),
       sourceUrl: data.sourceUrl.trim(),
-      image: K.user ? "" : editorPhoto,
+      image: editingPhotoPath ? "" : editorPhoto,
       photo: editingPhotoPath,
       imageCaption: photoCaption,
       equipment: existing?.equipment || [],
@@ -904,13 +922,18 @@
       return null;
     }
     if(r.sourceUrl){try{const url=new URL(r.sourceUrl);if(!['https:','http:'].includes(url.protocol)||url.username||url.password)throw new Error();r.sourceUrl=url.href;}catch{throw new Error('Use a complete http:// or https:// source link.');}}
+    if(editingShared){
+      const snapshot=await K.prepareSnapshot(r,{includePhoto:Boolean(r.image||r.photo)});
+      await K.social({op:'share',bookId:editingShared.bookId,sourceId:editingShared.source_id,itemId:editingShared.id,recipe:snapshot,expectedVersion:editingShared.version});
+      await K.loadBook(editingShared.bookId);return {...r,id:editingShared.id};
+    }
     const folders=K.list('collection'), ids=new Set(folders.map(c=>c.id));
     const memberships=new FormData(form).getAll('folderIds');
     if(memberships.some(id=>!ids.has(id)))throw new Error('A selected folder has changed. Reopen the editor and choose it again.');
     const changes=[],versions=[];
     const folderName=data.newFolder.trim();
     if(folderName){let folder=folders.find(c=>c.data.name.toLocaleLowerCase()===folderName.toLocaleLowerCase());if(!folder){folder={id:crypto.randomUUID()};changes.push({kind:'collection',id:folder.id,data:{name:folderName},deleted:false});versions.push(0);}if(!memberships.includes(folder.id))memberships.push(folder.id);}
-    if(importPhoto && K.user && !editingPhotoPath){editingPhotoPath=await K.upload(importPhoto);r.photo=editingPhotoPath;}
+    if(importPhoto && K.user && !editingPhotoPath){editingPhotoPath=await K.upload(importPhoto);r.photo=editingPhotoPath;r.image='';}
     const sourceEdit=existing && !existing.isCustom;
     const id=existing?.id || 'custom-'+crypto.randomUUID();
     const entry=K.get('entry',id) || {};

@@ -251,3 +251,31 @@ body.dark-theme .grocery-form input {
 #recipe-import-form > label { display:grid; gap:6px; margin:14px 0; }
 #recipe-import-form input, #recipe-import-form select { width:100%; min-width:0; }
 @media(max-width:640px) { .journal-toolbar > .account-actions { width:100%; flex-wrap:wrap; } }
+/* Sharing extends the existing cookbook's paper cards and form controls. */
+.shared-home { border-top:1px solid var(--line); padding:26px 0; margin:24px 0; }
+.shared-heading { display:flex; align-items:center; justify-content:space-between; gap:18px; margin-bottom:18px; }
+.shared-heading h2 { font:42px/1.1 var(--serif); margin:0; }
+.shared-book-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr)); gap:16px; }
+.shared-book-tile { min-height:145px; text-align:left; color:var(--ink); }
+.shared-book-tile small { font:10px var(--sans); letter-spacing:0; text-transform:none; }
+#sharing-dialog { width:min(860px,94vw); max-width:94vw; }
+#sharing-dialog .journal-editor { min-width:0; }
+.shared-recipe-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr)); gap:24px; margin-top:24px; }
+.shared-member { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:12px 0; overflow-wrap:anywhere; }
+.book-members { border-top:1px solid var(--line); padding-top:20px; margin-top:28px; }
+.shared-choose-list { display:grid; gap:10px; margin-top:20px; }
+.shared-choose-list button { text-align:left; overflow-wrap:anywhere; }
+.sharing-preview { background:var(--paper-soft); padding:18px; border:1px solid var(--line); overflow-wrap:anywhere; }
+.sharing-preview h3 { font:32px var(--serif); margin:0 0 10px; }
+.sharing-preview details { max-height:260px; overflow:auto; }
+.community-controls { display:flex; flex-wrap:wrap; align-items:end; gap:12px; margin-bottom:20px; }
+.community-controls label { display:grid; gap:7px; font-size:12px; }
+.community-controls select { min-height:42px; padding:8px 12px; border:1px solid var(--line); color:var(--ink); background:var(--card); font:inherit; }
+.community-controls [role="status"] { flex:1 1 180px; }
+#sharing-dialog .check-label { display:flex; flex-direction:row; align-items:flex-start; gap:10px; }
+#sharing-dialog .check-label input { width:auto; min-height:auto; margin-top:4px; flex-shrink:0; }
+#sharing-dialog [hidden] { display:none; }
+@media(max-width:640px) { .shared-heading { align-items:flex-start; flex-direction:column; } .shared-heading h2 { font-size:36px; } .shared-member { flex-wrap:wrap; } }
+#sharing-dialog h2, .shared-book-tile strong { overflow-wrap:anywhere; }
+.published-manage { margin-top:24px; padding-top:20px; border-top:1px solid var(--line); }
+.published-manage h3 { font:30px var(--serif); }

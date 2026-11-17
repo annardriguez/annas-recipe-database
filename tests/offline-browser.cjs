@@ -32,7 +32,8 @@ let browser;
    else if(url.pathname.endsWith('/account/sessions/email')){identity=user('bob');value={$id:'bob-session'};}
    else if(url.pathname.endsWith('/executions')){
     const body=JSON.parse(JSON.parse(raw).body);
-    if(body.action==='list')value={responseStatusCode:200,responseBody:JSON.stringify({data:records})};
+    if(body.action==='social')value={responseStatusCode:200,responseBody:JSON.stringify({data:{books:[],invitations:[],publications:[]}})};
+    else if(body.action==='list')value={responseStatusCode:200,responseBody:JSON.stringify({data:records})};
     else {writes++;const data=body.changes.map(c=>({...c,version:c.expected_version+1}));for(const r of data){records=records.filter(old=>old.kind!==r.kind||old.id!==r.id);records.push(r);}value={responseStatusCode:200,responseBody:JSON.stringify({data})};}
    }else if(url.pathname.endsWith('/view')){res.setHeader('Content-Type','image/jpeg');res.end(fs.readFileSync(path.join(root,'assets/tomato-orzo.jpg')));return;}
    else if(url.pathname.includes('/files/'))value={mimeType:'image/jpeg'};

@@ -63,6 +63,30 @@
   }
   function list(kind) { return rows.filter(r => r.kind === kind && !r.deleted).map(r => structuredClone(r)); }
   function get(kind, id) { return structuredClone(rows.find(r => r.kind === kind && r.id === String(id) && !r.deleted)?.data); }
+  const socialKinds=new Set(['shared_book_view','shared_recipe_view','invite_view','publication_ref']);
+  function mergeSocial(current,state) {
+    const bookIds=new Set((state.books||[]).map(b=>b.id));
+    return [...current.filter(r=>!socialKinds.has(r.kind)||(r.kind==='shared_recipe_view'&&bookIds.has(r.data.bookId))),
+      ...(state.books||[]).map(book=>({kind:'shared_book_view',id:book.id,data:book,version:book.version})),
+      ...(state.invitations||[]).map(invite=>({kind:'invite_view',id:invite.id,data:invite,version:0})),
+      ...(state.publications||[]).map(ref=>({kind:'publication_ref',id:ref.id,data:ref,version:ref.version}))];
+  }
+  async function social(body) {
+    if(!user?.emailVerified||!ready)throw new Error('Sign in with a verified email and finish syncing first.');
+    requireConnection();const generation=epoch;
+    const {data,error}=await client.social(body);
+    if(generation!==epoch)throw new Error('Your account changed. Reopen this page.');
+    if(error)throw error;
+    if(!['book','shared-item','share-state','state'].includes(body.op))await window.AnnaKitchen.refresh();
+    return data;
+  }
+  async function loadBook(bookId,offset=0) {
+    const generation=epoch,data=await social({op:'book',bookId,offset});
+    if(generation!==epoch)return;
+    if(offset===0)rows=rows.filter(r=>!(r.kind==='shared_recipe_view'&&r.data.bookId===bookId));
+    for(const item of data.items){const index=rows.findIndex(r=>r.kind==='shared_recipe_view'&&r.id===item.id);const row={kind:'shared_recipe_view',id:item.id,data:item,version:item.version};if(index<0)rows.push(row);else rows[index]=row;}
+    downloaded=false;emit();void download();return data;
+  }
   async function load() {
     if (!user || busy) return;
     const generation = epoch, owner = user.id;
@@ -77,6 +101,7 @@
         if (data.length < 500) break;
         offset += 500;
       }
+      if(client.social){const result=await client.social({op:'state'});if(result.error)throw result.error;all=mergeSocial([...all,...rows.filter(r=>r.kind==='shared_recipe_view')],result.data);}
       if (generation !== epoch) return;
       const changed = offline || JSON.stringify(rows) !== JSON.stringify(all) || !ready || status !== syncedStatus();
       if(changed)downloaded=false;
@@ -184,7 +209,7 @@
     const {data, error} = await client.storage.from('kitchen-photos').createSignedUrl(path, 300);
     return !error && generation === epoch ? data.signedUrl : '';
   }
-  window.AnnaKitchen = {client, list, get, batch, importGuest, hasImport, signOut, upload, photoUrl,
+  window.AnnaKitchen = {client, list, get, batch, social, loadBook, importGuest, hasImport, signOut, upload, photoUrl,
     get offline() {return offline;}, get user() {return user;}, get passwordRecovery() {return recovery;}, finishRecovery() {recovery = false;}, get ready() {return ready;}, get status() {return status;},
     version: (kind,id) => rows.find(r => r.kind === kind && r.id === String(id))?.version ?? 0,
     set: (kind,id,data,version) => batch([{kind,id,data,deleted:false}], version === undefined ? undefined : [version]),

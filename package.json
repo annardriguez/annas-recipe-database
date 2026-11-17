@@ -9,7 +9,8 @@
     "test:integration": "node tests/unification-browser.cjs",
     "build:offline": "node scripts/build-offline.cjs",
     "test:offline": "node tests/offline-browser.cjs",
-    "test:imports": "node tests/import-browser.cjs"
+    "test:imports": "node tests/import-browser.cjs",
+    "test:sharing": "node tests/sharing-browser.cjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.3.14",

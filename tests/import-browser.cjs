@@ -15,7 +15,8 @@ const server=http.createServer((req,res)=>{if(!online){req.socket.destroy();retu
    if(url.pathname.endsWith('/account'))response={$id:'alice',email:'alice@example.test',name:'Anna',emailVerification:true};
    else if(url.pathname.endsWith('/executions')){
     const payload=JSON.parse(JSON.parse(Buffer.concat(chunks).toString()).body);
-    if(payload.action==='list')response={responseStatusCode:200,responseBody:JSON.stringify({data:records})};
+    if(payload.action==='social')response={responseStatusCode:200,responseBody:JSON.stringify({data:{books:[],invitations:[],publications:[]}})};
+    else if(payload.action==='list')response={responseStatusCode:200,responseBody:JSON.stringify({data:records})};
     else if(payload.action==='import-link'){imports++;if(delayImport)await new Promise(r=>release=r);response={responseStatusCode:failImport?400:200,responseBody:JSON.stringify(failImport?{error:{message:'No readable recipe was found.',code:400}}:{data:draft})};}
     else if(payload.action==='save'){
      saves++;let next=structuredClone(records),data=[],conflict=false;

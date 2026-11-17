@@ -4,7 +4,7 @@ Project: `6af647a70013af378363`, Frankfurt (`https://fra.cloud.appwrite.io/v1`).
 Database: `6af6480d001895013491`, TablesDB serverless (free).
 Table: `records`. Bucket: `kitchen-photos`. Function: `kitchen-sync`, Node.js 22.
 
-The function is the only record write path. No browser user has direct table read or write permission. The server derives the owner by validating the caller's JWT with Appwrite Account, requires verified email, and applies owner filters for every read. Stable SHA-256 record IDs include the verified owner, record kind and local record ID. Values and file ownership references are validated server-side.
+The function is the only record write path. Private records have no direct browser read/write grant. Explicitly published copies have their own read-only public row permission; see SHARING.md. The server derives the owner by validating the caller's JWT with Appwrite Account, requires verified email, and applies owner filters for every read. Stable SHA-256 record IDs include the verified owner, record kind and local record ID. Values and file ownership references are validated server-side.
 
 The function needs `rows.read` and `rows.write` dynamic execution scopes. It does not need user-management, API-key management or schema-management scopes. Execution permission must be `users/verified`, never `any`. Dynamic keys are provided by Appwrite at execution time; they are not in the repository or browser config.
 
@@ -14,7 +14,7 @@ The private photo bucket has File Security enabled, permits only verified users 
 
 ## Deployment
 
-The function's source is `functions/kitchen-sync/main.js`. It uses pinned `node-appwrite@31.2.0` and a lockfile. Deploy an archive containing `main.js`, `recipe-import.js`, `safe-fetch.js`, `package.json`, and `package-lock.json`, with entrypoint `main.js`, build command `npm ci --omit=dev`, runtime Node 22, and a 60-second execution timeout. The default database ID is in the source; `KITCHEN_DATABASE_ID` can override it.
+The function's source is `functions/kitchen-sync/main.js`. It uses pinned `node-appwrite@31.2.0` and a lockfile. Deploy an archive containing `main.js`, `social.js`, `recipe-import.js`, `safe-fetch.js`, `package.json`, and `package-lock.json`, with entrypoint `main.js`, build command `npm ci --omit=dev`, runtime Node 22, and a 60-second execution timeout. The default database ID is in the source; `KITCHEN_DATABASE_ID` can override it.
 
 The web client uses the pinned official `appwrite@29.2.0` SDK copied into `vendor/` with its license, plus `appwrite-config.js` (public identifiers only) and `appwrite-backend.js` (the adapter for the shared cookbook interface).
 
@@ -29,3 +29,5 @@ The previous Supabase setup files are retained for reference and recovery. This 
 `npm run test:browser` exercises the real local guest UI with the Appwrite web SDK. It does not prove authenticated cross-device sync. Hosted test results and pending rollout steps belong in `SETUP.md`.
 
 Link importing and folder behaviour are documented in [LINK_IMPORT.md](../LINK_IMPORT.md). The importer reuses verified-user function access; it does not require additional execution scopes.
+
+Shared cookbook and public publication access rules are documented in [SHARING.md](../SHARING.md). Table-wide permissions, function execution permissions and private file ACLs stay unchanged.

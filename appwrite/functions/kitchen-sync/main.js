@@ -1,4 +1,5 @@
 import {Client, Account, TablesDB, Query} from 'node-appwrite';
+import {socialOperation} from './social.js';
 import {importRecipe} from './recipe-import.js';
 import {createHash} from 'node:crypto';
 
@@ -24,6 +25,7 @@ export function createHandler({authenticate, tables, importLink = importRecipe})
         return res.json({data:await importLink(body.url)});
       }
       const base = {databaseId:DATABASE, tableId:TABLE};
+      if(body.action==='social')return res.json({data:await socialOperation({tables,base,user,body})});
       if (body.action === 'list') {
         const offset = Number(body.offset || 0), limit = Number(body.limit || 500);
         if (!Number.isInteger(offset) || offset < 0 || !Number.isInteger(limit) || limit < 1 || limit > 500) throw fail('Invalid page.');

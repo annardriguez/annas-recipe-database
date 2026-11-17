@@ -96,6 +96,7 @@ function updateFavouriteCount() {
 async function toggleFavourite(recipe) {
   const K = window.AnnaKitchen;
   try {
+    if(recipe.isCommunity||recipe.isShared){const id=K.copyId(recipe);if(K.get('favourite',id))await K.remove('favourite',id);else await K.saveCopy(recipe,{favourite:true});showToast('Your personal saved copy is updated.');return;}
     if (savedRecipeIds.has(recipe.id)) await K.remove("favourite", recipe.id);
     else await K.set("favourite", recipe.id, {});
     showToast(
@@ -160,7 +161,7 @@ function createRecipeCard(recipe, index) {
   article.tabIndex = 0;
   article.setAttribute("aria-label", `View ${recipe.title}`);
 
-  const saved = savedRecipeIds.has(recipe.id);
+  const saved = savedRecipeIds.has(recipe.id) || ((recipe.isCommunity||recipe.isShared)&&savedRecipeIds.has(AnnaKitchen.copyId(recipe)));
   const palette = recipes.indexOf(recipe) % 6;
   const badgeTag = isHighProtein(recipe)
     ? "High Protein"
@@ -171,7 +172,7 @@ function createRecipeCard(recipe, index) {
     ? "vegetarian"
     : "";
   const primaryTags = [
-    recipe.isCustom
+    recipe.isCommunity ? "Community · "+recipe.publisherName : recipe.isCustom
       ? "your recipe"
       : labels[recipe.category] || recipe.category,
     isQuick(recipe) ? "quick" : "",
@@ -306,6 +307,12 @@ function getVisibleRecipes() {
   const query = searchInput.value.toLowerCase().trim();
 
   let visible = recipes.filter((recipe) => {
+    if(recipe.isShared)return false;
+    const origin=document.querySelector('#recipe-origin')?.value || 'all';
+    if(origin==='community'&&!recipe.isCommunity)return false;
+    if(origin==='anna'&&(recipe.isCustom||recipe.isCommunity))return false;
+    if(origin==='mine'&&!recipe.isCustom)return false;
+    if(showingFavourites&&(recipe.isCommunity||recipe.isShared))return false;
     const searchable = [
       recipe.title,
       recipe.description,
@@ -503,14 +510,14 @@ if (libraryView !== "home") {
     : "Search recipes or ingredients…";
 }
 function updateLibraryStats() {
-  document.querySelector("#total-recipes").textContent = recipes.length;
+  document.querySelector("#total-recipes").textContent = recipes.filter(r=>!r.isShared).length;
   document.querySelector("#vegetarian-recipes").textContent = recipes.filter(
-    (recipe) => recipe.tags.includes("vegetarian"),
+    (recipe) => !recipe.isShared&&recipe.tags.includes("vegetarian"),
   ).length;
   document.querySelector("#quick-recipes").textContent =
-    recipes.filter(isQuick).length;
+    recipes.filter(r=>!r.isShared&&isQuick(r)).length;
   document.querySelector("#protein-recipes").textContent =
-    recipes.filter(isHighProtein).length;
+    recipes.filter(r=>!r.isShared&&isHighProtein(r)).length;
 }
 updateLibraryStats();
 createFilterButtons();
@@ -541,9 +548,12 @@ window.addEventListener("kitchen:change", () => {
   updateLibraryStats();
   renderRecipes();
   document.querySelectorAll("[data-save-id]").forEach((item) => {
-    const saved = savedRecipeIds.has(item.dataset.saveId);
+    const source=recipes.find(r=>r.id===item.dataset.saveId);
+    const remote=source&&(source.isCommunity||source.isShared);
+    const saved = savedRecipeIds.has(item.dataset.saveId)||(remote&&savedRecipeIds.has(K.copyId(source)));
     item.classList.toggle("saved", saved);
     item.setAttribute("aria-pressed", String(saved));
+    if(remote&&item.classList.contains('dialog-save')){item.textContent=saved?'✓ Saved to your kitchen':'Save a private copy';item.disabled=saved;return;}
     item.textContent = item.classList.contains("dialog-save")
       ? saved
         ? "♥ Saved to favourites"
@@ -683,3 +693,5 @@ importControl?.addEventListener("keydown", (event) => {
     document.getElementById("import-kitchen").click();
   }
 });
+
+window.addEventListener('kitchen:community',()=>{renderRecipes();updateLibraryStats();if(!dialog.open)openLinkedRecipe();});

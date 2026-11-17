@@ -2,9 +2,10 @@
 (() => {
   function createClient(config) {
     if (!window.Appwrite || !config?.projectId) return null;
-    const {Client, Account, Functions, Storage, ID, Permission, Role} = window.Appwrite;
+    const {Client, Account, Functions, Storage, TablesDB, Query, ID, Permission, Role} = window.Appwrite;
     const sdk = new Client().setEndpoint(config.endpoint).setProject(config.projectId);
     const account = new Account(sdk), functions = new Functions(sdk), storage = new Storage(sdk);
+    const tables = new TablesDB(sdk);
     const subscribers = new Set(), photos = new Map();
     let currentUser = null, recovery, notice = '', started;
     const locked = () => localStorage.getItem('annaKitchenSignedOut') === '1';
@@ -92,6 +93,18 @@
     };
     // Keep the established account/data API stable while replacing its implementation.
     return {
+      social:body=>result(()=>execution({action:'social',...body})),
+      publicRecipes:offset=>result(async()=>{
+        const page=await tables.listRows({databaseId:config.databaseId,tableId:'records',queries:[Query.orderDesc('$updatedAt'),Query.limit(6),Query.offset(offset)],total:false});
+        return {recipes:page.rows.filter(row=>row.kind==='publication'&&!row.deleted).map(row=>JSON.parse(row.payload)),hasMore:page.rows.length===6};
+      }),
+      publicRecipe:id=>result(async()=>{
+        const ownerDigest=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode('system:public'))),b=>b.toString(16).padStart(2,'0')).join('');
+        const bytes=new TextEncoder().encode(JSON.stringify(['!'+ownerDigest.slice(0,35),'publication',id]));
+        const digest=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('').slice(0,36);
+        const row=await tables.getRow({databaseId:config.databaseId,tableId:'records',rowId:digest});
+        if(row.deleted||row.kind!=='publication')throw new Error('This recipe is no longer public.');return JSON.parse(row.payload);
+      }),
       importRecipe:url=>result(()=>execution({action:'import-link',url})),
       auth, get allowOfflineIdentity(){return !authFlow && !locked();}, get notice(){return notice;},
       from:()=>({select(){return this;},eq(){return this;},order(){return this;},range:(start,end)=>result(()=>execution({action:'list',offset:start,limit:end-start+1}))}),

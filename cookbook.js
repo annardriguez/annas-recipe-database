@@ -24,7 +24,7 @@
       <div class="memory-copy"><p class="eyebrow">${recipe.sourceUrl ? 'Saved from a recipe website' : recipe.isCustom ? 'An original creation' : 'A keeper from the library'} · ${escape(recipe.time)} min</p><h3><button data-edit="${escape(id)}">${escape(recipe.title)}</button></h3>
       <p>${escape(entry.notes || recipe.description)}</p>
       <div class="memory-meta"><span>${entry.rating ? '★'.repeat(Math.min(5, Math.max(0, Number(entry.rating)))) : 'Waiting for your first taste'}</span><span>${last ? `Last cooked ${date(last)}` : 'A new chapter'}</span></div>
-      <button class="clear-button" data-edit="${escape(id)}">Open recipe & journal ↗</button></div></article>`;
+      <button class="clear-button" data-edit="${escape(id)}">Open recipe & journal ↗</button><button class="clear-button" data-share-private="${escape(id)}">Share / publish ↗</button></div></article>`;
   }
   function historyCards() {
     const history = K.list('history').sort((a,b) => (b.data.cooked_on || '').localeCompare(a.data.cooked_on || ''));
@@ -40,8 +40,8 @@
     const draftName = !changedOwner ? root.querySelector('[name="display_name"]')?.value : undefined;
     const profile = K.get('profile','me') || {};
     const name = profile.display_name || K.user?.user_metadata?.display_name || 'your kitchen';
-    root.innerHTML = `<section class="journal-hero"><div><p class="eyebrow">${isProfile ? 'A place at the table' : 'Collected, cooked, loved'}</p><h1>${isProfile ? `Hello, <em>${escape(name)}.</em>` : 'My <em>cookbook.</em>'}</h1><p>${isProfile ? 'A few things about you, and all the good things you’ve been cooking.' : 'The recipes you return to. The little changes that make them yours. A kitchen full of memories.'}</p></div><div class="journal-mark" aria-hidden="true">${isProfile ? '♡' : '✳'}<small>${isProfile ? 'MAKE YOURSELF AT HOME' : 'A LITTLE TASTE OF YOU'}</small></div></section>${syncPanel()}`;
-    if (!K.ready) {root.insertAdjacentHTML('beforeend', '<div class="journal-empty"><h2>Your kitchen is loading.</h2><p>If the connection failed, use Retry / refresh above.</p></div>'); bind(); return;}
+    root.innerHTML = `<section class="journal-hero"><div><p class="eyebrow">${isProfile ? 'A place at the table' : 'Collected, cooked, loved'}</p><h1>${isProfile ? `Hello, <em>${escape(name)}.</em>` : 'My <em>cookbook.</em>'}</h1><p>${isProfile ? 'A few things about you, and all the good things you’ve been cooking.' : 'The recipes you return to. The little changes that make them yours. A kitchen full of memories.'}</p></div><div class="journal-mark" aria-hidden="true">${isProfile ? '♡' : '✳'}<small>${isProfile ? 'MAKE YOURSELF AT HOME' : 'A LITTLE TASTE OF YOU'}</small></div></section>${syncPanel()}<section class="journal-section shared-home" data-shared-cookbooks></section>`;
+    if (!K.ready) {root.insertAdjacentHTML('beforeend', '<div class="journal-empty"><h2>Your kitchen is loading.</h2><p>If the connection failed, use Retry / refresh above.</p></div>'); bind(); window.dispatchEvent(new Event('kitchen:cookbook-render')); return;}
     if (isProfile) {
       root.insertAdjacentHTML('beforeend', `<section class="profile-grid"><div class="profile-paper"><p class="eyebrow">Profile & settings</p><h2>Your corner of the kitchen</h2>${K.user ? `<p>${escape(K.user.email)}</p><form id="profile-form" class="journal-form"><label>Display name<input name="display_name" maxlength="80" required value="${escape(draftName ?? name)}" autocomplete="nickname"></label><button class="primary-button">Save profile</button></form><div class="account-actions"><button class="planner-tool-button" data-action="password">Send password reset email</button><button class="planner-tool-button" data-action="logout">Log out on this device</button></div>` : `<p>Sign in to give your recipes a home on every device.</p><button class="primary-button" data-action="login">Log in / create an account</button>`}</div><div class="profile-paper"><p class="eyebrow">A growing collection</p><h2>Made by you.</h2><div class="profile-stats"><a href="cookbook.html"><strong>${K.list('recipe').length}</strong>Original recipes</a><a href="cookbook.html"><strong>${savedIds().length}</strong>Saved recipes</a><a href="cookbook.html"><strong>${K.list('collection').length}</strong>Folders</a><a href="cookbook.html?tab=history"><strong>${K.list('history').length}</strong>Cooking memories</a></div></div></section><section class="journal-section"><p class="eyebrow">Kept close</p><h2>Saved recipes</h2>${savedIds().length ? `<div class="memory-grid">${savedIds().slice(0,3).map(card).join('')}</div><p><a href="cookbook.html">Open my whole cookbook ↗</a></p>` : empty('Your first keeper is waiting.', 'Save a recipe from the library to get started.')} </section><section class="journal-section"><p class="eyebrow">Your recipe shelves</p><h2>Recipe folders</h2>${collectionManager()}</section><section class="journal-section"><p class="eyebrow">Around your table</p><h2>Cooking history</h2>${historyCards()}</section>`);
     } else {
@@ -50,6 +50,7 @@
     }
     bind(); hydratePhotos();
     if (focusId && !changedOwner) {const input = document.getElementById(focusId); if (input) {input.focus(); if (typeof selection === 'number') input.setSelectionRange(selection,selection);}}
+    window.dispatchEvent(new Event('kitchen:cookbook-render'));
     if (!isProfile && !openedQuery && K.ready && new URLSearchParams(location.search).has('recipe')) {
       openedQuery = true; const recipe = recipeById(new URLSearchParams(location.search).get('recipe')); if (recipe) openEntry(recipe.id);
     }
@@ -101,6 +102,7 @@
     bindCards(root); bindCollections(root); K.hydratePhotos();
   }
   function bindCards(scope) {
+    scope.querySelectorAll('[data-share-private]').forEach(b=>b.onclick=()=>K.openSharing(recipeById(b.dataset.sharePrivate)));
     scope.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>openEntry(b.dataset.edit));
     scope.querySelectorAll('[data-remove]').forEach(b=>b.onclick=()=>removeEntry(b.dataset.remove));
     scope.querySelectorAll('[data-history]').forEach(b=>b.onclick=()=>editHistory(b.dataset.history));
