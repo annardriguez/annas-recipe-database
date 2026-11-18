@@ -57,3 +57,27 @@ test('valid account IDs matching system words cannot read reserved private recor
  const {call,ok}=await setup();await ok(alice,'create-book',{name:'Private family name',displayName:'Anna'});
  for(const id of ['books','public']){const user={$id:id,email:id+'@example.test',name:'Tester',emailVerification:true};const r=await call(user,{action:'list'});assert.equal(r.code,200);assert.equal(r.data.data.length,0);}
 });
+
+test('invite links require verified explicit joins, expire, rotate and revoke without exposing recipes',async()=>{
+ const {tables,call,ok}=await setup();const {id}=await ok(alice,'create-book',{name:'Link family',displayName:'Anna'});
+ const link=await ok(alice,'create-link',{bookId:id});assert.match(link.token,/^[A-Za-z0-9_-]{43}$/);assert.ok(Date.parse(link.expiresAt)>Date.now());
+ assert.ok(!JSON.stringify([...tables.rows.values()]).includes(link.token));assert.ok([...tables.rows.values()].every(r=>r.$permissions.length===0));
+ const state=await ok(alice,'state');assert.equal(state.books[0].invite_link_hash,undefined);assert.equal(state.books[0].inviteLinkExpiresAt,link.expiresAt);
+ const preview=await ok(mum,'link-preview',{token:link.token});assert.equal(preview.name,'Link family');assert.equal(preview.alreadyMember,false);assert.equal(preview.members,undefined);assert.equal((await ok(mum,'state')).books.length,0);
+ assert.equal((await call(null,{action:'social',op:'link-preview',token:link.token})).code,401);
+ assert.equal((await call({...mum,emailVerification:false},{action:'social',op:'join-link',token:link.token,confirmed:true})).code,403);
+ assert.equal((await call(mum,{action:'social',op:'join-link',token:link.token,displayName:'Mum'})).code,400);
+ assert.equal((await call(mum,{action:'social',op:'join-link',token:'x'.repeat(43),displayName:'Mum',confirmed:true})).code,404);
+ await ok(mum,'join-link',{token:link.token,displayName:'Mum',confirmed:true});assert.equal((await ok(mum,'state')).books[0].role,'member');
+ await ok(alice,'join-link',{token:link.token,displayName:'Changed',confirmed:true});assert.equal((await ok(alice,'state')).books[0].members.find(m=>m.id==='alice').name,'Anna');
+ assert.equal((await call(mum,{action:'social',op:'create-link',bookId:id})).code,403);assert.equal((await call(mum,{action:'social',op:'revoke-link',bookId:id})).code,403);
+ const rotated=await ok(alice,'create-link',{bookId:id});assert.notEqual(rotated.token,link.token);assert.equal((await call(eve,{action:'social',op:'link-preview',token:link.token})).code,404);
+ await ok(alice,'revoke-link',{bookId:id});assert.equal((await call(eve,{action:'social',op:'join-link',token:rotated.token,displayName:'Eve',confirmed:true})).code,404);assert.equal((await ok(mum,'state')).books.length,1);
+ const expired=await ok(alice,'create-link',{bookId:id});const row=[...tables.rows.values()].find(r=>r.kind==='book_link'&&!r.deleted);row.payload=JSON.stringify({...JSON.parse(row.payload),expiresAt:'2000-01-01T00:00:00.000Z'});
+ assert.equal((await call(eve,{action:'social',op:'join-link',token:expired.token,displayName:'Eve',confirmed:true})).code,404);
+});
+test('concurrent invite-link revocation prevents a staged join from committing',async()=>{
+ const {tables,call,ok}=await setup();const {id}=await ok(alice,'create-book',{name:'Family',displayName:'Anna'});const {token}=await ok(alice,'create-link',{bookId:id});
+ tables.beforeCommit=async()=>{tables.beforeCommit=null;await ok(alice,'revoke-link',{bookId:id});};
+ assert.equal((await call(mum,{action:'social',op:'join-link',token,displayName:'Mum',confirmed:true})).code,409);assert.equal((await ok(mum,'state')).books.length,0);
+});

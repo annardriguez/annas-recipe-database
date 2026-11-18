@@ -45,6 +45,20 @@ const server=http.createServer(async(req,res)=>{
   await a.waitForFunction(()=>AnnaKitchen.list('shared_book_view')[0].data.pending.length===1);
   await m.evaluate(()=>AnnaKitchen.refresh());await m.getByRole('button',{name:'Accept invitation',exact:true}).click();await m.locator('#sharing-dialog [name=displayName]').fill('Mamá');await m.getByRole('button',{name:'Accept and join ↗'}).click();await m.getByRole('heading',{name:'Our family cookbook',exact:true}).waitFor();
   await m.locator('#sharing-dialog .dialog-close').click();await a.locator('#sharing-dialog .dialog-close').click();
+  // Shareable links show an explicit join prompt, survive reload, and never auto-join.
+  await a.locator('[data-open-book]').click();await a.getByRole('button',{name:'Invite with a link ↗'}).click();await a.getByRole('button',{name:'Create invite link',exact:true}).click();
+  const inviteUrl=await a.getByLabel('Cookbook invite link',{exact:true}).inputValue();assert.match(inviteUrl,/#join=[A-Za-z0-9_-]{43}$/);
+  await m.evaluate(bookId=>AnnaKitchen.social({op:'leave',bookId}),bookId);
+  await g.goto(inviteUrl.replace('/alice/','/guest/'));await g.getByRole('heading',{name:'Join shared cookbook?',exact:true}).waitFor();await g.getByRole('button',{name:'Log in / create account',exact:true}).waitFor();assert.equal(await g.locator('[name=displayName]').count(),0);
+  await g.getByRole('button',{name:'Log in / create account',exact:true}).click();await g.locator('#account-dialog').waitFor({state:'visible'});
+  users.guest={$id:'link-visitor',email:'visitor@example.test',name:'Visitor',emailVerification:true};await g.evaluate(()=>AnnaKitchen.refresh());await g.getByRole('button',{name:'Join shared cookbook ↗',exact:true}).waitFor();await g.locator('#account-dialog').waitFor({state:'hidden'});assert.equal(await g.evaluate(()=>AnnaKitchen.list('shared_book_view').length),0);
+  await g.getByRole('button',{name:'Not now',exact:true}).click();assert.equal(new URL(g.url()).hash,'');delete users.guest;await g.evaluate(()=>AnnaKitchen.refresh());
+  await m.goto(inviteUrl.replace('/alice/','/mum/'));await m.getByRole('heading',{name:'Join shared cookbook?',exact:true}).waitFor();await m.getByRole('button',{name:'Join shared cookbook ↗',exact:true}).waitFor();assert.equal(await m.evaluate(()=>AnnaKitchen.list('shared_book_view').length),0);
+  await m.reload();await m.getByRole('button',{name:'Join shared cookbook ↗',exact:true}).waitFor();await m.getByLabel('Your name in this cookbook',{exact:true}).fill('Mamá');await m.screenshot({path:`tests/join-cookbook-${engineName}-phone.png`});
+  await m.getByRole('button',{name:'Join shared cookbook ↗',exact:true}).click();await m.locator('[data-add-shared]').waitFor();assert.equal(new URL(m.url()).hash,'');
+  await a.getByRole('button',{name:'Disable invite link',exact:true}).click();await a.getByRole('button',{name:'Create invite link',exact:true}).waitFor();
+  await m.goto(inviteUrl.replace('/alice/','/mum/'));await m.getByText('This invite link is invalid or has expired.',{exact:true}).waitFor();await m.getByRole('button',{name:'Close',exact:true}).click();
+  await m.goto(base('mum')+'cookbook.html');await ready(m);await a.getByRole('button',{name:'Back to cookbook',exact:true}).click();await a.locator('#sharing-dialog .dialog-close').click();
   // An account recipe contains private journal text and an owner-only photo.
   await a.evaluate(async()=>{const data={id:'private-pasta',title:'Shared lemon pasta',description:'A family favourite.',ingredients:['200 g pasta','1 tbsp oil'],steps:['Boil pasta.','Add oil.'],time:20,servings:2,category:'main',tags:[],equipment:[],photo:'alice/private-dish.jpg',sourceUrl:'https://recipes.example/pasta',sourceAuthor:'Original author'};await AnnaKitchen.batch([{kind:'recipe',id:data.id,data,deleted:false},{kind:'entry',id:data.id,data:{notes:'SECRET DIARY NEVER SHARE',rating:5},deleted:false}]);});
   await a.getByRole('button',{name:'Share / publish ↗',exact:true}).click();

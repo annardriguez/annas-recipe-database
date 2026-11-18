@@ -1,5 +1,5 @@
 // Reserved records never pass through the generic private save API.
-import {createHash,randomUUID} from 'node:crypto';
+import {createHash,randomUUID,randomBytes} from 'node:crypto';
 import {Query,Permission,Role} from 'node-appwrite';
 const bad=(message,code=400)=>Object.assign(new Error(message),{safe:true,code});
 const hash=value=>createHash('sha256').update(value).digest('hex').slice(0,36);
@@ -45,12 +45,24 @@ export async function socialOperation({tables,base,user,body}) {
   async function list(owner){owner=ownerKey(owner);const result=[];for(let offset=0;offset<1000;offset+=100){const page=await tables.listRows({...context(),queries:[Query.equal('owner',owner),Query.orderAsc('$id'),Query.limit(100),Query.offset(offset)],total:false});result.push(...page.rows.filter(r=>!r.deleted).map(r=>({...r,data:JSON.parse(r.payload)})));if(page.rows.length<100)break;}return result;}
   async function member(bookId){const book=await get('system:books','shared_book',bookId),membership=await get('book-members:'+bookId,'book_member',uid);if(!book||book.deleted||!membership||membership.deleted)throw bad('You no longer have access to this cookbook.',403);return {book,membership,owner:book.data.owner_id===uid};}
   async function touch(book){await put('system:books','shared_book',book.record_id,book.data,{expected:book.version});}
+  async function linkAccess(){
+    if(typeof body.token!=='string'||!(/^[A-Za-z0-9_-]{43}$/).test(body.token))throw bad('This invite link is invalid or has expired.',404);
+    const tokenHash=hash(body.token),link=await get('system:book-links','book_link',tokenHash);
+    if(!link||link.deleted)throw bad('This invite link is invalid or has expired.',404);
+    const book=await get('system:books','shared_book',link.data.bookId);
+    if(!book||book.deleted||book.data.invite_link_hash!==tokenHash||Date.parse(link.data.expiresAt)<=Date.now())throw bad('This invite link is invalid or has expired.',404);
+    return {book,id:book.record_id};
+  }
   const op=body.op;
+  if(op==='link-preview'){
+    const {book,id}=await linkAccess(),membership=await get('book-members:'+id,'book_member',uid);
+    return {id,name:book.data.name,from:book.data.owner_name,alreadyMember:Boolean(membership&&!membership.deleted)};
+  }
   if(op==='state'){
     const books=[],invitations=[];
     for(const index of await list('user-books:'+uid)){
       try {const {book,membership,owner}=await member(index.record_id),members=await list('book-members:'+book.record_id);
-        books.push({id:book.record_id,version:book.version,...book.data,role:owner?'owner':'member',members:members.map(m=>({id:m.record_id,name:m.data.name,role:m.data.role})),pending:owner?(await list('book-invites:'+book.record_id)).map(i=>({email:i.data.email,id:i.record_id})):[]});
+        books.push({id:book.record_id,version:book.version,name:book.data.name,owner_id:book.data.owner_id,owner_name:book.data.owner_name,inviteLinkExpiresAt:owner?book.data.invite_link_expires_at||null:null,role:owner?'owner':'member',members:members.map(m=>({id:m.record_id,name:m.data.name,role:m.data.role})),pending:owner?(await list('book-invites:'+book.record_id)).map(i=>({email:i.data.email,id:i.record_id})):[]});
 
       }catch(error){if(error.code!==403)throw error;}
     }
@@ -66,7 +78,7 @@ export async function socialOperation({tables,base,user,body}) {
     const page=await tables.listRows({...context(),queries:[Query.equal('owner',ownerKey('book-items:'+id)),Query.orderAsc('$id'),Query.limit(8),Query.offset(offset)],total:false});
     return {items:page.rows.filter(row=>!row.deleted).map(row=>({id:row.record_id,version:row.version,...JSON.parse(row.payload),bookId:id})),hasMore:page.rows.length===8};
   }
-  const valid=['create-book','rename-book','invite','revoke-invite','accept','decline','remove-member','leave','share','remove-shared','publish','unpublish'];
+  const valid=['create-link','revoke-link','join-link','create-book','rename-book','invite','revoke-invite','accept','decline','remove-member','leave','share','remove-shared','publish','unpublish'];
   if(!valid.includes(op))throw bad('Unknown sharing operation.');
   tx=await tables.createTransaction({ttl:60});
   try {
@@ -78,6 +90,17 @@ export async function socialOperation({tables,base,user,body}) {
       await put('system:books','shared_book',id,{name,owner_id:uid,owner_name:display});
       await put('book-members:'+id,'book_member',uid,{name:display,role:'owner'});
       await put('user-books:'+uid,'book_access',id,{});result={id};
+    }else if(op==='join-link'){
+      const {book,id}=await linkAccess(),existing=await get('book-members:'+id,'book_member',uid);
+      if(!existing||existing.deleted){
+        if(body.confirmed!==true)throw bad('Confirm you want to join this shared cookbook.');
+        if((await list('book-members:'+id)).length>=25)throw bad('This cookbook already has 25 members.');
+        if((await list('user-books:'+uid)).length>=30)throw bad('You can join up to 30 shared cookbooks.');
+        await put('book-members:'+id,'book_member',uid,{name:label(body.displayName||user.name),role:'member'});
+        await put('user-books:'+uid,'book_access',id,{});
+        await touch(book);
+      }
+      result={id};
     }else if(op==='publish'||op==='unpublish'){
       const sourceId=clean(body.sourceId,240);if(!sourceId)throw bad('Choose a saved recipe.');
       const ref=await get('publisher:'+uid,'published_ref',sourceId);
@@ -107,8 +130,17 @@ export async function socialOperation({tables,base,user,body}) {
       await put('book-invites:'+id,'invite_out',hash((user.email||'').trim().toLowerCase()),{}, {deleted:true});await touch(book);
     }else{
       const id=clean(body.bookId,80),access=await member(id),{book}=access;
-      if(['rename-book','invite','revoke-invite','remove-member'].includes(op)&&!access.owner)throw bad('Only the cookbook owner can manage this.',403);
-      if(op==='rename-book'){
+      if(['create-link','revoke-link','rename-book','invite','revoke-invite','remove-member'].includes(op)&&!access.owner)throw bad('Only the cookbook owner can manage this.',403);
+      if(op==='create-link'||op==='revoke-link'){
+        if(book.data.invite_link_hash)await put('system:book-links','book_link',book.data.invite_link_hash,{}, {deleted:true});
+        delete book.data.invite_link_hash;delete book.data.invite_link_expires_at;
+        if(op==='create-link'){
+          const token=randomBytes(32).toString('base64url'),tokenHash=hash(token),expiresAt=new Date(Date.now()+7*24*60*60*1000).toISOString();
+          await put('system:book-links','book_link',tokenHash,{bookId:id,expiresAt});
+          book.data.invite_link_hash=tokenHash;book.data.invite_link_expires_at=expiresAt;result={token,expiresAt};
+        }
+        await touch(book);
+      }else if(op==='rename-book'){
         const name=clean(body.name,80);if(!name)throw bad('Give your cookbook a name.');
         if(body.expectedVersion!==book.version)throw bad(conflict,409);book.data.name=name;await touch(book);
       }else if(op==='invite'||op==='revoke-invite'){

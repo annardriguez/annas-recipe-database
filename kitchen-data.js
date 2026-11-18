@@ -77,7 +77,7 @@
     const {data,error}=await client.social(body);
     if(generation!==epoch)throw new Error('Your account changed. Reopen this page.');
     if(error)throw error;
-    if(!['book','shared-item','share-state','state'].includes(body.op))await window.AnnaKitchen.refresh();
+    if(!['book','shared-item','share-state','state','link-preview'].includes(body.op))await window.AnnaKitchen.refresh();
     return data;
   }
   async function loadBook(bookId,offset=0) {

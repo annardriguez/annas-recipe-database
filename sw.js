@@ -52,7 +52,7 @@ const FILES=[
   "vendor/appwrite-29.2.0.js"
 ];
 const PREFIX='anna-kitchen-shell:'+new URL(self.registration.scope).pathname+':';
-const CACHE=PREFIX+'a97a637054e63048';
+const CACHE=PREFIX+'7fd9d92745f9510f';
 const allowed=new Set(FILES.map(file=>new URL(file,self.registration.scope).href));
 self.addEventListener('install',event=>event.waitUntil((async()=>{
   try {const cache=await caches.open(CACHE);await cache.addAll(FILES.map(file=>new Request(new URL(file,self.registration.scope),{cache:'reload'})));}
