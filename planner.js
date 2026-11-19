@@ -19,12 +19,12 @@
   };
   const dateKey = (d) =>
     `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-  const shortDate = new Intl.DateTimeFormat("en", {
+  let shortDate = new Intl.DateTimeFormat(AnnaI18n.locale, {
       month: "short",
       day: "numeric",
     }),
-    dayName = new Intl.DateTimeFormat("en", { weekday: "short" });
-  const fullDate = new Intl.DateTimeFormat("en", {
+    dayName = new Intl.DateTimeFormat(AnnaI18n.locale, { weekday: "short" });
+  let fullDate = new Intl.DateTimeFormat(AnnaI18n.locale, {
     weekday: "long",
     month: "long",
     day: "numeric",
@@ -129,7 +129,7 @@
         "aria-label",
         `${slot} on ${key}: ${r ? r.title + ". Change recipe" : "Add a recipe"}`,
       );
-      choice.innerHTML = `<span class="slot-label">${slot}</span>${r ? `<span class="slot-meal"><strong>${escape(r.title)}</strong><span>${r.time} min</span></span>` : '<span class="slot-empty"><span aria-hidden="true">+</span>Add meal</span>'}`;
+      choice.innerHTML = `<span class="slot-label">${slot}</span>${r ? `<span class="slot-meal"><strong ${r.isCustom||r.isShared||r.isCommunity?'translate="no"':''}>${escape(r.title)}</strong><span>${r.time} min</span></span>` : '<span class="slot-empty"><span aria-hidden="true">+</span>Add meal</span>'}`;
       choice.onclick = () => selectSlot(key, slot);
       cell.append(choice);
       if (r) {
@@ -255,12 +255,10 @@
     $("#picker-helper").textContent = selected
       ? fullDate.format(new Date(selected.date + "T12:00:00"))
       : "Pick a recipe for your week.";
-    const words = $("#planner-search").value.trim().toLowerCase().split(/\s+/);
+    const words = AnnaI18n.normalize($("#planner-search").value).trim().split(/\s+/);
     const matches = recipes.filter((r) =>
       words.every((word) =>
-        [r.title, r.description, ...r.tags, ...r.ingredients]
-          .join(" ")
-          .toLowerCase()
+        AnnaI18n.normalize([r.title, r.description, ...r.tags, ...r.ingredients].join(" ")+" "+AnnaI18n.search(r))
           .includes(word),
       ),
     );
@@ -268,7 +266,7 @@
       ...matches.map((r) => {
         const item = document.createElement("article");
         item.className = "picker-recipe";
-        item.innerHTML = `<span class="picker-emoji" aria-hidden="true">✳</span><div><h3><button class="picker-preview">${escape(r.title)}</button></h3><p>${escape(r.description)}</p><span class="picker-meta"><span>${r.time} min</span><span>${r.category}</span><span class="nutrition-only">${r.protein == null ? "Protein not recorded" : r.protein + " g protein"}</span></span></div><button class="recipe-add-button" aria-label="Add ${escape(r.title)}">Add +</button>`;
+        item.innerHTML = `<span class="picker-emoji" aria-hidden="true">✳</span><div><h3><button ${r.isCustom||r.isShared||r.isCommunity?'translate="no"':''} class="picker-preview">${escape(r.title)}</button></h3><p ${r.isCustom||r.isShared||r.isCommunity?'translate="no"':''}>${escape(r.description)}</p><span class="picker-meta"><span>${r.time} min</span><span>${r.category}</span><span class="nutrition-only">${r.protein == null ? "Protein not recorded" : r.protein + " g protein"}</span></span></div><button class="recipe-add-button" aria-label="Add ${escape(r.title)}">Add +</button>`;
         item.querySelector(".picker-preview").onclick = () => K.openRecipe(r);
         item.querySelector(".recipe-add-button").onclick = async (e) => {
           e.currentTarget.disabled = true;
@@ -347,7 +345,7 @@
       const li = document.createElement("li"),
         id = groceryId(item),
         data = K.get("grocery", id);
-      li.innerHTML = `<label><input type="checkbox" ${data?.checked ? "checked" : ""}><span>${escape(item.text)}</span></label>`;
+      li.innerHTML = `<label><input type="checkbox" ${data?.checked ? "checked" : ""}><span ${item.manual||item.translateIngredient===false?'translate="no"':'data-original-ingredient'}>${escape(item.text)}</span></label>`;
       li.querySelector("input").onchange = async (e) => {
         const checked = e.target.checked;
         e.target.disabled = true;
@@ -395,7 +393,7 @@
     }
     try {
       await navigator.clipboard.writeText(
-        items.map((i) => "- " + i.text).join("\n"),
+        items.map((i) => "- " + (i.manual||i.translateIngredient===false?i.text:AnnaI18n.ingredient(i.text))).join("\n"),
       );
       K.notify("Shopping list copied");
     } catch {
@@ -477,7 +475,7 @@
       '<option value="">Choose a saved week…</option>' +
       Object.keys(templates())
         .map(
-          (name) => `<option value="${escape(name)}">${escape(name)}</option>`,
+          (name) => `<option translate="no" value="${escape(name)}">${escape(name)}</option>`,
         )
         .join("");
     select.value = value;
@@ -647,6 +645,7 @@
     render();
     if (!recipeDialog.open) linked();
   });
+  window.addEventListener("anna:language",()=>{shortDate=new Intl.DateTimeFormat(AnnaI18n.locale,{month:"short",day:"numeric"});dayName=new Intl.DateTimeFormat(AnnaI18n.locale,{weekday:"short"});fullDate=new Intl.DateTimeFormat(AnnaI18n.locale,{weekday:"long",month:"long",day:"numeric"});render();});
   render();
   linked();
 })();

@@ -27,7 +27,7 @@
     async function readUser() {
       try {if(locked())return null;return userShape(await account.get());} catch(e) {if(e.code===401 || e.code===403)return null; throw e;}
     }
-    function redirect(url,flow) {const target=new URL(url); target.searchParams.set('flow',flow);return target.href;}
+    function redirect(url,flow) {const target=new URL(url);if(window.AnnaI18n?.language==='es')target.searchParams.set('lang','es'); target.searchParams.set('flow',flow);return target.href;}
     async function start() {
       const params = new URLSearchParams(location.search), flow=params.get('flow'), userId=params.get('userId'), secret=params.get('secret');
       if (userId && secret && ['verify','recovery','magic'].includes(flow)) {

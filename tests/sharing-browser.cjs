@@ -40,6 +40,7 @@ const server=http.createServer(async(req,res)=>{
   await a.getByRole('button',{name:'Create shared cookbook ↗',exact:true}).click();
   await a.locator('#create-book-form [name=name]').fill('Our family cookbook');await a.locator('#create-book-form [name=displayName]').fill('Anna');await a.locator('#create-book-form [type=submit]').click();
   await a.getByRole('heading',{name:'Our family cookbook',exact:true}).waitFor();
+  await a.locator('[data-language-control] select').selectOption('es');await a.getByRole('button',{name:'Invitar con un enlace ↗',exact:true}).waitFor();assert.equal(await a.locator('#sharing-title').innerText(),'Our family cookbook');await a.locator('[data-language-control] select').selectOption('en');
   const bookId=await a.evaluate(()=>AnnaKitchen.list('shared_book_view')[0].id);
   await a.getByText('Members & invitations',{exact:true}).click();await a.locator('#invite-member-form [name=email]').fill('mum@example.test');await a.locator('#invite-member-form [type=submit]').click();
   await a.waitForFunction(()=>AnnaKitchen.list('shared_book_view')[0].data.pending.length===1);

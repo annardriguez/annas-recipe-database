@@ -33,6 +33,8 @@ const FILES=[
   "cookbook.js",
   "cooking-journal.js",
   "custom-recipes.js",
+  "i18n-es.js",
+  "i18n.js",
   "index.html",
   "kitchen-data.js",
   "kitchen.js",
@@ -43,6 +45,7 @@ const FILES=[
   "planner.js",
   "profile.html",
   "recipe-import.js",
+  "recipes-es.js",
   "recipes.js",
   "refinements.css",
   "script.js",
@@ -52,7 +55,7 @@ const FILES=[
   "vendor/appwrite-29.2.0.js"
 ];
 const PREFIX='anna-kitchen-shell:'+new URL(self.registration.scope).pathname+':';
-const CACHE=PREFIX+'7fd9d92745f9510f';
+const CACHE=PREFIX+'f13b894cdaaaf2b8';
 const allowed=new Set(FILES.map(file=>new URL(file,self.registration.scope).href));
 self.addEventListener('install',event=>event.waitUntil((async()=>{
   try {const cache=await caches.open(CACHE);await cache.addAll(FILES.map(file=>new Request(new URL(file,self.registration.scope),{cache:'reload'})));}

@@ -72,7 +72,7 @@ function isQuick(recipe) {
 }
 
 function isHighProtein(recipe) {
-  return recipe.tags.includes("high protein") || (recipe.protein ?? 0) >= 25;
+  return recipe.tags.some(t=>AnnaI18n.tag(t)==="high protein") || (recipe.protein ?? 0) >= 25;
 }
 
 function matchesFilter(recipe, filter) {
@@ -82,7 +82,7 @@ function matchesFilter(recipe, filter) {
     return recipe.category === "main" && recipe.time <= 40;
   if (filter === "high protein") return isHighProtein(recipe);
   return (
-    recipe.tags.some((tag) => tag.toLowerCase() === filter.toLowerCase()) ||
+    recipe.tags.some((tag) => AnnaI18n.tag(tag) === filter.toLowerCase()) ||
     recipe.equipment.includes(filter) ||
     recipe.category === filter
   );
@@ -205,8 +205,8 @@ function createRecipeCard(recipe, index) {
         <span>${recipe.isCustom ? "Your recipe" : `${recipe.time} min`}</span>
       </div>
 
-      <h3>${escapeHtml(recipe.title)}</h3>
-      <p>${escapeHtml(recipe.description)}</p>
+      <h3 ${recipe.isCustom||recipe.isCommunity?'translate="no"':''}>${escapeHtml(recipe.title)}</h3>
+      <p ${recipe.isCustom||recipe.isCommunity?'translate="no"':''}>${escapeHtml(recipe.description)}</p>
 
       <div class="recipe-meta">
         ${primaryTags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}
@@ -258,10 +258,10 @@ function hasAdvanced() {
 }
 function matchesAdvanced(recipe) {
   const value = (id) => document.getElementById(id).value;
-  const ingredients = recipe.ingredients.join(" ").toLowerCase();
+  const ingredients = AnnaI18n.normalize(recipe.ingredients.join(" ")+" "+AnnaI18n.search(recipe));
   const pantry = value("pantry-filter")
     .split(",")
-    .map((s) => s.trim().toLowerCase())
+    .map((s) => AnnaI18n.normalize(s).trim())
     .filter(Boolean);
   const collection = value("collection-filter");
   const nutritionOn = window.AnnaNutrition?.isVisible();
@@ -270,7 +270,7 @@ function matchesAdvanced(recipe) {
     (!value("time-filter") ||
       (recipe.time != null && recipe.time <= Number(value("time-filter")))) &&
     (!value("diet-filter") ||
-      recipe.tags.some((t) => t.toLowerCase() === value("diet-filter"))) &&
+      recipe.tags.some((t) => AnnaI18n.tag(t) === value("diet-filter"))) &&
     (!collection ||
       (AnnaKitchen.collections()[collection] || []).includes(recipe.id)) &&
     (!nutritionOn ||
@@ -304,7 +304,7 @@ document.getElementById("protein-filter").value =
   rememberedTargets.protein || "";
 
 function getVisibleRecipes() {
-  const query = searchInput.value.toLowerCase().trim();
+  const query = AnnaI18n.normalize(searchInput.value).trim();
 
   let visible = recipes.filter((recipe) => {
     if(recipe.isShared)return false;
@@ -313,7 +313,7 @@ function getVisibleRecipes() {
     if(origin==='anna'&&(recipe.isCustom||recipe.isCommunity))return false;
     if(origin==='mine'&&!recipe.isCustom)return false;
     if(showingFavourites&&(recipe.isCommunity||recipe.isShared))return false;
-    const searchable = [
+    const searchable = AnnaI18n.normalize([
       recipe.title,
       recipe.description,
       ...recipe.tags,
@@ -322,7 +322,7 @@ function getVisibleRecipes() {
       ...(AnnaKitchen.metadata(recipe.id).tags || []),
     ]
       .join(" ")
-      .toLowerCase();
+      .toLowerCase()+" "+AnnaI18n.search(recipe));
 
     const queryMatches = query
       .split(/\s+/)
@@ -344,7 +344,7 @@ function getVisibleRecipes() {
   if (sort === "calories") {
     visible.sort((a, b) => (a.calories ?? Infinity) - (b.calories ?? Infinity));
   }
-  if (sort === "az") visible.sort((a, b) => a.title.localeCompare(b.title));
+  if (sort === "az") visible.sort((a, b) => AnnaI18n.t(a.title).localeCompare(AnnaI18n.t(b.title),AnnaI18n.locale));
 
   return visible;
 }
@@ -698,3 +698,5 @@ importControl?.addEventListener("keydown", (event) => {
 });
 
 window.addEventListener('kitchen:community',()=>{renderRecipes();updateLibraryStats();if(!dialog.open)openLinkedRecipe();});
+
+window.addEventListener("anna:language",()=>{renderRecipes();});

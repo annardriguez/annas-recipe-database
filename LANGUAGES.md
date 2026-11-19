@@ -1,0 +1,11 @@
+# English and Spanish
+
+Choose **EN / ES** next to the account button, or share `index.html?lang=es`. The choice is remembered on this browser/device and works offline. Cookbook invitations and recipe links copied in Spanish include `lang=es`. Existing recipe IDs, shared-book tokens, saved meals and URLs continue to work.
+
+The interface and the 72 original Anna’s recipes have Spanish display translations. Spanish search supports accented or unaccented words; the planner uses Spanish calendar labels. Recipe quantities, temperatures, timings, original-source credits and nutrition qualifications are retained. Authored/imported recipes and personal notes remain in their original language. The language preference is local, not an account sync record.
+
+`i18n-es.js` contains interface strings; `recipes-es.js` contains hand-written original recipe titles, descriptions, methods and notes plus a controlled ingredient glossary. `i18n.js` translates catalogued text/attributes in existing and newly rendered views; unknown strings fall back to English. The source-text tracking allows changing language without replacing DOM elements or discarding input drafts. User content uses `translate="no"`. All option values stay canonical; never use a translated label as a record key. Dates and searches use the locale explicitly. No translation service receives user content.
+
+When adding UI text, add its Spanish entry. Mark authored names/notes `translate="no"`; do not add them to the catalog. Keep English recipe source data unchanged. New original recipes need a corresponding Spanish row in source order. Run `npm test` (including coverage and numeric recipe invariants), `npm run test:languages` (Chromium/WebKit), the affected existing journeys, and `npm run build:offline` before deployment. The service worker includes all translation assets; an installed app updates after its open windows close.
+
+Language tests use disposable guest data and verify Spanish navigation, recipes, accent-insensitive search, quantities, canonical diary/meal keys, draft preservation, dialogs, persistence and cold offline launch. Existing sharing/import/account tests continue to use English by default. No backend migration or permissions change is required.

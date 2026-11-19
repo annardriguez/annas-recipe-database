@@ -377,7 +377,7 @@
     return recipe.ingredients
       .map(
         (line, i) =>
-          `<li class="ingredient-item"><label><input type="checkbox" data-ingredient="${i}" ${checked.has(i) ? "checked" : ""}><span>${html(scaleIngredient(line, ratio))}</span></label></li>`,
+          `<li class="ingredient-item"><label><input type="checkbox" data-ingredient="${i}" ${checked.has(i) ? "checked" : ""}><span ${recipe.isCustom||recipe.isShared||recipe.isCommunity?'translate="no"':'data-original-ingredient'}>${html(scaleIngredient(line, ratio))}</span></label></li>`,
       )
       .join("");
   }
@@ -404,20 +404,20 @@
       lists = collections(),
       isSaved = saved(r.id)||((r.isCommunity||r.isShared)&&Boolean(K.get('favourite',K.copyId(r))));
     document.querySelector("#dialog-content").innerHTML = `
-      <header class="recipe-cover"><div class="recipe-cover-copy"><p class="eyebrow">THE RECIPE BOX / ${html(r.category)}</p><h2 id="recipe-dialog-title">${html(r.title)}</h2><p>${html(r.description)}</p>${r.isCommunity ? `<p class="form-hint">Community · Shared by ${html(r.publisherName)}</p>` : r.isShared ? `<p class="form-hint">Shared cookbook · Added by ${html(r.contributorName)}</p>` : ''}${sourceLink(r)}
+      <header class="recipe-cover"><div class="recipe-cover-copy"><p class="eyebrow">THE RECIPE BOX / ${html(r.category)}</p><h2 ${r.isCustom||r.isShared||r.isCommunity?'translate="no"':''} id="recipe-dialog-title">${html(r.title)}</h2><p ${r.isCustom||r.isShared||r.isCommunity?'translate="no"':''}>${html(r.description)}</p>${r.isCommunity ? `<p class="form-hint">Community · Shared by ${html(r.publisherName)}</p>` : r.isShared ? `<p class="form-hint">Shared cookbook · Added by ${html(r.contributorName)}</p>` : ''}${sourceLink(r)}
       <div class="recipe-actions"><button class="dialog-save ${isSaved ? "saved" : ""}" data-save-id="${html(r.id)}" aria-pressed="${isSaved}">${r.isCommunity||r.isShared ? (isSaved?"✓ Saved to your kitchen":"Save a private copy") : isSaved ? "♥ Saved to favourites" : "♡ Save recipe"}</button><button id="edit-recipe">${r.isCommunity || (r.isShared && r.contributorId!==K.user?.id) ? "Make a private edit" : r.isShared ? "Edit my contribution" : "Edit recipe"}</button><button id="plan-recipe">Add to plan ↗</button><button id="print-recipe">Print</button><button id="share-recipe">Copy link</button>${!r.isCommunity&&!r.isShared?'<button id="open-sharing">Share / publish ↗</button>':''}</div></div><div class="recipe-cover-image">${art(r, true)}</div></header>
       <div class="recipe-summary"><div><strong>${html(r.time)} minutes</strong>Total · as recorded</div><div><strong>${r.prepTime != null ? number(r.prepTime) + " min" : "Not recorded"}</strong>Preparation</div><div><strong>${r.cookTime != null ? number(r.cookTime) + " min" : "Not recorded"}</strong>Cooking</div><div><strong>${base ? `${servings} serving${servings === 1 ? "" : "s"}` : "Yield not recorded"}</strong>${base ? "Adjust below to suit your table" : "Original quantities shown"}</div></div>
       <nav class="recipe-tabs" aria-label="Recipe sections"><button class="${tab === "ingredients" ? "active" : ""}" data-tab="ingredients" aria-pressed="${tab === "ingredients"}">Ingredients</button><button class="${tab === "method" ? "active" : ""}" data-tab="method" aria-pressed="${tab === "method"}">Method & notes</button></nav>
       <div class="recipe-detail-body" data-tab="${tab}"><aside class="ingredients-pane"><div class="ingredient-heading"><h3>Ingredients</h3><div class="serving-control"><button id="less-servings" aria-label="Decrease servings" ${!base || servings <= 1 ? "disabled" : ""}>−</button><span aria-live="polite">${servings || "—"}</span><button id="more-servings" aria-label="Increase servings" ${!base || servings >= 48 ? "disabled" : ""}>+</button></div></div><p class="form-hint">${base ? `For ${servings} serving${servings === 1 ? "" : "s"}. Tick off as you go. ${ratio !== 1 ? "Quantities scaled from the original recipe; season to taste." : ""}` : "Serving size is missing. Add it in Edit recipe to scale quantities."}</p><ul class="ingredient-list">${ingredientMarkup(r, ratio, checked)}</ul>
-      ${r.note ? `<div class="recipe-note"><strong>From the recipe notebook</strong>${html(r.note)}</div>` : ""}
+      ${r.note ? `<div class="recipe-note"><strong>From the recipe notebook</strong><span ${r.isCustom||r.isShared||r.isCommunity?'translate="no"':''}>${html(r.note)}</span></div>` : ""}
       <div class="nutrition-block nutrition-only"><div class="nutrition-heading"><h3>Nutrition</h3><select id="nutrition-basis" aria-label="Nutrition basis"><option value="serving">Per serving</option><option value="batch" ${!base ? "disabled" : ""}>Whole batch</option></select></div><div class="macro-grid" id="macro-grid"></div><p class="nutrition-disclaimer">Recorded values, not independently verified. May be estimates; see the recipe notebook for source details. Missing values are shown as —. Batch totals multiply recorded per-serving values. Substitutions require updated nutrition.</p></div></aside>
-      <section class="method-pane"><div class="method-heading"><h3>Let’s make it.</h3><button class="small-button" id="start-cooking">Start cooking ↗</button></div><ol class="dialog-steps">${r.steps.map((step) => `<li>${html(step)}</li>`).join("")}</ol>
+      <section class="method-pane"><div class="method-heading"><h3>Let’s make it.</h3><button class="small-button" id="start-cooking">Start cooking ↗</button></div><ol class="dialog-steps">${r.steps.map((step) => `<li ${r.isCustom||r.isShared||r.isCommunity?'translate="no"':''}>${html(step)}</li>`).join("")}</ol>
       <div class="personal-notes"><p class="eyebrow">MAKE IT YOURS</p><h3>Your kitchen notes</h3><label for="personal-note">What worked, what you’d change</label><textarea id="personal-note" rows="3" placeholder="A little more lemon next time…">${html(notes.note || "")}</textarea><label for="personal-subs">Modifications & substitutions</label><textarea id="personal-subs" rows="2" placeholder="Swapped cream for oat cream…">${html(notes.substitutions || "")}</textarea><label for="personal-tags">Personal tags (comma separated)</label><input id="personal-tags" value="${html((notes.tags || []).join(", "))}" placeholder="make again, freezer-friendly"><label for="recipe-collection">Keep in a collection</label><select id="recipe-collection"><option value="">Choose a collection…</option>${Object.keys(
         lists,
       )
         .map(
           (name) =>
-            `<option value="${html(name)}" ${lists[name].includes(noteId) ? "selected" : ""}>${html(name)}</option>`,
+            `<option translate="no" value="${html(name)}" ${lists[name].includes(noteId) ? "selected" : ""}>${html(name)}</option>`,
         )
         .join(
           "",
@@ -507,7 +507,8 @@
     root.querySelector("#share-recipe").onclick = async () => {
       try {
         let link=location.href;if(r.isShared){const url=new URL('cookbook.html',location.href);url.searchParams.set('sharedBook',r.sharedBookId);url.searchParams.set('sharedRecipe',r.id);link=url.href;}
-        await navigator.clipboard.writeText(link);
+        const sharedUrl=new URL(link);if(window.AnnaI18n?.language==='es')sharedUrl.searchParams.set('lang','es');
+        await navigator.clipboard.writeText(sharedUrl.href);
         notify("Recipe link copied");
       } catch {
         notify("Copy the recipe link from your address bar");
@@ -626,7 +627,7 @@
   function renderCook() {
     const { recipe: r, servings, checked } = current;
     const content = document.querySelector("#dialog-content");
-    content.innerHTML = `<section class="cook-panel"><div class="cook-top"><h2 id="recipe-dialog-title">${html(r.title)}</h2><button class="small-button" id="exit-cooking">Exit cooking mode</button></div><div class="cook-progress" aria-hidden="true"><span style="width:${((cookIndex + 1) / r.steps.length) * 100}%"></span></div><div class="cook-step"><p class="eyebrow" role="status" aria-live="polite">STEP ${cookIndex + 1} OF ${r.steps.length}</p><p class="cook-step-text" tabindex="-1">${html(r.steps[cookIndex])}</p><div class="cook-controls"><button class="small-button" id="previous-step" ${cookIndex === 0 ? "disabled" : ""}>← Previous</button><button class="primary-button" id="next-step">${cookIndex === r.steps.length - 1 ? "Finish cooking ✓" : "Next step →"}</button></div><p class="wake-status">${wakeLock ? "Screen stays awake while cooking." : "Screen-awake support depends on your browser. Keep this tab open."}</p><details class="cook-ingredients"><summary>Ingredients · ${servings || "original"} ${servings ? "servings" : "quantities"}</summary><ul class="ingredient-list">${ingredientMarkup(r, r.servings ? servings / r.servings : 1, checked)}</ul></details></div></section>`;
+    content.innerHTML = `<section class="cook-panel"><div class="cook-top"><h2 ${r.isCustom||r.isShared||r.isCommunity?'translate="no"':''} id="recipe-dialog-title">${html(r.title)}</h2><button class="small-button" id="exit-cooking">Exit cooking mode</button></div><div class="cook-progress" aria-hidden="true"><span style="width:${((cookIndex + 1) / r.steps.length) * 100}%"></span></div><div class="cook-step"><p class="eyebrow" role="status" aria-live="polite">STEP ${cookIndex + 1} OF ${r.steps.length}</p><p ${r.isCustom||r.isShared||r.isCommunity?'translate="no"':''} class="cook-step-text" tabindex="-1">${html(r.steps[cookIndex])}</p><div class="cook-controls"><button class="small-button" id="previous-step" ${cookIndex === 0 ? "disabled" : ""}>← Previous</button><button class="primary-button" id="next-step">${cookIndex === r.steps.length - 1 ? "Finish cooking ✓" : "Next step →"}</button></div><p class="wake-status">${wakeLock ? "Screen stays awake while cooking." : "Screen-awake support depends on your browser. Keep this tab open."}</p><details class="cook-ingredients"><summary>Ingredients · ${servings || "original"} ${servings ? "servings" : "quantities"}</summary><ul class="ingredient-list">${ingredientMarkup(r, r.servings ? servings / r.servings : 1, checked)}</ul></details></div></section>`;
     content.querySelector("#previous-step").onclick = () => {
       cookIndex--;
       renderCook();
@@ -698,7 +699,7 @@
     select.innerHTML =
       '<option value="">All collections</option>' +
       Object.keys(collections())
-        .map((name) => `<option value="${html(name)}">${html(name)}</option>`)
+        .map((name) => `<option translate="no" value="${html(name)}">${html(name)}</option>`)
         .join("");
     select.value = value;
   }
@@ -1002,9 +1003,11 @@
             entry = { name: line, amount: null, unit: "", count: 1 };
           }
         }
+        entry.translateIngredient=!recipe.isCustom&&!recipe.isShared&&!recipe.isCommunity;
         if (grouped.has(key)) {
           const old = grouped.get(key);
           old.count++;
+          old.translateIngredient=old.translateIngredient&&entry.translateIngredient;
           if (entry.amount !== null) old.amount += entry.amount;
         } else grouped.set(key, entry);
       }

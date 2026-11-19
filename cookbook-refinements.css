@@ -279,3 +279,9 @@ body.dark-theme .grocery-form input {
 #sharing-dialog h2, .shared-book-tile strong { overflow-wrap:anywhere; }
 .published-manage { margin-top:24px; padding-top:20px; border-top:1px solid var(--line); }
 .published-manage h3 { font:30px var(--serif); }
+
+/* Language preference follows the existing small header controls. */
+.language-control select { font: inherit; font-size: 11px; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 4px; min-height: 36px; padding: 5px 3px; cursor: pointer; max-width: 48px; }
+.language-control select:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+@media (max-width: 400px) { .header-actions { gap: 3px; } .account-button { padding-inline: 8px; font-size: 10px; } .logo-title { font-size: 28px; } }
+.header-actions button, .featured-card { color: var(--ink); }

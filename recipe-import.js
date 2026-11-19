@@ -38,7 +38,7 @@
       if(data.image){const bytes=Uint8Array.from(atob(data.image.base64),c=>c.charCodeAt(0));photo=new File([bytes],'imported-recipe.'+({'image/jpeg':'jpg','image/png':'png','image/webp':'webp'}[data.image.type]||'jpg'),{type:data.image.type});recipe.image=`data:${data.image.type};base64,${data.image.base64}`;recipe.imageCaption=recipe.sourceAuthor?`Recipe photo · ${recipe.sourceAuthor}`:'Photo from the original recipe';}
       dialog.close();K.openEditor(recipe,{imported:true,photo,folderId,newFolder,shareBookId:sharedBookId});
       const editor=document.querySelector('#custom-recipe-dialog');
-      editor.querySelector('#editor-status').textContent=['Review the imported recipe before saving. Nothing has been saved yet.',...(data.warnings||[])].join(' ');
+      editor.querySelector('#editor-status').replaceChildren(...['Review the imported recipe before saving. Nothing has been saved yet.',...(data.warnings||[])].map(message=>{const span=document.createElement('span');span.textContent=message+' ';return span;}));
     }catch(error){if(generation===attempt&&dialog.open)status.textContent=K.errorMessage(error);}
     finally{if(generation===attempt)submit.disabled=false;}
   };
