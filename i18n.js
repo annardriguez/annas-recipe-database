@@ -6,6 +6,7 @@
   try{const query=new URLSearchParams(location.search).get('lang');language=allowed.has(query)?query:localStorage.getItem(key)||'en';if(!allowed.has(language))language='en';if(allowed.has(query))localStorage.setItem(key,language);}catch{}
   document.documentElement.lang=language;
   const catalog=new Map(Object.entries(window.ANNA_ES_UI||{})),recipeStrings=new Map();
+  const caseCatalog=new Map([...catalog].map(([a,b])=>[a.toLowerCase(),b]));
   const patterns=[];
   patterns.push(
     [/^Yield recorded as “(.*)”\. Check the servings before scaling\.$/,(_,yieldText)=>`Rendimiento indicado: «${yieldText}». Comprueba las raciones antes de ajustar las cantidades.`],
@@ -47,7 +48,7 @@
   );
   function translate(value){
     if(language!=='es')return String(value??'');
-    const original=String(value??''),text=normalize(original);let result=catalog.get(text)??recipeStrings.get(text);
+    const original=String(value??''),text=normalize(original);let result=catalog.get(text)??caseCatalog.get(text.toLowerCase())??recipeStrings.get(text);
     if(result===undefined)for(const [pattern,replace]of patterns){if(pattern.test(text)){result=text.replace(pattern,replace);break;}}
     return result===undefined?original:(original.match(/^\s*/)[0]+result+original.match(/\s*$/)[0]);
   }
@@ -92,7 +93,7 @@
   }
   window.AnnaI18n={t:translate,apply,setLanguage,get language(){return language;},get locale(){return language==='es'?'es-ES':'en-GB';},patterns,
     registerRecipes(originals,translations,ingredient){for(let i=0;i<originals.length;i++){const r=originals[i],es=translations[i];if(!es||es[2].length!==r.steps.length)throw new Error('Incomplete recipe translation: '+r.id);for(const [a,b]of [[r.title,es[0]],[r.description,es[1]],...r.steps.map((step,j)=>[step,es[2][j]])])recipeStrings.set(normalize(a),b);for(const line of r.ingredients)recipeStrings.set(normalize(line),ingredient(line));}apply();},
-    add:entries=>{for(const [a,b]of Object.entries(entries))catalog.set(normalize(a),b);apply();},
+    add:entries=>{for(const [a,b]of Object.entries(entries)){catalog.set(normalize(a),b);caseCatalog.set(normalize(a).toLowerCase(),b);}apply();},
     ingredient:line=>line,
     search:recipe=>normalize([recipe.title,recipe.description,...recipe.ingredients,...recipe.tags,...recipe.equipment].map(translate).join(' ')).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(),
     tag:value=>({'vegetariano':'vegetarian','vegetariana':'vegetarian','vegano':'vegan','vegana':'vegan','rico en proteinas':'high protein','alta en proteinas':'high protein','preparacion anticipada':'meal prep','freidora de aire':'air fryer'}[normalize(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()]||String(value).toLowerCase()),
